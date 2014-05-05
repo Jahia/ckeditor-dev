@@ -17,6 +17,7 @@ var CKBUILDER_CONFIG = {
 	plugins: {
 		a11yhelp: 1,
 		about: 1,
+		acheck: 1,
 		basicstyles: 1,
 		bidi: 1,
 		blockquote: 1,
@@ -35,7 +36,7 @@ var CKBUILDER_CONFIG = {
 		floatingspace: 1,
 		font: 1,
 		format: 1,
-		forms: 1,
+		forms: 0,
 		horizontalrule: 1,
 		htmlwriter: 1,
 		iframe: 1,
@@ -46,6 +47,7 @@ var CKBUILDER_CONFIG = {
 		link: 1,
 		list: 1,
 		liststyle: 1,
+		macrosdropdown: 1,
 		magicline: 1,
 		maximize: 1,
 		newpage: 1,
@@ -56,8 +58,9 @@ var CKBUILDER_CONFIG = {
 		print: 1,
 		removeformat: 1,
 		resize: 1,
-		save: 1,
+		save: 0,
 		selectall: 1,
+		scayt : 1,
 		showblocks: 1,
 		showborders: 1,
 		smiley: 1,
@@ -70,6 +73,7 @@ var CKBUILDER_CONFIG = {
 		templates: 1,
 		toolbar: 1,
 		undo: 1,
+		wsc : 1,
 		wysiwygarea: 1
 	}
 };
