@@ -181,8 +181,8 @@
 			params.langCode = editor.langCode;
 
 		var url = addQueryString( this.filebrowser.url, params );
-		// TODO: V4: Remove backward compatibility (https://dev.ckeditor.com/ticket/8163).
-		editor.popup( url, width, height, editor.config.filebrowserWindowFeatures || editor.config.fileBrowserWindowFeatures );
+		// TODO: V4: Remove backward compatibility (#8163).
+		editor.popup( url, width, height, editor.config.filebrowserWindowFeatures || editor.config.fileBrowserWindowFeatures, editor.config.filebrowserWindowName );
 	}
 
 	// Appends token preventing CSRF attacks to the form of provided file input.
