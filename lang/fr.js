@@ -29,6 +29,8 @@ CKEDITOR.lang[ 'fr' ] = {
 		editorHelp: 'Appuyez sur ALT-0 pour l\'aide',
 
 		browseServer: 'Explorer le serveur',
+        browseServerFiles:'Fichiers',
+        browseServerPages:'Contenu',
 		url: 'URL',
 		protocol: 'Protocole',
 		upload: 'Envoyer',

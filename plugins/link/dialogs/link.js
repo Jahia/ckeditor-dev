@@ -237,13 +237,39 @@
 								this.getElement().show();
 						}
 					},
-						{
-						type: 'button',
-						id: 'browse',
-						hidden: 'true',
-						filebrowser: 'info:url',
-						label: commonLang.browseServer
-					}
+                    {
+                        type : 'hbox',
+                        align : 'center',
+                        children:
+                            [
+                                {
+                                    type : 'button',
+                                    id : 'browse',
+                                    style : 'float:right',
+                                    hidden : 'true',
+                                    filebrowser :
+                                    {
+                                        action : 'Browse',
+                                        url : editor.config.filebrowserLinkBrowseUrl,
+                                        target : 'info:url'
+                                    },
+                                    label : commonLang.browseServer + ' (' + (commonLang.browseServerPages || 'Content') + ')'
+                                },
+                                {
+                                    type : 'button',
+                                    id : 'browseFiles',
+                                    style : 'float:left',
+                                    hidden : 'true',
+                                    filebrowser :
+                                    {
+                                        action : 'Browse',
+                                        url : editor.config.filebrowserBrowseUrl,
+                                        target : 'info:url'
+                                    },
+                                    label : commonLang.browseServer + ' (' + (commonLang.browseServerFiles || 'Files') + ')'
+                                }
+                            ]
+                    }
 					]
 				},
 					{
@@ -433,7 +459,22 @@
 						if ( !this.getDialog().getContentElement( 'info', 'linkType' ) )
 							this.getElement().hide();
 					}
-				}
+				},
+                {
+                    type : 'hbox',
+                    children :
+                        [
+                            {
+                                type : 'text',
+                                label : linkLang.advisoryTitle,
+                                'default' : '',
+                                id : 'advTitle',
+                                setup : setupAdvParams,
+                                commit : commitAdvParams
+
+                            }
+                        ]
+                }
 				]
 			},
 				{
@@ -763,16 +804,6 @@
 						children: [
 							{
 							type: 'text',
-							label: linkLang.advisoryTitle,
-							requiredContent: 'a[title]',
-							'default': '',
-							id: 'advTitle',
-							setup: setupAdvParams,
-							commit: commitAdvParams
-
-						},
-							{
-							type: 'text',
 							label: linkLang.advisoryContentType,
 							requiredContent: 'a[type]',
 							'default': '',
@@ -780,7 +811,12 @@
 							setup: setupAdvParams,
 							commit: commitAdvParams
 
-						}
+						},
+                        {
+                            type : 'html',
+                            html : '&nbsp;'
+
+                        }
 						]
 					},
 						{

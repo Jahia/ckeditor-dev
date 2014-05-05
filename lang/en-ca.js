@@ -29,6 +29,8 @@ CKEDITOR.lang[ 'en-ca' ] = {
 		editorHelp: 'Press ALT 0 for help', // MISSING
 
 		browseServer: 'Browse Server',
+        browseServerFiles:'Files',
+        browseServerPages:'Content',
 		url: 'URL',
 		protocol: 'Protocol',
 		upload: 'Upload',
