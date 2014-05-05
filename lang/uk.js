@@ -29,6 +29,8 @@ CKEDITOR.lang[ 'uk' ] = {
 		editorHelp: 'натисніть ALT 0 для довідки',
 
 		browseServer: 'Огляд Сервера',
+        browseServerFiles:'Files',
+        browseServerPages:'Content',
 		url: 'URL',
 		protocol: 'Протокол',
 		upload: 'Надіслати',
