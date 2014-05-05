@@ -15,9 +15,10 @@ CKEDITOR.tools.extend( CKEDITOR.editor.prototype, {
 	 * @param {Number/String} [width='80%'] Popup window width.
 	 * @param {Number/String} [height='70%'] Popup window height.
 	 * @param {String} [options='location=no,menubar=no,toolbar=no,dependent=yes,minimizable=no,modal=yes,alwaysRaised=yes,resizable=yes,scrollbars=yes']
-	 * Popup window features.
+     * @param {String} windowName Popup window name.
+     * Popup window features.
 	 */
-	popup: function( url, width, height, options ) {
+	popup: function( url, width, height, options, windowName ) {
 		width = width || '80%';
 		height = height || '70%';
 
@@ -41,7 +42,7 @@ CKEDITOR.tools.extend( CKEDITOR.editor.prototype, {
 			',top=' + top +
 			',left=' + left;
 
-		var popupWindow = window.open( '', null, options, true );
+		var popupWindow = window.open( '', windowName, options, true );
 
 		// Blocked by a popup blocker.
 		if ( !popupWindow )
@@ -57,7 +58,7 @@ CKEDITOR.tools.extend( CKEDITOR.editor.prototype, {
 			popupWindow.focus();
 			popupWindow.location.href = url;
 		} catch ( e ) {
-			popupWindow = window.open( url, null, options, true );
+			popupWindow = window.open( url, windowName, options, true );
 		}
 
 		return true;

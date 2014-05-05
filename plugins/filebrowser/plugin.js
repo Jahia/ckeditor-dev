@@ -165,7 +165,7 @@
 
 		var url = addQueryString( this.filebrowser.url, params );
 		// TODO: V4: Remove backward compatibility (#8163).
-		editor.popup( url, width, height, editor.config.filebrowserWindowFeatures || editor.config.fileBrowserWindowFeatures );
+		editor.popup( url, width, height, editor.config.filebrowserWindowFeatures || editor.config.fileBrowserWindowFeatures, editor.config.filebrowserWindowName );
 	}
 
 	// The onlick function assigned to the 'Upload' button. Makes the final
