@@ -6,29 +6,6 @@
 CKEDITOR.plugins.add('macrosdropdown', {
             requires: ['richcombo'], //, 'styles' ],
             init: function (editor) {
-                var tags = [];
-                // test if Macros is defined in Toolbar
-                var isMacrosDefined = false;
-                if (typeof $ == 'undefined') {
-                	return;
-                }
-                $(eval("editor.config.toolbar_"+editor.config.toolbar)).each(function (){
-                    if(!isMacrosDefined && $.inArray('Macros',this)>-1) {
-                        isMacrosDefined = true;
-                    }
-                });
-                if (isMacrosDefined) {
-                    var domainURL = window.location.protocol + "//" + window.location.host +
-                                    (jahiaGWTParameters != undefined ? jahiaGWTParameters.contextPath : "");
-                    var initializerURL = domainURL+ '/cms/initializers';
-                    $.get(initializerURL,
-                            {name: 'macros', nodeuuid: (contextJsParameters != undefined ? contextJsParameters.siteUuid : null), initializers: 'choicelistmacros'}, function (result) {
-                                $.each(result, function (key, value) {
-                                    tags.push([value['name'][0], value['name'][0], value['name'][0]]);
-                                });
-                            }, 'json');
-                }
-
                 editor.ui.addRichCombo('Macros', {
                             label: 'Macros',
                             title: 'Insert macros',
@@ -42,7 +19,20 @@ CKEDITOR.plugins.add('macrosdropdown', {
 
                             init: function () {
                                 this.startGroup("Insert Macros");
-                                //this.add('value', 'drop_text', 'drop_label');
+                                var tags = [];
+                                var initializerURL = window.location.protocol + "//" + window.location.host +
+                                (jahiaGWTParameters != undefined ? jahiaGWTParameters.contextPath : "") + '/cms/initializers';
+                                $.ajax({
+                                    url: initializerURL,
+                                    data: {name: 'macros', nodeuuid: contextJsParameters.siteUuid, initializers: 'choicelistmacros'},
+                                    success: function (result) {
+                                            $.each(result, function (key, value) {
+                                                tags.push([value['name'][0], value['name'][0], value['name'][0]]);
+                                            });
+                                        },
+                                    dataType: 'json',
+                                    async: false
+                                });
                                 for (var this_tag in tags) {
                                     this.add(tags[this_tag][0], tags[this_tag][1], tags[this_tag][2]);
                                 }
