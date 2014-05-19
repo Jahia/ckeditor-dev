@@ -51,6 +51,7 @@ CKEDITOR.DF_CONTEXT_PATH = (typeof contextJsParameters != 'undefined') ? context
 CKEDITOR.DF_LANG = (typeof contextJsParameters != 'undefined') ? contextJsParameters.uilang : 'en';
 CKEDITOR.DF_CONTENT_LANG = (typeof contextJsParameters != 'undefined') ? contextJsParameters.lang : 'en';
 CKEDITOR.DF_SITE_UUID = (typeof contextJsParameters != 'undefined') ? contextJsParameters.siteUuid : '';
+CKEDITOR.DF_CUSTOM_CONFIG = (typeof contextJsParameters != 'undefined') ? contextJsParameters.ckeCfg : '';
 
 /**
  * Stores default configuration settings. Changes to this object are
@@ -77,7 +78,7 @@ CKEDITOR.config = {
 	 *
 	 * @cfg {String} [="<CKEditor folder>/config.js"]
 	 */
-	customConfig: '',
+	customConfig: CKEDITOR.DF_CUSTOM_CONFIG,
 
 	/**
 	 * Whether the replaced element (usually a `<textarea>`)
