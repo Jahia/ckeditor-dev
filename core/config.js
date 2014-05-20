@@ -52,6 +52,9 @@ CKEDITOR.DF_LANG = (typeof contextJsParameters != 'undefined') ? contextJsParame
 CKEDITOR.DF_CONTENT_LANG = (typeof contextJsParameters != 'undefined') ? contextJsParameters.lang : 'en';
 CKEDITOR.DF_SITE_UUID = (typeof contextJsParameters != 'undefined') ? contextJsParameters.siteUuid : '';
 CKEDITOR.DF_CUSTOM_CONFIG = (typeof contextJsParameters != 'undefined') ? contextJsParameters.ckeCfg : '';
+if (typeof CKEDITOR_BASEPATH == 'undefined') {
+	CKEDITOR_BASEPATH = CKEDITOR.DF_CONTEXT_PATH + '/modules/ckeditor/javascript/';
+}
 
 /**
  * Stores default configuration settings. Changes to this object are
