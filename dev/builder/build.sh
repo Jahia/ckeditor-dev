@@ -62,7 +62,6 @@ cd ../..
 printf "\n"
 printf "Starting CKBuilder...\n"
 
-java -jar ckbuilder/$CKBUILDER_VERSION/ckbuilder.jar --build ../../ release --version="4.4.0-jahia1" --build-config build-config.js --overwrite "$@"
-
-printf "\n"
-printf "Release created in the \"release\" directory.\n"
+java -jar ckbuilder/$CKBUILDER_VERSION/ckbuilder.jar --build ../../ release --version="4.4.1-jahia2-SNAPSHOT" --build-config build-config.js --overwrite "$@"
+echo ""
+echo "Release created in the \"release\" directory."
