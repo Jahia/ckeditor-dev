@@ -1,2 +1,4 @@
-dev/iconmaker/node_modules
+node_modules
+.bender/*
+bender-*.log
 /.project
