@@ -54,15 +54,6 @@ CKEDITOR.ENTER_BR = 2;
 CKEDITOR.ENTER_DIV = 3;
 
 /**
- * Digital Factory settings
- */
-CKEDITOR.DF_CONTEXT_PATH = (typeof contextJsParameters != 'undefined') ? contextJsParameters.contextPath : '';
-CKEDITOR.DF_LANG = (typeof contextJsParameters != 'undefined') ? contextJsParameters.uilang : 'en';
-CKEDITOR.DF_CONTENT_LANG = (typeof contextJsParameters != 'undefined') ? contextJsParameters.lang : 'en';
-CKEDITOR.DF_SITE_UUID = (typeof contextJsParameters != 'undefined') ? contextJsParameters.siteUuid : '';
-CKEDITOR.DF_CUSTOM_CONFIG = (typeof contextJsParameters != 'undefined') ? contextJsParameters.ckeCfg : '';
-
-/**
  * Stores default configuration settings. Changes to this object are
  * reflected in all editor instances, if not specified otherwise for a particular
  * instance.
@@ -93,7 +84,7 @@ CKEDITOR.config = {
 	 *
 	 * @cfg {String} [="<CKEditor folder>/config.js"]
 	 */
-	customConfig: CKEDITOR.DF_CUSTOM_CONFIG,
+	customConfig: 'config_default.js',
 
 	/**
 	 * Whether the element replaced by the editor (usually a `<textarea>`)
@@ -117,7 +108,7 @@ CKEDITOR.config = {
 	 *
 	 * @cfg
 	 */
-	language: CKEDITOR.DF_LANG,
+	language: '',
 
 	/**
 	 * The language to be used if the {@link CKEDITOR.config#language}
