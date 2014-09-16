@@ -62,6 +62,24 @@ cd ../..
 printf "\n"
 printf "Starting CKBuilder...\n"
 
-java -jar ckbuilder/$CKBUILDER_VERSION/ckbuilder.jar --build ../../ release --version="4.4.1-jahia2-SNAPSHOT" --build-config build-config.js --overwrite "$@"
+JAVA_ARGS=${ARGS// -t / } # Remove -t from arrgs
+
+java -jar ckbuilder/$CKBUILDER_VERSION/ckbuilder.jar --build ../../ release --version="4.4.4-jahia1" --overwrite $JAVA_ARGS
+
+# Copy and build tests
+if [[ "$ARGS" == *\ \-t\ * ]]; then
+	echo ""
+	echo "Coping tests..."
+
+	cp -r ../../tests release/ckeditor/tests
+	cp -r ../../package.json release/ckeditor/package.json
+	cp -r ../../bender.js release/ckeditor/bender.js
+
+	echo ""
+	echo "Installing tests..."
+
+	(cd release/ckeditor &&	npm install && bender init)
+fi
+
 echo ""
 echo "Release created in the \"release\" directory."
