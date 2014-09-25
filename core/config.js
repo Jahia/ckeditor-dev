@@ -84,7 +84,22 @@ CKEDITOR.config = {
 	 *
 	 * @cfg {String} [="<CKEditor folder>/config.js"]
 	 */
-	customConfig: 'config_default.js',
+	customConfig: '',
+
+	dynamicConfig: function( cfg ) {
+		var p = (typeof contextJsParameters != 'undefined') ? contextJsParameters : {};
+		cfg.contextPath = p.contextPath || '';
+		cfg.language = p.uilang || 'en';
+		cfg.contentlanguage = p.lang || 'en';
+		cfg.siteUuid = p.siteUuid || '';
+		cfg.customConfig = cfg.customConfig || (p.ckeCfg || '');
+		up = cfg.contextPath + '/engines/contentpicker.jsp?';
+		us = 'site=' + cfg.siteUuid + '&lang='+ cfg.contentlanguage + '&uilang='+ cfg.language;
+		cfg.filebrowserBrowseUrl = up + us;
+		cfg.filebrowserImageBrowseUrl = up + 'type=imagepicker&' + us;
+		cfg.filebrowserFlashBrowseUrl = up + '?mime=application%2Fx-shockwave-flash%2Cvideo%2Fx-flv&' + us;
+		cfg.filebrowserLinkBrowseUrl = up + 'type=editoriallinkpicker&' + us;
+	},
 
 	/**
 	 * Whether the element replaced by the editor (usually a `<textarea>`)
@@ -421,78 +436,64 @@ CKEDITOR.config = {
 	 * Digital Factory specific config.
 	 */
 	allowedContent: true,
-
-	contextPath: CKEDITOR.DF_CONTEXT_PATH,
-
-	language: CKEDITOR.DF_LANG,
-
-	contentlanguage: CKEDITOR.DF_CONTENT_LANG,
-
-	siteUuid: CKEDITOR.DF_SITE_UUID,
-
 	filebrowserWindowWidth: '810',
 	filebrowserWindowHeight: '650',
 	filebrowserLinkWindowHeight: '800',
 	filebrowserWindowFeatures: 'location=no,menubar=no,toolbar=no,dependent=yes,minimizable=no,modal=yes,alwaysRaised=yes,resizable=yes,scrollbars=yes',
 	filebrowserWindowName: 'JahiaFileBrowser',
-	filebrowserBrowseUrl: CKEDITOR.DF_CONTEXT_PATH + '/engines/contentpicker.jsp?site=' + CKEDITOR.DF_SITE_UUID + '&lang='+ CKEDITOR.DF_CONTENT_LANG + '&uilang='+ CKEDITOR.DF_LANG,
-	filebrowserImageBrowseUrl: CKEDITOR.DF_CONTEXT_PATH + '/engines/contentpicker.jsp?type=imagepicker&site=' + CKEDITOR.DF_SITE_UUID + '&lang='+ CKEDITOR.DF_CONTENT_LANG + '&uilang='+ CKEDITOR.DF_LANG,
-	filebrowserFlashBrowseUrl: CKEDITOR.DF_CONTEXT_PATH + '/engines/contentpicker.jsp?mime=application%2Fx-shockwave-flash%2Cvideo%2Fx-flv&site=' + CKEDITOR.DF_SITE_UUID + '&lang='+ CKEDITOR.DF_CONTENT_LANG + '&uilang='+ CKEDITOR.DF_LANG,
-	filebrowserLinkBrowseUrl: CKEDITOR.DF_CONTEXT_PATH + '/engines/contentpicker.jsp?type=editoriallinkpicker&site=' + CKEDITOR.DF_SITE_UUID + '&lang='+ CKEDITOR.DF_CONTENT_LANG + '&uilang='+ CKEDITOR.DF_LANG,
 	image_previewText: '',
-
 	toolbar: 'Full',
 	toolbar_Full: [
-	    ['Source','-','NewPage','Preview','Print','-','Templates'],
-	    ['Cut','Copy','Paste','PasteText','PasteFromWord','-', 'Undo','Redo'],
-	    ['Find','Replace','-','SelectAll','-','wsc', 'Scayt', 'ACheck'],
-	    '/',
-	    ['Bold','Italic','Underline','Strike','Subscript','Superscript','RemoveFormat'],
-	    ['NumberedList','BulletedList','-','Outdent','Indent','Blockquote','CreateDiv'],
-	    ['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock'],
-	    ['Link','Unlink','Anchor'],
-	    ['Image','Flash','Table','HorizontalRule','Smiley','SpecialChar','PageBreak'],
-	    '/',
-	    ['Macros','Styles','Format','Font','FontSize'],
-	    ['TextColor','BGColor'],
-	    ['Maximize', 'ShowBlocks','-','About']
+		['Source','-','NewPage','Preview','Print','-','Templates'],
+		['Cut','Copy','Paste','PasteText','PasteFromWord','-', 'Undo','Redo'],
+		['Find','Replace','-','SelectAll','-','wsc', 'Scayt', 'ACheck'],
+		'/',
+		['Bold','Italic','Underline','Strike','Subscript','Superscript','RemoveFormat'],
+		['NumberedList','BulletedList','-','Outdent','Indent','Blockquote','CreateDiv'],
+		['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock'],
+		['Link','Unlink','Anchor'],
+		['Image','Flash','Table','HorizontalRule','Smiley','SpecialChar','PageBreak'],
+		'/',
+		['Macros','Styles','Format','Font','FontSize'],
+		['TextColor','BGColor'],
+		['Maximize', 'ShowBlocks','-','About']
 	],
 	toolbar_Basic: [
-	    ['Source','-','NewPage','Preview','Print','-','Templates'],
-	    ['Cut','Copy','Paste','PasteText','PasteFromWord','-', 'Undo','Redo'],
-	    ['Find','Replace','-','SelectAll','-','wsc', 'Scayt', 'ACheck'],
-	    '/',
-	    ['Bold','Italic','Underline','Strike','Subscript','Superscript','RemoveFormat'],
-	    ['NumberedList','BulletedList'],
-	    ['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock'],
-	    ['Link','Unlink','Anchor'],
-	    ['Image','Flash','Table','HorizontalRule','Smiley','SpecialChar'],
-	    '/',
-	    ['Maximize', 'ShowBlocks','-','About']
+		['Source','-','NewPage','Preview','Print','-','Templates'],
+		['Cut','Copy','Paste','PasteText','PasteFromWord','-', 'Undo','Redo'],
+		['Find','Replace','-','SelectAll','-','wsc', 'Scayt', 'ACheck'],
+		'/',
+		['Bold','Italic','Underline','Strike','Subscript','Superscript','RemoveFormat'],
+		['NumberedList','BulletedList'],
+		['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock'],
+		['Link','Unlink','Anchor'],
+		['Image','Flash','Table','HorizontalRule','Smiley','SpecialChar'],
+		'/',
+		['Maximize', 'ShowBlocks','-','About']
 	],
 	toolbar_Mini: [
-	    ['Bold','Italic','Underline','Strike','RemoveFormat'],
-	    ['NumberedList','BulletedList','-','Blockquote'],
-	    ['Link','Unlink'],
-	    ['Image','Smiley'],
-	    ['TextColor','BGColor']
+		['Bold','Italic','Underline','Strike','RemoveFormat'],
+		['NumberedList','BulletedList','-','Blockquote'],
+		['Link','Unlink'],
+		['Image','Smiley'],
+		['TextColor','BGColor']
 	],
 	toolbar_Light: [
-	    ['Bold','Italic','Underline','Strike','RemoveFormat','-','NumberedList','BulletedList']
+		['Bold','Italic','Underline','Strike','RemoveFormat','-','NumberedList','BulletedList']
 	],
 	toolbar_User: [
-	    ['Cut','Copy','Paste','PasteText','PasteFromWord','-', 'Undo','Redo'],
-	    ['Find','Replace','-','SelectAll','-','wsc', 'Scayt', 'ACheck'],
-	    ['Link','Unlink','Anchor', 'Image','LinkFile'],
-	    ['HorizontalRule','Smiley','SpecialChar','PageBreak'],
-	    '/',
-	    ['Bold','Italic','Underline','Strike','-','Subscript','Superscript'],
-	    ['NumberedList','BulletedList','-','Outdent','Indent','Blockquote'],
-	    ['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock'],
-	    '/',
-	    ['Styles','Format','Font','FontSize'],
-	    ['TextColor','BGColor'],
-	    ['Maximize', 'ShowBlocks']
+		['Cut','Copy','Paste','PasteText','PasteFromWord','-', 'Undo','Redo'],
+		['Find','Replace','-','SelectAll','-','wsc', 'Scayt', 'ACheck'],
+		['Link','Unlink','Anchor', 'Image','LinkFile'],
+		['HorizontalRule','Smiley','SpecialChar','PageBreak'],
+		'/',
+		['Bold','Italic','Underline','Strike','-','Subscript','Superscript'],
+		['NumberedList','BulletedList','-','Outdent','Indent','Blockquote'],
+		['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock'],
+		'/',
+		['Styles','Format','Font','FontSize'],
+		['TextColor','BGColor'],
+		['Maximize', 'ShowBlocks']
 	]
 };
 
