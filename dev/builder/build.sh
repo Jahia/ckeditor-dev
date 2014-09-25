@@ -57,7 +57,7 @@ echo "Starting CKBuilder..."
 
 JAVA_ARGS=${ARGS// -t / } # Remove -t from arrgs
 
-java -jar ckbuilder/$CKBUILDER_VERSION/ckbuilder.jar --build ../../ release --version="4.4.4-jahia1" --overwrite $JAVA_ARGS
+java -jar ckbuilder/$CKBUILDER_VERSION/ckbuilder.jar --build ../../ release --version="4.4.4-jahia2" --overwrite $JAVA_ARGS
 
 # Copy and build tests
 if [[ "$ARGS" == *\ \-t\ * ]]; then

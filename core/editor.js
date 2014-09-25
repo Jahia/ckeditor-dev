@@ -244,8 +244,13 @@
 	var loadConfigLoaded = {};
 
 	function loadConfig( editor ) {
-		var customConfig = editor.config.customConfig;
+		// if dynamic config is present evaluate it
+		if ( editor.config.dynamicConfig ) {
+			editor.config.dynamicConfig.call(editor, editor.config);
+		}
 
+		var customConfig = editor.config.customConfig;
+		
 		// Check if there is a custom config to load.
 		if ( !customConfig )
 			return false;
@@ -262,7 +267,7 @@
 
 			// If there is no other customConfig in the chain, fire the
 			// "configLoaded" event.
-			if ( CKEDITOR.getUrl( editor.config.customConfig ) == customConfig || !loadConfig( editor ) )
+			if ( !editor.config.customConfig || editor.config.customConfig == null || editor.config.customConfig.length == 0 || CKEDITOR.getUrl( editor.config.customConfig ) == customConfig || !loadConfig( editor ) )
 				editor.fireOnce( 'customConfigLoaded' );
 		} else {
 			// Load the custom configuration file.

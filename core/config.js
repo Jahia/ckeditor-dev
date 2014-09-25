@@ -69,7 +69,22 @@ CKEDITOR.config = {
 	 *
 	 * @cfg {String} [="<CKEditor folder>/config.js"]
 	 */
-	customConfig: 'config_default.js',
+	customConfig: '',
+	
+	dynamicConfig: function( cfg ) {
+		var p = (typeof contextJsParameters != 'undefined') ? contextJsParameters : {};
+		cfg.contextPath = p.contextPath || '';
+		cfg.language = p.uilang || 'en';
+		cfg.contentlanguage = p.lang || 'en';
+		cfg.siteUuid = p.siteUuid || '';
+		cfg.customConfig = cfg.customConfig || (p.ckeCfg || '');
+		up = cfg.contextPath + '/engines/contentpicker.jsp?';
+		us = 'site=' + cfg.siteUuid + '&lang='+ cfg.contentlanguage + '&uilang='+ cfg.language;
+		cfg.filebrowserBrowseUrl = up + us;
+		cfg.filebrowserImageBrowseUrl = up + 'type=imagepicker&' + us;
+		cfg.filebrowserFlashBrowseUrl = up + '?mime=application%2Fx-shockwave-flash%2Cvideo%2Fx-flv&' + us;
+		cfg.filebrowserLinkBrowseUrl = up + 'type=editoriallinkpicker&' + us;
+	},
 
 	/**
 	 * Whether the replaced element (usually a `<textarea>`)
@@ -349,6 +364,70 @@ CKEDITOR.config = {
 		CKEDITOR.CTRL + 66, // CTRL+B
 		CKEDITOR.CTRL + 73, // CTRL+I
 		CKEDITOR.CTRL + 85 // CTRL+U
+	],
+
+	/**
+	 * Digital Factory specific config.
+	 */
+	allowedContent: true,
+	filebrowserWindowWidth: '810',
+	filebrowserWindowHeight: '650',
+	filebrowserLinkWindowHeight: '800',
+	filebrowserWindowFeatures: 'location=no,menubar=no,toolbar=no,dependent=yes,minimizable=no,modal=yes,alwaysRaised=yes,resizable=yes,scrollbars=yes',
+	filebrowserWindowName: 'JahiaFileBrowser',
+	image_previewText: '',
+	toolbar: 'Full',
+	toolbar_Full: [
+		['Source','-','NewPage','Preview','Print','-','Templates'],
+		['Cut','Copy','Paste','PasteText','PasteFromWord','-', 'Undo','Redo'],
+		['Find','Replace','-','SelectAll','-','wsc', 'Scayt', 'ACheck'],
+		'/',
+		['Bold','Italic','Underline','Strike','Subscript','Superscript','RemoveFormat'],
+		['NumberedList','BulletedList','-','Outdent','Indent','Blockquote','CreateDiv'],
+		['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock'],
+		['Link','Unlink','Anchor'],
+		['Image','Flash','Table','HorizontalRule','Smiley','SpecialChar','PageBreak'],
+		'/',
+		['Macros','Styles','Format','Font','FontSize'],
+		['TextColor','BGColor'],
+		['Maximize', 'ShowBlocks','-','About']
+	],
+	toolbar_Basic: [
+		['Source','-','NewPage','Preview','Print','-','Templates'],
+		['Cut','Copy','Paste','PasteText','PasteFromWord','-', 'Undo','Redo'],
+		['Find','Replace','-','SelectAll','-','wsc', 'Scayt', 'ACheck'],
+		'/',
+		['Bold','Italic','Underline','Strike','Subscript','Superscript','RemoveFormat'],
+		['NumberedList','BulletedList'],
+		['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock'],
+		['Link','Unlink','Anchor'],
+		['Image','Flash','Table','HorizontalRule','Smiley','SpecialChar'],
+		'/',
+		['Maximize', 'ShowBlocks','-','About']
+	],
+	toolbar_Mini: [
+		['Bold','Italic','Underline','Strike','RemoveFormat'],
+		['NumberedList','BulletedList','-','Blockquote'],
+		['Link','Unlink'],
+		['Image','Smiley'],
+		['TextColor','BGColor']
+	],
+	toolbar_Light: [
+		['Bold','Italic','Underline','Strike','RemoveFormat','-','NumberedList','BulletedList']
+	],
+	toolbar_User: [
+		['Cut','Copy','Paste','PasteText','PasteFromWord','-', 'Undo','Redo'],
+		['Find','Replace','-','SelectAll','-','wsc', 'Scayt', 'ACheck'],
+		['Link','Unlink','Anchor', 'Image','LinkFile'],
+		['HorizontalRule','Smiley','SpecialChar','PageBreak'],
+		'/',
+		['Bold','Italic','Underline','Strike','-','Subscript','Superscript'],
+		['NumberedList','BulletedList','-','Outdent','Indent','Blockquote'],
+		['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock'],
+		'/',
+		['Styles','Format','Font','FontSize'],
+		['TextColor','BGColor'],
+		['Maximize', 'ShowBlocks']
 	]
 };
 
