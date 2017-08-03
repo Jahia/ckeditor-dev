@@ -6,7 +6,7 @@
 /* exported CKBUILDER_CONFIG */
 
 var CKBUILDER_CONFIG = {
-	skin: 'moono-lisa',
+	skin: 'moono',
 	ignore: [
 		'bender.js',
 		'bender.ci.js',
