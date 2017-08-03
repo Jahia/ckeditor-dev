@@ -2,20 +2,21 @@
 /* bender-ckeditor-plugins: list,justify,bidi,table,forms,toolbar */
 
 bender.editor = {
-	config: { enterMode: CKEDITOR.ENTER_P },
+	config: {
+		enterMode: CKEDITOR.ENTER_P
+	},
 	allowedForTests: 'li{margin-right}[type]; ul[lang]; ol{font-size}; dl dt dd'
 };
 
-bender.test(
-{
-	supportForSelectFullList : function() {
+bender.test( {
+	supportForSelectFullList: function() {
 		// With full selection, it will break inline in old IEs.
 		return !( this.editor.elementMode == CKEDITOR.ELEMENT_MODE_INLINE &&
 			CKEDITOR.env.ie && CKEDITOR.env.version < 9 );
 	},
 
 	// Test list creation.
-	'test apply list' : function() {
+	'test apply list': function() {
 		var bot = this.editorBot;
 
 		bot.setHtmlWithSelection( '[<p>foo<br />bar</p><p>baz</p>]' );
@@ -25,8 +26,8 @@ bender.test(
 		assert.areSame( '<ul><li>foo</li><li>bar</li><li>baz</li></ul>', bot.getData( false, true ) );
 	},
 
-	// #3940
-	'test create list in table' : function() {
+	// http://dev.ckeditor.com/ticket/3940
+	'test create list in table': function() {
 		var bot = this.editorBot;
 		bender.tools.testInputOut( 'create_list_table', function( input, expected ) {
 			bot.setHtmlWithSelection( input );
@@ -35,7 +36,7 @@ bender.test(
 		} );
 	},
 
-	'test apply list ( with justify style)' : function() {
+	'test apply list ( with justify style)': function() {
 		var bot = this.editorBot;
 
 		bot.setHtmlWithSelection( '<p>[foo</p><p style="text-align:center;">bar</p><p style="text-align:right;">baz]</p>' );
@@ -47,7 +48,7 @@ bender.test(
 		assert.areSame( '<p>foo</p><p style="text-align:center;">bar</p><p style="text-align:right;">baz</p>', bot.getData( true ) );
 	},
 
-	'test apply list (with text direction)' : function() {
+	'test apply list (with text direction)': function() {
 		var bot = this.editorBot;
 
 		bot.setHtmlWithSelection( '[<p dir="rtl">foo</p><p dir="rtl">bar</p><p dir="rtl">baz</p>]' );
@@ -59,8 +60,8 @@ bender.test(
 		assert.areSame( '<p dir="rtl">foo</p><p dir="rtl">bar</p><p dir="rtl">baz</p>', bot.getData( true ) );
 	},
 
-	// #7657
-	'test apply list (with block styles)' : function() {
+	// http://dev.ckeditor.com/ticket/7657
+	'test apply list (with block styles)': function() {
 		var bot = this.editorBot;
 		bot.setHtmlWithSelection( '[<p dir="rtl">Item 1</p><p dir="rtl" style="margin-right: 40px;">Item 2</p><p dir="rtl" style="margin-right: 80px;">Item 3</p>]' );
 		bot.execCommand( 'bulletedlist' );
@@ -68,7 +69,7 @@ bender.test(
 	},
 
 	// Test list removal.
-	'test remove list' : function() {
+	'test remove list': function() {
 		var bot = this.editorBot;
 
 		bot.setHtmlWithSelection( '<ol><li>^text</li></ol>' );
@@ -88,16 +89,16 @@ bender.test(
 		assert.areSame( '<ul><li>a</li></ul><p>b</p><ul><li>c</li></ul>', bot.getData( false, true ) );
 	},
 
-	// (#6715)
-	'test remove list (inside table)' : function() {
+	// (http://dev.ckeditor.com/ticket/6715)
+	'test remove list (inside table)': function() {
 		var bot = this.editorBot;
 		bot.setHtmlWithSelection( '<table><tr><td><ol><li>[item 1</li><li>item 2]</li></ol></td></tr></table>' );
 		bot.execCommand( 'numberedlist' );
 		assert.areSame( '<table><tbody><tr><td><p>item 1</p><p>item 2</p></td></tr></tbody></table>', bot.getData( false, true ) );
 	},
 
-	// (#7645)
-	'test remove list (with input)' : function() {
+	// (http://dev.ckeditor.com/ticket/7645)
+	'test remove list (with input)': function() {
 		var bot = this.editorBot;
 		bot.setHtmlWithSelection( '<ol><li><input name="name" type="checkbox">[item1</li><li>item2]</li></ol>' );
 		bot.execCommand( 'numberedlist' );
@@ -105,9 +106,9 @@ bender.test(
 	},
 
 	/**
-	 *  Test merge newlist with previous list. (#3820)
+	 *  Test merge newlist with previous list. (http://dev.ckeditor.com/ticket/3820)
 	 */
-	'test create list with merge' : function() {
+	'test create list with merge': function() {
 		var bot = this.editorBot;
 		bot.setHtmlWithSelection( '<ul><li>bullet line 1</li><li>bullet line 2</li></ul><p>^second line</p>' );
 		bot.execCommand( 'bulletedlist' );
@@ -115,17 +116,17 @@ bender.test(
 	},
 
 	/**
-	 * Test switch list type with custom bullet attributes. (#4950)
+	 * Test switch list type with custom bullet attributes. (http://dev.ckeditor.com/ticket/4950)
 	 */
-	'test switch list type (with custom bullet)' : function() {
+	'test switch list type (with custom bullet)': function() {
 		var bot = this.editorBot;
 		bot.setHtmlWithSelection( '<ol><li type="square">[item1</li><li type="square">item2</li><li type="square">item3]</li></ol> ' );
 		bot.execCommand( 'bulletedlist' );
 		assert.areSame( '<ul><li type="square">item1</li><li type="square">item2</li><li type="square">item3</li></ul>', bot.getData( 1 ) );
 	},
 
-	// #7290
-	'test switch list type (inside definition list)' : function() {
+	// http://dev.ckeditor.com/ticket/7290
+	'test switch list type (inside definition list)': function() {
 		var bot = this.editorBot;
 		bender.tools.testInputOut( 'switch_list_dl', function( source, expected ) {
 			bot.setHtmlWithSelection( source );
@@ -135,15 +136,15 @@ bender.test(
 		} );
 	},
 
-	// #6059
-	'test switch list type keeps text direction' : function() {
+	// http://dev.ckeditor.com/ticket/6059
+	'test switch list type keeps text direction': function() {
 		var bot = this.editorBot;
 		bot.setHtmlWithSelection( '[<ol dir="rtl" lang="en"><li>line 1</li><li>line 2</li></ol>]' );
 		bot.execCommand( 'bulletedlist' );
 		assert.areSame( '<ul dir="rtl" lang="en"><li>line 1</li><li>line 2</li></ul>', bot.getData( true ) );
 	},
 
-	// #8997
+	// http://dev.ckeditor.com/ticket/8997
 	'test change list type keep styles on sub list': function() {
 		if ( !this.supportForSelectFullList() )
 			assert.ignore();
@@ -187,7 +188,7 @@ bender.test(
 
 	},
 
-	'test single list type active inside of nested list' : function() {
+	'test single list type active inside of nested list': function() {
 		var ed = this.editor, bot = this.editorBot;
 		bot.setHtmlWithSelection( '<ol><li>item1<ul><li>^item2</li></ul></li></ol>' );
 		var nList = ed.getCommand( 'numberedlist' ), bList = ed.getCommand( 'bulletedlist' );

@@ -5,7 +5,10 @@
 	'use strict';
 
 	bender.editor = {
-		creator: 'inline' // Speeeeeed...
+		creator: 'inline', // Speeeeeed...
+		config: {
+			pasteFilter: null
+		}
 	};
 
 	bender.test( {
@@ -41,7 +44,12 @@
 
 				var element = elements.getItem( 0 );
 
-				assert.areSame( 'always', element.getStyle( 'page-break-after' ), prefix + 'Pagebreak holds page-break-after style' );
+				// http://dev.ckeditor.com/ticket/14605, #tp2314
+				if ( CKEDITOR.env.webkit ) {
+					assert.areSame( 'page', element.getStyle( 'break-after' ), prefix + 'Pagebreak holds page-break-after style' );
+				} else {
+					assert.areSame( 'always', element.getStyle( 'page-break-after' ), prefix + 'Pagebreak holds page-break-after style' );
+				}
 				assert.isTrue( element.hasClass( 'cke_pagebreak' ), prefix + 'Pagebreak holds cke_pagebreak class' );
 				assert.isNotUndefined( element.data( 'cke-pagebreak' ), prefix + 'Pagebreak is marked with an attribute' );
 			}
@@ -63,6 +71,22 @@
 			editor.execCommand( 'paste', html );
 
 			wait();
+		},
+
+		// http://dev.ckeditor.com/ticket/12411
+		'test span as a direct child no break': function() {
+			bender.editorBot.create( {
+				name: 'editor2',
+				startupData: '<span>he?</span>',
+				config: {
+					autoParagraph: false,
+					extraPlugins: 'divarea'
+				}
+			},
+			function() {
+				// If we get here it means that nothing fails :)
+				assert.pass();
+			} );
 		}
 	} );
 } )();

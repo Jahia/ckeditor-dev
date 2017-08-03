@@ -3,16 +3,15 @@
 ( function() {
 	'use strict';
 
-	var getInnerHtml = bender.tools.getInnerHtml,
-		doc = CKEDITOR.document;
+	var doc = CKEDITOR.document,
+		html2 = document.getElementById( 'playground2' ).innerHTML;
 
-	var tests =
-	{
+	var tests = {
 		setUp: function() {
-			 document.getElementById( 'playground2' ).innerHTML = html2;
+			document.getElementById( 'playground2' ).innerHTML = html2;
 		},
 
-		test_shrink_text : function() {
+		test_shrink_text: function() {
 			var range = new CKEDITOR.dom.range( doc );
 			range.setStartBefore( doc.getById( '_ShrinkB1' ) );
 			range.setEndAt( doc.getById( '_ShrinkB1' ).getNext(), CKEDITOR.POSITION_AFTER_START );
@@ -28,7 +27,7 @@
 			assert.isFalse( range.collapsed, 'range.collapsed' );
 		},
 
-		test_shrink_text2 : function() {
+		test_shrink_text2: function() {
 			var range = new CKEDITOR.dom.range( doc );
 			range.setStartBefore( doc.getById( '_ShrinkB2' ) );
 			range.setEnd( doc.getById( '_ShrinkI2' ).getFirst(), 2 );
@@ -44,8 +43,8 @@
 			assert.isFalse( range.collapsed, 'range.collapsed' );
 		},
 
-		// #4513
-		test_shrink_text3 : function() {
+		// http://dev.ckeditor.com/ticket/4513
+		test_shrink_text3: function() {
 			var range = new CKEDITOR.dom.range( doc );
 			range.setStartAt( doc.getById( '_L1' ), CKEDITOR.POSITION_BEFORE_START );
 			range.setEndAt( doc.getById( '_L1' ), CKEDITOR.POSITION_AFTER_END );
@@ -60,8 +59,8 @@
 			assert.areSame( 1, range.endOffset );
 		},
 
-		// #4513
-		test_shrink_text4 : function() {
+		// http://dev.ckeditor.com/ticket/4513
+		test_shrink_text4: function() {
 			var range = new CKEDITOR.dom.range( doc );
 			range.setStartAt( doc.getById( '_B2' ), CKEDITOR.POSITION_BEFORE_START );
 			range.setEndAt( doc.getById( '_L1' ), CKEDITOR.POSITION_AFTER_END );
@@ -76,8 +75,8 @@
 			assert.areSame( 1, range.endOffset );
 		},
 
-		// #4513
-		test_shrink_text5 : function() {
+		// http://dev.ckeditor.com/ticket/4513
+		test_shrink_text5: function() {
 			var range = new CKEDITOR.dom.range( doc );
 			range.setStartAt( doc.getById( '_I2' ), CKEDITOR.POSITION_BEFORE_END );
 			range.setEndAt( doc.getById( '_P1' ), CKEDITOR.POSITION_AFTER_END );
@@ -92,8 +91,8 @@
 			assert.areSame( 1, range.endOffset );
 		},
 
-		// #4513
-		test_shrink_text6 : function() {
+		// http://dev.ckeditor.com/ticket/4513
+		test_shrink_text6: function() {
 			var range = new CKEDITOR.dom.range( doc );
 			range.setStart( doc.getById( '_L1' ).getFirst(), 2 );
 			range.setEndAt( doc.getById( '_B2' ), CKEDITOR.POSITION_AFTER_END );
@@ -109,8 +108,8 @@
 			assert.areSame( 1, range.endOffset );
 		},
 
-		// #4513
-		test_shrink_text7 : function() {
+		// http://dev.ckeditor.com/ticket/4513
+		test_shrink_text7: function() {
 			var range = new CKEDITOR.dom.range( doc );
 			range.setStart( doc.getById( '_L1' ).getFirst(), 2 );
 			range.setEnd( doc.getById( '_L1' ).getFirst(), 6 );
@@ -126,8 +125,8 @@
 			assert.areSame( 1, range.endOffset );
 		},
 
-		// #4513
-		test_shrink_text8 : function() {
+		// http://dev.ckeditor.com/ticket/4513
+		test_shrink_text8: function() {
 			var range = new CKEDITOR.dom.range( doc );
 			range.setStart( doc.getById( '_L1' ).getFirst(), 2 );
 			range.setEnd( doc.getById( '_L1' ).getFirst(), 4 );
@@ -146,7 +145,7 @@
 		},
 
 		// Test shrink to an element range.
-		test_shrink_element : function() {
+		test_shrink_element: function() {
 			var range = new CKEDITOR.dom.range( doc );
 			range.setStartBefore( doc.getById( '_ShrinkB3' ) );
 			range.setEndAt( doc.getById( '_ShrinkB3' ).getNext(), CKEDITOR.POSITION_AFTER_START );
@@ -163,7 +162,7 @@
 		},
 
 		// Test shrink to an element range failed.
-		test_shrink_element2 : function() {
+		test_shrink_element2: function() {
 			var range = new CKEDITOR.dom.range( doc );
 			range.setStart( doc.getById( '_ShrinkB4' ).getFirst(), 2 );
 			range.setEnd( doc.getById( '_ShrinkI4' ).getNext(), 2 );
@@ -326,14 +325,39 @@
 			var range = bender.tools.setHtmlWithRange( ct, source )[ 0 ];
 			range.shrink( CKEDITOR.SHRINK_TEXT );
 			assert.areSame( source, bender.tools.getHtmlWithRanges( ct, new CKEDITOR.dom.rangeList( [ range ] ) ) );
+		},
+
+		// (http://dev.ckeditor.com/ticket/17010)
+		'test shrink with skipBogus param - SHRINK_TEXT': function() {
+			// Test does not make sense in the environment, which does not use <br> as bogus.
+			if ( !CKEDITOR.env.needsBrFiller ) {
+				assert.ignore();
+			}
+
+			var ct = doc.getById( 'editable_playground' ),
+				source = CKEDITOR.document.getById( 'bogus_table' ).getValue(),
+				range = bender.tools.setHtmlWithRange( ct, source )[ 0 ];
+
+			range.shrink( CKEDITOR.SHRINK_TEXT, false, { skipBogus: true } );
+			assert.areSame( 'Cell 1.1', range.cloneContents().getHtml() );
+		},
+
+		// (http://dev.ckeditor.com/ticket/17010)
+		'test shrink with skipBogus param - SHRINK_ELEMENT': function() {
+			// Test does not make sense in the environment, which does not use <br> as bogus.
+			if ( !CKEDITOR.env.needsBrFiller ) {
+				assert.ignore();
+			}
+
+			var ct = doc.getById( 'editable_playground' ),
+				source = CKEDITOR.document.getById( 'bogus_table' ).getValue(),
+				range = bender.tools.setHtmlWithRange( ct, source )[ 0 ],
+				cell = ct.findOne( 'td' );
+
+			range.shrink( CKEDITOR.SHRINK_ELEMENT, false, { skipBogus: true } );
+			assert.areSame( cell.getOuterHtml(), range.cloneContents().getHtml() );
 		}
 	};
 
 	bender.test( tests );
 } )();
-
-	//<![CDATA[
-
-html2 = document.getElementById( 'playground2' ).innerHTML;
-
-	//]]>

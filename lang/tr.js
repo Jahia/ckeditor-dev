@@ -1,5 +1,5 @@
-﻿/**
- * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+/**
+ * @license Copyright (c) 2003-2017, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
@@ -19,7 +19,7 @@
 CKEDITOR.lang[ 'tr' ] = {
 	// ARIA description.
 	editor: 'Zengin Metin Editörü',
-	editorPanel: 'Rich Text Editor panel', // MISSING
+	editorPanel: 'Zengin Metin Editör Paneli',
 
 	// Common messages and labels.
 	common: {
@@ -84,8 +84,8 @@ CKEDITOR.lang[ 'tr' ] = {
 		alignTop: 'Üst',
 		alignMiddle: 'Orta',
 		alignBottom: 'Alt',
-		alignNone: 'None', // MISSING
-		invalidValue	: 'Geçersiz değer.',
+		alignNone: 'Hiçbiri',
+		invalidValue: 'Geçersiz değer.',
 		invalidHeight: 'Yükseklik değeri bir sayı olmalıdır.',
 		invalidWidth: 'Genişlik değeri bir sayı olmalıdır.',
 		invalidCssLength: '"%1" alanı için verilen değer, geçerli bir CSS ölçü birimi (px, %, in, cm, mm, em, ex, pt, veya pc) içeren veya içermeyen pozitif bir sayı olmalıdır.',
@@ -94,6 +94,23 @@ CKEDITOR.lang[ 'tr' ] = {
 		cssLengthTooltip: 'Piksel türünde bir sayı veya geçerli bir CSS ölçü birimi (px, %, in, cm, mm, em, ex, pt veya pc) içeren bir sayı girin.',
 
 		// Put the voice-only part of the label in the span.
-		unavailable: '%1<span class="cke_accessibility">, kullanılamaz</span>'
+		unavailable: '%1<span class="cke_accessibility">, kullanılamaz</span>',
+
+		// Keyboard keys translations used for creating shortcuts descriptions in tooltips, context menus and ARIA labels.
+		keyboard: {
+			8: 'Silme Tuşu',
+			13: 'Giriş Tuşu',
+			16: 'Üst Karater Tuşu',
+			17: 'Kontrol Tuşu',
+			18: 'Alt Tuşu',
+			32: 'Boşluk Tuşu',
+			35: 'En Sona Tuşu',
+			36: 'En Başa Tuşu',
+			46: 'Silme Tuşu',
+			224: 'Komut Tuşu'
+		},
+
+		// Prepended to ARIA labels with shortcuts.
+		keyboardShortcut: 'Klavye Kısayolu'
 	}
 };

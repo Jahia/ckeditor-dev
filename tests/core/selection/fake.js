@@ -40,15 +40,17 @@ function createTestKeyNavFn( editor, target ) {
 		bspc: 8
 	};
 
+	var prevented = false;
+
 	return function( key, rangeOrEl, pos, msg ) {
 		var range;
 
 		if ( !( rangeOrEl instanceof CKEDITOR.dom.range ) ) {
 			range = editor.createRange();
 			range.moveToPosition( rangeOrEl, pos );
-		}
-		else
+		} else {
 			range = rangeOrEl;
+		}
 
 		editor.getSelection().selectRanges( [ range ] );
 
@@ -56,9 +58,8 @@ function createTestKeyNavFn( editor, target ) {
 		editor.editable().fire( 'keydown', getKeyEvent( keyCodes[ key ], preventDefaultCallback ) );
 		assert.areSame( target, editor.getSelection().getSelectedElement(), msg );
 		assert[ target ? 'isTrue' : 'isFalse' ]( prevented, msg + ' - prevented' );
-	}
+	};
 
-	var prevented = false;
 	function preventDefaultCallback() {
 		prevented = true;
 	}
@@ -106,9 +107,15 @@ bender.test( {
 	},
 
 	'Reset fake-selection': function() {
-		var editor = this.editor;
+		var editor = this.editor,
+			inputHtml = '<p>{foo <span id="bar">bar</span>}</p>';
 
-		bender.tools.setHtmlWithSelection( editor, '<p>[foo <span id="bar">bar</span>]</p>' );
+		// Edge behaves very weird if there's element selection inside paragraph in this test.
+		if ( !CKEDITOR.env.edge || CKEDITOR.env.version < 14 ) {
+			inputHtml = '<p>[foo <span id="bar">bar</span>]</p>';
+		}
+
+		bender.tools.setHtmlWithSelection( editor, inputHtml );
 
 		var span = editor.document.getById( 'bar' ),
 			sel = editor.getSelection();
@@ -162,7 +169,7 @@ bender.test( {
 			var selectionChange = 0,
 				selectedRanges;
 
-			var listener = editor.on( 'selectionChange', function( evt ) {
+			editor.on( 'selectionChange', function( evt ) {
 				selectionChange++;
 				selectedRanges = evt.data.selection.getRanges();
 			} );
@@ -263,6 +270,22 @@ bender.test( {
 		assert.areSame( span, sel.getSelectedElement(), 'getSelectedElement() must return the fake-selected element' );
 		assert.areSame( 1, countHiddenContainers( editor.document ), 'One hidden container' );
 		assert.isTrue( editor.getSelection( 1 ).isHidden(), 'Real selection is placed in hidden element' );
+	},
+
+	'Fake-selection bookmark mark as not faked when no enclosed node found. (http://dev.ckeditor.com/ticket/13280)': function() {
+		bender.tools.selection.setWithHtml( this.editor, '<p>fo{o ba}r</p>' );
+
+		var sel = this.editor.getSelection(),
+			bookmarks = sel.createBookmarks2(),
+			selectRangesSpy = sinon.spy( sel, 'selectRanges' ),
+			warnStub = sinon.stub( CKEDITOR, 'warn' );
+
+		bookmarks.isFake = 1;
+		sel.selectBookmarks( bookmarks );
+		warnStub.restore();
+
+		assert.isTrue( selectRangesSpy.calledOnce );
+		assert.isFalse( !!sel.isFake, 'isFake is reset' );
 	},
 
 	'Fake-selection bookmark (serializable)': function() {
@@ -700,7 +723,7 @@ bender.test( {
 	'Test moving to sibling non-editable blocks by arrow keys': function() {
 		var editor = this.editor;
 
-		this.editorBot.setData( '<p id="p1" contenteditable="false">X</p><p id="p2" contenteditable="false">X</p><p id="p3" contenteditable="false">X</p>', function() {
+		this.editorBot.setData( '<p>X</p><p id="p1" contenteditable="false">X</p><p id="p2" contenteditable="false">X</p><p id="p3" contenteditable="false">X</p>', function() {
 			var p1 = editor.document.getById( 'p1' ),
 				p2 = editor.document.getById( 'p2' ),
 				p3 = editor.document.getById( 'p3' ),
@@ -727,10 +750,6 @@ bender.test( {
 			editable.fire( 'keydown', new CKEDITOR.dom.event( { keyCode: 37 } ) ); // LEFT
 			assert.areSame( p1, editor.getSelection().getSelectedElement(), 'Move left 2 - selectedElement' );
 			assert.isTrue( !!editor.getSelection().isFake, 'Move left 2 - isFake' );
-
-			editable.fire( 'keydown', new CKEDITOR.dom.event( { keyCode: 37 } ) ); // LEFT
-			assert.areSame( p1, editor.getSelection().getSelectedElement(), 'Move left 3 - selectedElement' );
-			assert.isTrue( !!editor.getSelection().isFake, 'Move left 3 - isFake' );
 		} );
 	},
 
@@ -745,7 +764,9 @@ bender.test( {
 			editor.getSelection().fake( ps );
 			editor.resetUndo();
 
-			editable.fire( 'keydown', getKeyEvent( 46, function() { prevented = true; } ) );
+			editable.fire( 'keydown', getKeyEvent( 46, function() {
+				prevented = true;
+			} ) );
 			assertCollapsedSelectionIn( editor, '<p>X</p><p>^bar</p>', 'Caret' );
 			assert.areSame( CKEDITOR.TRISTATE_OFF, editor.getCommand( 'undo' ).state, 'Undo is available' );
 			assert.isTrue( prevented, 'Was prevented' );
@@ -763,7 +784,9 @@ bender.test( {
 			editor.getSelection().fake( ps );
 			editor.resetUndo();
 
-			editable.fire( 'keydown', getKeyEvent( 8, function() { prevented = true; } ) );
+			editable.fire( 'keydown', getKeyEvent( 8, function() {
+				prevented = true;
+			} ) );
 			assertCollapsedSelectionIn( editor, '<p>bar^</p><p>X</p>', 'Caret' );
 			assert.areSame( CKEDITOR.TRISTATE_OFF, editor.getCommand( 'undo' ).state, 'Undo is available' );
 			assert.isTrue( prevented, 'Was prevented' );
@@ -781,7 +804,9 @@ bender.test( {
 			editor.getSelection().fake( ps );
 			editor.resetUndo();
 
-			editable.fire( 'keydown', getKeyEvent( 46, function() { prevented = true; } ) );
+			editable.fire( 'keydown', getKeyEvent( 46, function() {
+				prevented = true;
+			} ) );
 			assertCollapsedSelectionIn( editor, '<p>bar^bom</p>', 'Caret' );
 			assert.areSame( CKEDITOR.TRISTATE_OFF, editor.getCommand( 'undo' ).state, 'Undo is available' );
 			assert.isTrue( prevented, 'Was prevented' );
@@ -799,7 +824,9 @@ bender.test( {
 			editor.getSelection().fake( ps );
 			editor.resetUndo();
 
-			editable.fire( 'keydown', getKeyEvent( 8, function() { prevented = true; } ) );
+			editable.fire( 'keydown', getKeyEvent( 8, function() {
+				prevented = true;
+			} ) );
 			assertCollapsedSelectionIn( editor, '<p>bar^bom</p>', 'Caret' );
 			assert.areSame( CKEDITOR.TRISTATE_OFF, editor.getCommand( 'undo' ).state, 'Undo is available' );
 			assert.isTrue( prevented, 'Was prevented' );
@@ -817,7 +844,9 @@ bender.test( {
 			editor.getSelection().fake( ps );
 			editor.resetUndo();
 
-			editable.fire( 'keydown', getKeyEvent( 46, function() { prevented = true; } ) );
+			editable.fire( 'keydown', getKeyEvent( 46, function() {
+				prevented = true;
+			} ) );
 			assertCollapsedSelectionIn( editor, '<p>bar^</p>', 'Caret' );
 			assert.areSame( CKEDITOR.TRISTATE_OFF, editor.getCommand( 'undo' ).state, 'Undo is available' );
 			assert.isTrue( prevented, 'Was prevented' );
@@ -835,7 +864,9 @@ bender.test( {
 			editor.getSelection().fake( ps );
 			editor.resetUndo();
 
-			editable.fire( 'keydown', getKeyEvent( 8, function() { prevented = true; } ) );
+			editable.fire( 'keydown', getKeyEvent( 8, function() {
+				prevented = true;
+			} ) );
 			assertCollapsedSelectionIn( editor, '<p>^bar</p>', 'Caret' );
 			assert.areSame( CKEDITOR.TRISTATE_OFF, editor.getCommand( 'undo' ).state, 'Undo is available' );
 			assert.isTrue( prevented, 'Was prevented' );
@@ -853,7 +884,9 @@ bender.test( {
 			editor.getSelection().fake( ps );
 			editor.resetUndo();
 
-			editable.fire( 'keydown', getKeyEvent( 46, function() { prevented = true; } ) );
+			editable.fire( 'keydown', getKeyEvent( 46, function() {
+				prevented = true;
+			} ) );
 			assertCollapsedSelectionIn( editor, '<p>^\xa0</p>', 'Caret' );
 			assert.areSame( CKEDITOR.TRISTATE_OFF, editor.getCommand( 'undo' ).state, 'Undo is available' );
 			assert.isTrue( prevented, 'Was prevented' );
@@ -900,7 +933,6 @@ bender.test( {
 		this.editorBot.setData( '<p id="el1">foo</p><p id="target" contenteditable="false">bar</p><p></p><p id="el2">bom</p>', function() {
 			var el1 = editor.document.getById( 'el1' ),
 				el2 = editor.document.getById( 'el2' ),
-				target = editor.document.getById( 'target' ),
 				range = editor.createRange(),
 				testKeyNav = createTestKeyNavFn( editor, null );
 
@@ -991,7 +1023,7 @@ bender.test( {
 		} );
 	},
 
-	// #11393.
+	// http://dev.ckeditor.com/ticket/11393.
 	'Test select editable contents when fake selection was on and DOM has been overwritten': function() {
 		var editor = this.editor;
 

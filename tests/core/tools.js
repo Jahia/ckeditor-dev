@@ -1,37 +1,47 @@
-/* bender-tags: editor,unit */
+﻿/* bender-tags: editor,unit */
 
-var vendorPrefix = CKEDITOR.env.gecko ? '-moz-' :
-				   CKEDITOR.env.webkit ? '-webkit-' :
-				   CKEDITOR.env.ie ? '-ms-' :
-				   '';
+( function() {
+	'use strict';
 
-bender.test(
-{
-		assertNormalizedCssText: function( expected, elementId, msg ) {
-			assert.areSame( expected, CKEDITOR.tools.normalizeCssText(
-				CKEDITOR.document.getById( elementId ).getAttribute( 'style' ) ), msg );
-		},
+	var vendorPrefix = CKEDITOR.env.gecko ? '-moz-' :
+			CKEDITOR.env.webkit ? '-webkit-' :
+			CKEDITOR.env.ie ? '-ms-' :
+			'';
 
+	var htmlEncode = CKEDITOR.tools.htmlEncode,
+		htmlDecode = CKEDITOR.tools.htmlDecode;
+
+	bender.editor = {
+		config: {
+			language: 'en'
+		}
+	};
+	function assertNormalizeCssText( expected, input, message ) {
+		return function() {
+			assert.areSame( expected, CKEDITOR.tools.normalizeCssText( input ), message );
+		};
+	}
+
+	bender.test( {
 		test_extend: function() {
-			var fakeFn = function() {};
-			var fakeObj = { fake1 : 1, fake2 : 2 };
+			function fakeFn() {}
+
+			var fakeObj = { fake1: 1, fake2: 2 };
 			var fakeArray = [ 'Test', 10, fakeFn, fakeObj ];
 
-			var target =
-			{
-				prop1 : 'Test',
-				prop2 : 10,
-				prop3 : fakeFn,
-				prop4 : fakeObj,
-				prop5 : fakeArray
+			var target = {
+				prop1: 'Test',
+				prop2: 10,
+				prop3: fakeFn,
+				prop4: fakeObj,
+				prop5: fakeArray
 			};
 
-			CKEDITOR.tools.extend( target,
-				{
-					prop3 : 'Wrong',
-					prop6 : 'Good',
-					prop7 : fakeArray
-				} );
+			CKEDITOR.tools.extend( target, {
+				prop3: 'Wrong',
+				prop6: 'Good',
+				prop7: fakeArray
+			} );
 
 			assert.areSame( 'Test'		, target.prop1, 'prop1 doesn\'t match' );
 			assert.areSame( 10			, target.prop2, 'prop2 doesn\'t match' );
@@ -58,29 +68,61 @@ bender.test(
 			assert.isFalse( CKEDITOR.tools.isArray( window.x ) );
 		},
 
-		test_htmlEncode1: function() {
-			assert.areSame( '&lt;b&gt;Test&lt;/b&gt;', CKEDITOR.tools.htmlEncode( '<b>Test</b>' ) );
+		'test_htmlEncode - all covered entities': function() {
+			assert.areSame( '&lt;b&gt;Test&amp;fun!&lt;/b&gt;', htmlEncode( '<b>Test&fun!</b>' ) );
 		},
 
-		test_htmlEncode2: function() {
-			assert.areSame( 'Test\'s &amp; "quote"', CKEDITOR.tools.htmlEncode( 'Test\'s & "quote"' ) );
+		'test htmlEncode - do not touch quotes': function() {
+			assert.areSame( 'Test\'s &amp; "quote"', htmlEncode( 'Test\'s & "quote"' ) );
 		},
 
-		test_htmlEncode3: function() {
-			assert.areSame( 'A   B   \n\n\t\tC\n \t D', CKEDITOR.tools.htmlEncode( 'A   B   \n\n\t\tC\n \t D' ), 'Tab should not be touched.' );
+		'test htmlEncode - tabs': function() {
+			assert.areSame( 'A   B   \n\n\t\tC\n \t D', htmlEncode( 'A   B   \n\n\t\tC\n \t D' ), 'Tab should not be touched.' );
 		},
 
-		test_htmlDecode: function() {
-				assert.areSame( '<a & b >', CKEDITOR.tools.htmlDecode( '&lt;a &amp; b &gt;' ), 'Invalid result for htmlDecode' );
-				assert.areSame( '<a & b ><a & b >', CKEDITOR.tools.htmlDecode( '&lt;a &amp; b &gt;&lt;a &amp; b &gt;' ), 'Invalid result for htmlDecode' );
+		// Backwards compatibility with careless plugins like dialog or dialogui. All values must be accepted.
+		'test htmlEncode - backwards compat': function() {
+			assert.areSame( '', htmlEncode( undefined ), 'undef' );
+			assert.areSame( '', htmlEncode( null ), 'null' );
+			assert.areSame( '3', htmlEncode( 3 ), '3' );
+			assert.areSame( '0', htmlEncode( 0 ), '0' );
 		},
 
-		test_htmlEncode_3874: function() {
-			assert.areSame( 'line1\nline2', CKEDITOR.tools.htmlEncode( 'line1\nline2' ) );
+		'test htmlEncode - http://dev.ckeditor.com/ticket/3874': function() {
+			assert.areSame( 'line1\nline2', htmlEncode( 'line1\nline2' ) );
 		},
 
-		test_htmlEncodeAttr: function() {
-			assert.areSame( '&lt;a b=&quot;c&quot;/&gt;', CKEDITOR.tools.htmlEncodeAttr( '<a b="c"/>' ) );
+		// http://dev.ckeditor.com/ticket/13105#comment:8
+		'test htmlDecode - all covered named entities': function() {
+			assert.areSame( '< a & b > c \u00a0 d \u00ad e "', htmlDecode( '&lt; a &amp; b &gt; c &nbsp; d &shy; e &quot;' ) );
+		},
+
+		'test htmlDecode - numeric entities': function() {
+			assert.areSame( '\u0001 \u000a \u00ff \uffff \u000c', htmlDecode( '&#1; &#10; &#255; &#65535; &#0012;' ) );
+		},
+
+		'test htmlDecode - duplications': function() {
+			assert.areSame( '<a & b ><a & b >', htmlDecode( '&lt;a &amp; b &gt;&lt;a &amp; b &gt;' ) );
+		},
+
+		'test htmlDecode - double encoding': function() {
+			assert.areSame( '&lt; &amp; &gt; &nbsp; &shy;', htmlDecode( '&amp;lt; &amp;amp; &amp;gt; &amp;nbsp; &amp;shy;' ) );
+		},
+
+		'test htmlDecode - triple encoding': function() {
+			assert.areSame( '&amp;lt; &amp;amp; &amp;gt;', htmlDecode( '&amp;amp;lt; &amp;amp;amp; &amp;amp;gt;' ) );
+		},
+
+		'test htmlEncodeAttr - all covered entities': function() {
+			assert.areSame( '&lt;a b=&quot;c&amp;d&quot;/&gt;', CKEDITOR.tools.htmlEncodeAttr( '<a b="c&d"/>' ) );
+		},
+
+		'test htmlDecodeAttr - all covered entities': function() {
+			assert.areSame( '< " > & \u00a0 \u00ad \u000a', CKEDITOR.tools.htmlDecodeAttr( '&lt; &quot; &gt; &amp; &nbsp; &shy; &#10;' ) );
+		},
+
+		'test htmlDecodeAttr - double encoding': function() {
+			assert.areSame( '&lt; &quot; &gt; &amp;', CKEDITOR.tools.htmlDecodeAttr( '&amp;lt; &amp;quot; &amp;gt; &amp;amp;' ) );
 		},
 
 		test_cssStyleToDomStyle1: function() {
@@ -88,7 +130,7 @@ bender.test(
 		},
 
 		test_cssStyleToDomStyle2: function() {
-			assert.areSame( ( CKEDITOR.env.ie && !( document.documentMode > 8 ) ) ? 'styleFloat' : 'cssFloat', CKEDITOR.tools.cssStyleToDomStyle( 'float' ) );
+			assert.areSame( ( CKEDITOR.env.ie && document.documentMode <= 8 ) ? 'styleFloat' : 'cssFloat', CKEDITOR.tools.cssStyleToDomStyle( 'float' ) );
 		},
 
 		test_getNextNumber: function() {
@@ -123,13 +165,11 @@ bender.test(
 		},
 
 		test_clone: function() {
-			var obj =
-			{
-				name : 'John',
-				cars :
-				{
-					Mercedes : { color : 'blue' },
-					Porsche : { color : 'red' }
+			var obj = {
+				name: 'John',
+				cars: {
+					Mercedes: { color: 'blue' },
+					Porsche: { color: 'red' }
 				}
 			};
 
@@ -158,6 +198,10 @@ bender.test(
 		},
 
 		test_clone_Window: function() {
+			if ( CKEDITOR.env.ie && CKEDITOR.env.version == 8 ) {
+				assert.ignore();
+			}
+
 			var obj = {
 				window: window
 			};
@@ -187,19 +231,17 @@ bender.test(
 //		},
 
 		test_callFunction: function() {
-			var func = CKEDITOR.tools.addFunction( function( argA ) {
+			var argARef  = 'http://ckeditor.com/index.html#myanchor',
+			func = CKEDITOR.tools.addFunction( function( argA ) {
 				assert.areSame( argA, argARef );
 			} );
 
-			var argARef  = 'http://ckeditor.com/index.html#myanchor';
 			CKEDITOR.tools.callFunction( func, argARef );
 		},
 
 		test_createClass: function() {
-			var A = CKEDITOR.tools.createClass(
-				{
-					_ :
-					{
+			var A = CKEDITOR.tools.createClass( {
+					_: {
 						type: function() {
 							return 'A:';
 						}
@@ -207,39 +249,34 @@ bender.test(
 					$: function( name ) {
 						this._name = name;
 					},
-					proto :
-					{
+					proto: {
 						name: function() {
 							// Call private method.
-							return  this._.type() + this._name;
+							return this._.type() + this._name;
 						}
 					}
 				} );
 
-			var B = CKEDITOR.tools.createClass(
-					{
-						base : A,
+			var B = CKEDITOR.tools.createClass( {
+						base: A,
 						$: function() {
 							// Call super constructor.
 							this.base.apply( this, arguments );
 						},
-						proto :
-						{
+						proto: {
 							type: function() {
 								return 'B:';
 							}
 						}
 					} );
 
-			var C = CKEDITOR.tools.createClass(
-				{
-					base : B,
+			var C = CKEDITOR.tools.createClass( {
+					base: B,
 					$: function() {
 						// Call super constructor recursively.
 						this.base.apply( this, arguments );
 					},
-					proto :
-					{
+					proto: {
 						// Overrides super class method.
 						name: function() {
 							// Call the super method.
@@ -263,12 +300,7 @@ bender.test(
 			assert.isTrue( c instanceof A && c instanceof B && c instanceof C, 'check instanceof both A & B & C' );
 		},
 
-		testNormalizeCssText: function() {
-			this.assertNormalizedCssText(
-				'color:red;font-size:10px;width:10.5em;', 'style1', 'order, lowercase and white spaces' );
-
-			this.assertNormalizedCssText( 'color:red;font-family:arial black,helvetica,georgia;', 'style2', 'font names' );
-		},
+		testNormalizeCssText: assertNormalizeCssText( 'color:red;font-size:10px;width:10.5em;', ' width: 10.5em ; COLOR : red; font-size:10px  ; ', 'order, lowercase and white spaces' ),
 
 		testNormalizeCssText2: function() {
 			var n = CKEDITOR.tools.normalizeCssText;
@@ -301,6 +333,47 @@ bender.test(
 				n( 'color: red; width: 10px; margin: 0.5em; float: left', true ), 'various' );
 		},
 
+		testQuoteEntity: assertNormalizeCssText( 'font-family:"foo";', 'font-family: &quot;foo&quot;;', '' ),
+
+		// (http://dev.ckeditor.com/ticket/10750)
+		'test Normalize double quote': assertNormalizeCssText( 'font-family:"crazy font";', 'font-family: "crazy font";',
+			'quoted font name' ),
+		'test Normalize single quote': assertNormalizeCssText( 'font-family:\'crazy font\';', 'font-family: \'crazy font\';',
+			'single-quoted font name' ),
+
+		'test Normalize generic family name serif': assertNormalizeCssText( 'font-family:serif;', 'font-family: serif;',
+			'generic-family name is not escaped' ),
+		'test Normalize generic family name sans-serif': assertNormalizeCssText( 'font-family:sans-serif;', 'font-family: sans-serif;',
+			'generic-family name is not escaped' ),
+		'test Normalize generic family name cursive': assertNormalizeCssText( 'font-family:cursive;', 'font-family: cursive;',
+			'generic-family name is not escaped' ),
+		'test Normalize generic family name fantasy': assertNormalizeCssText( 'font-family:fantasy;', 'font-family: fantasy;',
+			'generic-family name is not escaped' ),
+		'test Normalize generic family name monospace': assertNormalizeCssText( 'font-family:monospace;', 'font-family: monospace;',
+			'generic-family name is not escaped' ),
+
+		'test Normalize generic and non-generic mix': assertNormalizeCssText( 'font-family:"foo",serif;', 'font-family: "foo", serif;',
+			'family-name and generic-family mix' ),
+		'test Normalize letter casing sensitivity': assertNormalizeCssText( 'font-family:"FFo baR";', 'font-family: "FFo baR";',
+			'letter casing sensivity' ),
+		// It's also possible to use font named as any generic-family member as long as it's enclosed within quotes.
+		'test Normalize generic-family token as family-name': assertNormalizeCssText( 'font-family:"serif";', 'font-family:"serif";',
+			'accept generic-family token as family-name' ),
+		'test Normalize unquoted family name with hyphen': assertNormalizeCssText( 'font-family:my-cool-font;', 'font-family:my-cool-font;',
+			'unquoted family name with hyphen' ),
+		'test Normalize font name with multiple spaces': assertNormalizeCssText( 'font-family:"Space    font";', 'font-family:"Space    font";',
+			'font name with multiple spaces' ),
+
+		'test Normalize family name with quotes': assertNormalizeCssText( 'font-family:"\'Sarcasm\'";', 'font-family:"\'Sarcasm\'";',
+			'family name with quotes' ),
+		'test Normalize family name with special characters': assertNormalizeCssText( 'font-family:"\'This is   -!$   custom Font\'";', 'font-family:"\'This is   -!$   custom Font\'";',
+			'family name with special characters' ),
+
+		// If there's a syntax error in the style - just leave it like that.
+		'test Normalize syntax error': assertNormalizeCssText( 'font-family:"crazy font",;', 'font-family:"crazy font",;',
+			'style syntax error' ),
+
+
 		testConvertRgbToHex: function() {
 			var c = CKEDITOR.tools.convertRgbToHex;
 
@@ -316,6 +389,23 @@ bender.test(
 			assert.areSame( 'color:#010203; border-color:#ffff00;', c( 'color:rgb(1,2,3); border-color:rgb(255,255,0);' ), 'multiple' );
 		},
 
+		// http://dev.ckeditor.com/ticket/14252
+		testNormalizeHex: function() {
+			var c = CKEDITOR.tools.normalizeHex;
+
+			assert.areSame( '', c( '' ), 'empty' );
+
+			assert.areSame( '#000000', c( '#000000' ), 'Long hex' );
+			assert.areSame( '#000000', c( '#000' ), 'Short hex' );
+
+			assert.areSame( '#ffff00', c( '#ffff00' ), 'Long, lower-case hex' );
+			assert.areSame( '#ffff00', c( '#FFFF00' ), 'Long, upper-case hex' );
+			assert.areSame( '#ffff00', c( '#ff0' ), 'Short, lower-case hex' );
+			assert.areSame( '#ffff00', c( '#FF0' ), 'Short, upper-case hex' );
+			assert.areSame( '#ffff00', c( '#FfFf00' ), 'Long, mixed-case hex' );
+			assert.areSame( '#ffff00', c( '#Ff0' ), 'Short, mixed-case hex' );
+		},
+
 		testCssLength: function() {
 			var cssLength = CKEDITOR.tools.cssLength;
 
@@ -326,7 +416,7 @@ bender.test(
 			assert.areSame( '42px', cssLength( 42 ) );
 			assert.areSame( '-42px', cssLength( -42 ) );
 			assert.areSame( '42.42px', cssLength( 42.42 ) );
-			assert.areSame( '', cssLength( 0/0 ) );	// Gives NaN
+			assert.areSame( '', cssLength( 0 / 0 ) );	// Gives NaN
 
 			assert.areSame( '', cssLength( '' ) );
 			assert.areSame( ' ', cssLength( ' ' ) );
@@ -353,7 +443,7 @@ bender.test(
 
 			// Coool...
 			var len = 0;
-			for ( var k in obj )
+			for ( var k in obj ) // jshint ignore:line
 				len++;
 
 			assert.areSame( 2, len );
@@ -512,6 +602,16 @@ bender.test(
 			}, 110 );
 		},
 
+		'test eventsBuffer contex': function() {
+			var spy = sinon.spy(),
+				ctxObj = {},
+				buffer = CKEDITOR.tools.eventsBuffer( 100, spy, ctxObj );
+
+			buffer.input();
+
+			assert.areSame( ctxObj, spy.getCall( 0 ).thisValue, 'callback was executed with the right context' );
+		},
+
 		'test capitalize': function() {
 			var c = CKEDITOR.tools.capitalize;
 
@@ -555,5 +655,124 @@ bender.test(
 			assert.isFalse( c( [ 'bar' ], r1 ) );
 			assert.isFalse( c( [ 'bar', 'f', 'oo' ], r1 ) );
 			assert.isFalse( c( [ 'bar', 'f', 'oo' ], r2 ) ); // Ekhem, don't try to join();
+		},
+
+		'test transformPlainTextToHtml ENTER_BR': function() {
+			var text = '<b>foo</b>\n\nbar\n\tboom',
+				html = CKEDITOR.tools.transformPlainTextToHtml( text, CKEDITOR.ENTER_BR );
+
+			assert.areSame( '&lt;b&gt;foo&lt;/b&gt;<br><br>bar<br>&nbsp;&nbsp; &nbsp;boom', html );
+		},
+
+		'test transformPlainTextToHtml ENTER_P': function() {
+			var text = '<b>foo</b>\n\nbar\n\tboom',
+				html = CKEDITOR.tools.transformPlainTextToHtml( text, CKEDITOR.ENTER_P );
+
+			assert.areSame( '<p>&lt;b&gt;foo&lt;/b&gt;</p><p>bar<br>&nbsp;&nbsp; &nbsp;boom</p>', html );
+		},
+
+		'test getUniqueId': function() {
+			var uuid = CKEDITOR.tools.getUniqueId();
+
+			assert.isString( uuid, 'UUID should be a string.' );
+			assert.isMatching( /[a-z]/, uuid[ 0 ], 'First character of UUID should be z letter.' );
+			assert.areSame( 33, uuid.length, 'UUID.length' );
+		},
+
+		'test setCookie': function() {
+			var name = 'test-cookie-name',
+				value = 'test-value' + Math.random();
+
+			CKEDITOR.tools.setCookie( name, value );
+			assert.isMatching( name + '=' + value, document.cookie, 'cookie is set correctly' );
+		},
+
+		'test getCookie': function() {
+			var name = 'test2-cookie-name',
+				value = 'test-value' + Math.random();
+
+			document.cookie = encodeURIComponent( name ) + '=' + encodeURIComponent( value ) + ';path=/';
+			assert.areSame( CKEDITOR.tools.getCookie( name ), value, 'getCookie returns proper cookie' );
+		},
+
+		'test getCsrfToken': function() {
+			var token = CKEDITOR.tools.getCsrfToken();
+
+			// Check if token is saved in cookie.
+			assert.isMatching( 'ckCsrfToken=' + token, document.cookie, 'getCsrfToken sets proper cookie' );
+
+			// Check token length.
+			assert.areEqual( token.length, 40, 'token has proper length' );
+
+			// Check if next token will be the same.
+			assert.areEqual( token, CKEDITOR.tools.getCsrfToken(), 'getCsrfToken returns token from cookie' );
+		},
+
+		'test keystrokeToString': function() {
+			var toString = CKEDITOR.tools.keystrokeToString,
+				lang = this.editor.lang.common.keyboard,
+				tests = [
+					// [ Keystroke, display string, display string on Mac, ARIA string, ARIA string on Mac ]
+					[ CKEDITOR.CTRL + 65 /*A*/, 'Ctrl+A', '⌘+A', 'Ctrl+A', 'Command+A' ],
+					[ CKEDITOR.ALT + 66 /*B*/, 'Alt+B', '⌥+B', 'Alt+B', 'Alt+B' ],
+					[ CKEDITOR.SHIFT + 67 /*C*/, 'Shift+C', '⇧+C', 'Shift+C', 'Shift+C' ],
+					[ CKEDITOR.CTRL + CKEDITOR.ALT + 68 /*D*/, 'Ctrl+Alt+D', '⌘+⌥+D', 'Ctrl+Alt+D', 'Command+Alt+D' ],
+					[ CKEDITOR.CTRL + CKEDITOR.SHIFT + 69 /*E*/, 'Ctrl+Shift+E', '⌘+⇧+E', 'Ctrl+Shift+E', 'Command+Shift+E' ],
+					[ CKEDITOR.ALT + CKEDITOR.SHIFT + 70 /*F*/, 'Alt+Shift+F', '⌥+⇧+F', 'Alt+Shift+F', 'Alt+Shift+F' ],
+					[ CKEDITOR.CTRL + CKEDITOR.ALT + CKEDITOR.SHIFT + 71 /*G*/, 'Ctrl+Alt+Shift+G', '⌘+⌥+⇧+G', 'Ctrl+Alt+Shift+G', 'Command+Alt+Shift+G' ],
+					[ CKEDITOR.CTRL + 32 /*SPACE*/, 'Ctrl+Space', '⌘+Space', 'Ctrl+Space', 'Command+Space' ],
+					[ CKEDITOR.ALT + 13 /*ENTER*/, 'Alt+Enter', '⌥+Enter', 'Alt+Enter', 'Alt+Enter' ]
+				],
+				test,
+				expIndex = CKEDITOR.env.mac ? 2 : 1;
+
+			for ( var i = 0, l = tests.length; i < l; i++ ) {
+				test = tests[ i ];
+				assert.areEqual( test[ expIndex ], toString( lang, test[ 0 ] ).display, 'Keystroke display string representation is invalid.' );
+				assert.areEqual( test[ expIndex + 2 ], toString( lang, test[ 0 ] ).aria, 'Keystroke ARIA string representation is invalid.' );
+			}
+		},
+
+		'test escapeCss - invalid selector': function() {
+			var selector;
+			var escapedSelector = CKEDITOR.tools.escapeCss( selector );
+
+			// Check undefined selector.
+			assert.areSame( escapedSelector, '', 'invalid selector - undefined' );
+
+			selector = null;
+			escapedSelector = CKEDITOR.tools.escapeCss( selector );
+
+			// Check null selector.
+			assert.areSame( escapedSelector, '', 'invalid selector - null' );
+
+			selector = '';
+			escapedSelector = CKEDITOR.tools.escapeCss( selector );
+
+			// Check empty selector.
+			assert.areSame( escapedSelector, '', 'invalid selector - empty' );
+		},
+
+		'test escapeCss - starts-with-number selector': function() {
+			var selector = '100';
+			var escapedSelector = CKEDITOR.tools.escapeCss( selector );
+
+			// Check starts-with-number selector.
+			assert.areSame( escapedSelector, '\\31 00', 'starts-with-number selector' );
+
+			selector = '0';
+			escapedSelector = CKEDITOR.tools.escapeCss( selector );
+
+			// Check only-one-number selector.
+			assert.areSame( escapedSelector, '\\30 ', 'only-one-number selector' );
+		},
+
+		'test escapeCss - standard selector': function() {
+			var selector = 'aaa';
+			var escapedSelector = CKEDITOR.tools.escapeCss( selector );
+
+			// Check standard selector.
+			assert.areSame( escapedSelector, 'aaa', 'standard selector' );
 		}
 	} );
+} )();

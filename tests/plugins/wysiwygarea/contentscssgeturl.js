@@ -1,4 +1,6 @@
 /* bender-tags: editor,unit */
+/* bender-ckeditor-remove-plugins: copyformatting, tableselection */
+/* exported CKEDITOR_GETURL */
 
 // Load contents.css from assets directory and all other files a default way.
 var CKEDITOR_GETURL = function( url ) {
@@ -8,8 +10,6 @@ var CKEDITOR_GETURL = function( url ) {
 
 ( function() {
 	'use strict';
-
-	var tools = bender.tools;
 
 	bender.test( {
 		'test default value': function() {

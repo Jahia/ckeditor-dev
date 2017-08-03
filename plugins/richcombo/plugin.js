@@ -1,5 +1,5 @@
-﻿/**
- * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+/**
+ * @license Copyright (c) 2003-2017, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
@@ -16,8 +16,8 @@ CKEDITOR.plugins.add( 'richcombo', {
 		' class="cke_combo cke_combo__{name} {cls}"' +
 		' role="presentation">' +
 			'<span id="{id}_label" class="cke_combo_label">{label}</span>' +
-			'<a class="cke_combo_button" hidefocus=true title="{title}" tabindex="-1"' +
-			( CKEDITOR.env.gecko && !CKEDITOR.env.hc ? '' : '" href="javascript:void(\'{titleJs}\')"' ) +
+			'<a class="cke_combo_button" title="{title}" tabindex="-1"' +
+			( CKEDITOR.env.gecko && !CKEDITOR.env.hc ? '' : ' href="javascript:void(\'{titleJs}\')"' ) +
 			' hidefocus="true"' +
 			' role="button"' +
 			' aria-labelledby="{id}_label"' +
@@ -37,7 +37,7 @@ CKEDITOR.plugins.add( 'richcombo', {
 	template +=
 		' onkeydown="return CKEDITOR.tools.callFunction({keydownFn},event,this);"' +
 		' onfocus="return CKEDITOR.tools.callFunction({focusFn},event);" ' +
-			( CKEDITOR.env.ie ? 'onclick="return false;" onmouseup' : 'onclick' ) + // #188
+			( CKEDITOR.env.ie ? 'onclick="return false;" onmouseup' : 'onclick' ) + // http://dev.ckeditor.com/ticket/188
 				'="CKEDITOR.tools.callFunction({clickFn},this);return false;">' +
 			'<span id="{id}_text" class="cke_combo_text cke_combo_inlinelabel">{label}</span>' +
 			'<span class="cke_combo_open">' +
@@ -160,7 +160,7 @@ CKEDITOR.plugins.add( 'richcombo', {
 				};
 
 				function updateState() {
-					// Don't change state while richcombo is active (#11793).
+					// Don't change state while richcombo is active (http://dev.ckeditor.com/ticket/11793).
 					if ( this.getState() == CKEDITOR.TRISTATE_ON )
 						return;
 
@@ -188,15 +188,6 @@ CKEDITOR.plugins.add( 'richcombo', {
 					ev = new CKEDITOR.dom.event( ev );
 
 					var keystroke = ev.getKeystroke();
-
-					// ARROW-DOWN
-					// This call is duplicated in plugins/toolbar/plugin.js in itemKeystroke().
-					// Move focus to the first element after drop down was opened by the arrow down key.
-					if ( keystroke == 40 ) {
-						editor.once( 'panelShow', function( evt ) {
-							evt.data._.panel._.currentBlock.onKeyDown( 40 );
-						} );
-					}
 
 					switch ( keystroke ) {
 						case 13: // ENTER
@@ -266,12 +257,6 @@ CKEDITOR.plugins.add( 'richcombo', {
 
 					if ( me.onOpen )
 						me.onOpen();
-
-					// The "panelShow" event is fired assinchronously, after the
-					// onShow method call.
-					editor.once( 'panelShow', function() {
-						list.focus( !list.multiSelect && me.getValue() );
-					} );
 				};
 
 				panel.onHide = function( preventOnClose ) {
@@ -318,8 +303,9 @@ CKEDITOR.plugins.add( 'richcombo', {
 					if ( !( value || text ) ) {
 						text = this.label;
 						textElement.addClass( 'cke_combo_inlinelabel' );
-					} else
+					} else {
 						textElement.removeClass( 'cke_combo_inlinelabel' );
+					}
 
 					textElement.setText( typeof text != 'undefined' ? text : value );
 				}

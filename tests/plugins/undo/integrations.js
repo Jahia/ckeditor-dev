@@ -1,6 +1,7 @@
 /* bender-tags: editor,unit */
 /* bender-ckeditor-plugins: undo,image */
 /* bender-include: _helpers/tools.js */
+/* global undoEventDispatchTestsTools */
 
 ( function() {
 	'use strict';
@@ -21,12 +22,10 @@
 				this.undoManager = this.editor.undoManager;
 
 				// For each TC we want to reset undoManager.
-				this.undoManager.reset();
-				// Force to reset inputFired counter, as some TCs may produce leftovers.
-				this.undoManager.editingHandler.resetCounter();
+				this.editor.resetUndo();
 			},
 
-			// (#12327)
+			// (http://dev.ckeditor.com/ticket/12327)
 			'test image deletion': function() {
 				bender.tools.selection.setWithHtml( this.editor, '<p>[<img src="%BASE_PATH%_assets/img.gif" />]Apollo 11</p>' );
 				this.keyTools.keyEvent( keyCodesEnum.BACKSPACE, null, true );

@@ -1,5 +1,5 @@
-﻿/**
- * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+/**
+ * @license Copyright (c) 2003-2017, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
@@ -38,34 +38,34 @@ CKEDITOR.lang[ 'de' ] = {
 		image: 'Bild',
 		flash: 'Flash',
 		form: 'Formular',
-		checkbox: 'Checkbox',
-		radio: 'Radiobutton',
-		textField: 'Textfeld einzeilig',
-		textarea: 'Textfeld mehrzeilig',
+		checkbox: 'Kontrollbox',
+		radio: 'Optionsfeld',
+		textField: 'Textfeld',
+		textarea: 'Textfeld',
 		hiddenField: 'Verstecktes Feld',
-		button: 'Klickbutton',
+		button: 'Schaltfläche',
 		select: 'Auswahlfeld',
-		imageButton: 'Bildbutton',
-		notSet: '<nichts>',
-		id: 'ID',
+		imageButton: 'Bildschaltfläche',
+		notSet: '<nicht festgelegt>',
+		id: 'Kennung',
 		name: 'Name',
 		langDir: 'Schreibrichtung',
 		langDirLtr: 'Links nach Rechts (LTR)',
 		langDirRtl: 'Rechts nach Links (RTL)',
-		langCode: 'Sprachenkürzel',
-		longDescr: 'Langform URL',
-		cssClass: 'Stylesheet Klasse',
+		langCode: 'Sprachcode',
+		longDescr: 'Langbeschreibungs-URL',
+		cssClass: 'Formatvorlagenklassen',
 		advisoryTitle: 'Titel Beschreibung',
-		cssStyle: 'Style',
+		cssStyle: 'Stil',
 		ok: 'OK',
 		cancel: 'Abbrechen',
 		close: 'Schließen',
 		preview: 'Vorschau',
-		resize: 'Zum Vergrößern ziehen',
+		resize: 'Größe ändern',
 		generalTab: 'Allgemein',
 		advancedTab: 'Erweitert',
 		validateNumberFailed: 'Dieser Wert ist keine Nummer.',
-		confirmNewPage: 'Alle nicht gespeicherten Änderungen gehen verlohren. Sind Sie sicher die neue Seite zu laden?',
+		confirmNewPage: 'Alle nicht gespeicherten Änderungen gehen verloren. Sind Sie sicher die neue Seite zu laden?',
 		confirmCancel: 'Einige Optionen wurden geändert. Wollen Sie den Dialog dennoch schließen?',
 		options: 'Optionen',
 		target: 'Zielseite',
@@ -88,7 +88,7 @@ CKEDITOR.lang[ 'de' ] = {
 		alignMiddle: 'Mitte',
 		alignBottom: 'Unten',
 		alignNone: 'Keine',
-		invalidValue	: 'Ungültiger Wert.',
+		invalidValue: 'Ungültiger Wert.',
 		invalidHeight: 'Höhe muss eine Zahl sein.',
 		invalidWidth: 'Breite muss eine Zahl sein.',
 		invalidCssLength: 'Wert spezifiziert für "%1" Feld muss ein positiver numerischer Wert sein mit oder ohne korrekte CSS Messeinheit (px, %, in, cm, mm, em, ex, pt oder pc).',
@@ -97,6 +97,23 @@ CKEDITOR.lang[ 'de' ] = {
 		cssLengthTooltip: 'Gebe eine Zahl ein für ein Wert in pixels oder eine Zahl mit einer korrekten CSS Messeinheit (px, %, in, cm, mm, em, ex, pt oder pc).',
 
 		// Put the voice-only part of the label in the span.
-		unavailable: '%1<span class="cke_accessibility">, nicht verfügbar</span>'
+		unavailable: '%1<span class="cke_accessibility">, nicht verfügbar</span>',
+
+		// Keyboard keys translations used for creating shortcuts descriptions in tooltips, context menus and ARIA labels.
+		keyboard: {
+			8: 'Rücktaste',
+			13: 'Eingabe',
+			16: 'Umschalt',
+			17: 'Strg',
+			18: 'Alt',
+			32: 'Leer',
+			35: 'Ende',
+			36: 'Pos1',
+			46: 'Entfernen',
+			224: 'Befehl'
+		},
+
+		// Prepended to ARIA labels with shortcuts.
+		keyboardShortcut: 'Tastaturkürzel'
 	}
 };

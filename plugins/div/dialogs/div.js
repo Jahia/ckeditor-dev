@@ -1,5 +1,5 @@
-﻿/*
- * Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+/*
+ * Copyright (c) 2003-2017, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
@@ -16,17 +16,6 @@
 			element.is && CKEDITOR.dom.element.setMarker( database, element, 'block_processed', true );
 			collection.push( element );
 		}
-	}
-
-	function getNonEmptyChildren( element ) {
-		var retval = [];
-		var children = element.getChildren();
-		for ( var i = 0; i < children.count(); i++ ) {
-			var child = children.getItem( i );
-			if ( !( child.type === CKEDITOR.NODE_TEXT && ( /^[ \t\n\r]+$/ ).test( child.getText() ) ) )
-				retval.push( child );
-		}
-		return retval;
 	}
 
 	// Dialog reused by both 'creatediv' and 'editdiv' commands.
@@ -55,7 +44,7 @@
 			var container = editor.elementPath( element ).blockLimit;
 
 			// Never consider read-only (i.e. contenteditable=false) element as
-			// a first div limit (#11083).
+			// a first div limit (http://dev.ckeditor.com/ticket/11083).
 			if ( container.isReadOnly() )
 				container = container.getParent();
 
@@ -87,8 +76,9 @@
 						field.commit = function( element ) {
 							var fieldValue = this.getValue();
 							// ignore default element attribute values
-							if ( 'dir' == field.id && element.getComputedStyle( 'direction' ) == fieldValue )
+							if ( field.id == 'dir' && element.getComputedStyle( 'direction' ) == fieldValue ) {
 								return;
+							}
 
 							if ( fieldValue )
 								element.setAttribute( field.id, fieldValue );
@@ -117,9 +107,6 @@
 			var bookmarks = selection.createBookmarks();
 			var i, iterator;
 
-			// Calcualte a default block tag if we need to create blocks.
-			var blockTag = editor.config.enterMode == CKEDITOR.ENTER_DIV ? 'div' : 'p';
-
 			// collect all included elements from dom-iterator
 			for ( i = 0; i < ranges.length; i++ ) {
 				iterator = ranges[ i ].createIterator();
@@ -141,15 +128,27 @@
 			CKEDITOR.dom.element.clearAllMarkers( database );
 
 			var blockGroups = groupByDivLimit( containedBlocks );
-			var ancestor, blockEl, divElement;
+			var ancestor, divElement;
 
 			for ( i = 0; i < blockGroups.length; i++ ) {
+				// Sometimes we could get empty block group if all elements inside it
+				// don't have parent's nodes (http://dev.ckeditor.com/ticket/13585).
+				if ( !blockGroups[ i ].length ) {
+					continue;
+				}
+
 				var currentNode = blockGroups[ i ][ 0 ];
 
 				// Calculate the common parent node of all contained elements.
 				ancestor = currentNode.getParent();
-				for ( j = 1; j < blockGroups[ i ].length; j++ )
+				for ( j = 1; j < blockGroups[ i ].length; j++ ) {
 					ancestor = ancestor.getCommonAncestor( blockGroups[ i ][ j ] );
+				}
+
+				// If there is no ancestor, mark editable as one (http://dev.ckeditor.com/ticket/13585).
+				if ( !ancestor ) {
+					ancestor = editor.editable();
+				}
 
 				divElement = new CKEDITOR.dom.element( 'div', editor.document );
 
@@ -157,15 +156,16 @@
 				for ( j = 0; j < blockGroups[ i ].length; j++ ) {
 					currentNode = blockGroups[ i ][ j ];
 
-					while ( !currentNode.getParent().equals( ancestor ) )
+					// Check if the currentNode has a parent before attempting to operate on it (http://dev.ckeditor.com/ticket/13585).
+					while ( currentNode.getParent() && !currentNode.getParent().equals( ancestor ) ) {
 						currentNode = currentNode.getParent();
+					}
 
 					// This could introduce some duplicated elements in array.
 					blockGroups[ i ][ j ] = currentNode;
 				}
 
 				// Wrapped blocks counting
-				var fixedBlock = null;
 				for ( j = 0; j < blockGroups[ i ].length; j++ ) {
 					currentNode = blockGroups[ i ][ j ];
 
@@ -174,8 +174,9 @@
 						currentNode.is && CKEDITOR.dom.element.setMarker( database, currentNode, 'block_processed', true );
 
 						// Establish new container, wrapping all elements in this group.
-						if ( !j )
+						if ( !j ) {
 							divElement.insertBefore( currentNode );
+						}
 
 						divElement.append( currentNode );
 					}
@@ -197,7 +198,8 @@
 		function groupByDivLimit( nodes ) {
 			var groups = [],
 				lastDivLimit = null,
-				path, block;
+				block;
+
 			for ( var i = 0; i < nodes.length; i++ ) {
 				block = nodes[ i ];
 				var limit = getDivContainer( block );
@@ -205,8 +207,13 @@
 					lastDivLimit = limit;
 					groups.push( [] );
 				}
-				groups[ groups.length - 1 ].push( block );
+
+				// Sometimes we got nodes that are not inside the DOM, which causes error (http://dev.ckeditor.com/ticket/13585).
+				if ( block.getParent() ) {
+					groups[ groups.length - 1 ].push( block );
+				}
 			}
+
 			return groups;
 		}
 
@@ -240,17 +247,14 @@
 			title: editor.lang.div.title,
 			minWidth: 400,
 			minHeight: 165,
-			contents: [
-				{
+			contents: [ {
 				id: 'info',
 				label: editor.lang.common.generalTab,
 				title: editor.lang.common.generalTab,
-				elements: [
-					{
+				elements: [ {
 					type: 'hbox',
 					widths: [ '50%', '50%' ],
-					children: [
-						{
+					children: [ {
 						id: 'elementStyle',
 						type: 'select',
 						style: 'width: 100%;',
@@ -259,7 +263,7 @@
 						// Options are loaded dynamically.
 						items: [
 							[ editor.lang.common.notSet, '' ]
-							],
+						],
 						onChange: function() {
 							commitInternally.call( this, [ 'info:elementStyle', 'info:class', 'advanced:dir', 'advanced:style' ] );
 						},
@@ -273,54 +277,48 @@
 								var style = styles[ styleName ];
 								style.applyToObject( element, editor );
 							}
-							else
+							else {
 								element.removeAttribute( 'style' );
+							}
 						}
 					},
-						{
+					{
 						id: 'class',
 						type: 'text',
 						requiredContent: 'div(cke-xyz)', // Random text like 'xyz' will check if all are allowed.
 						label: editor.lang.common.cssClass,
 						'default': ''
-					}
-					]
-				}
-				]
+					} ]
+				} ]
 			},
-				{
+			{
 				id: 'advanced',
 				label: editor.lang.common.advancedTab,
 				title: editor.lang.common.advancedTab,
-				elements: [
-					{
+				elements: [ {
 					type: 'vbox',
 					padding: 1,
-					children: [
-						{
+					children: [ {
 						type: 'hbox',
 						widths: [ '50%', '50%' ],
-						children: [
-							{
+						children: [ {
 							type: 'text',
 							id: 'id',
 							requiredContent: 'div[id]',
 							label: editor.lang.common.id,
 							'default': ''
 						},
-							{
+						{
 							type: 'text',
 							id: 'lang',
 							requiredContent: 'div[lang]',
 							label: editor.lang.common.langCode,
 							'default': ''
-						}
-						]
+						} ]
 					},
-						{
+					{
 						type: 'hbox',
-						children: [
-							{
+						children: [ {
 							type: 'text',
 							id: 'style',
 							requiredContent: 'div{cke-xyz}', // Random text like 'xyz' will check if all are allowed.
@@ -330,23 +328,20 @@
 							commit: function( element ) {
 								element.setAttribute( 'style', this.getValue() );
 							}
-						}
-						]
+						} ]
 					},
-						{
+					{
 						type: 'hbox',
-						children: [
-							{
+						children: [ {
 							type: 'text',
 							id: 'title',
 							requiredContent: 'div[title]',
 							style: 'width: 100%;',
 							label: editor.lang.common.advisoryTitle,
 							'default': ''
-						}
-						]
+						} ]
 					},
-						{
+					{
 						type: 'select',
 						id: 'dir',
 						requiredContent: 'div[dir]',
@@ -355,21 +350,12 @@
 						'default': '',
 						items: [
 							[ editor.lang.common.notSet, '' ],
-							[
-							editor.lang.common.langDirLtr,
-							'ltr'
-							],
-							[
-							editor.lang.common.langDirRtl,
-							'rtl'
-							]
-							]
-					}
-					]
-				}
+							[ editor.lang.common.langDirLtr, 'ltr' ],
+							[ editor.lang.common.langDirRtl, 'rtl' ]
+						]
+					} ] }
 				]
-			}
-			],
+			} ],
 			onLoad: function() {
 				setupFields.call( this );
 
@@ -402,7 +388,7 @@
 					// it if no options are available at all.
 					stylesField[ stylesField.items.length > 1 ? 'enable' : 'disable' ]();
 
-					// Now setup the field value manually if dialog was opened on element. (#9689)
+					// Now setup the field value manually if dialog was opened on element. (http://dev.ckeditor.com/ticket/9689)
 					setTimeout( function() {
 						dialog._element && stylesField.setup( dialog._element );
 					}, 0 );
@@ -436,7 +422,7 @@
 				this.hide();
 			},
 			onHide: function() {
-				// Remove style only when editing existing DIV. (#6315)
+				// Remove style only when editing existing DIV. (http://dev.ckeditor.com/ticket/6315)
 				if ( command == 'editdiv' )
 					this._element.removeCustomData( 'elementStyle' );
 				delete this._element;
@@ -447,13 +433,15 @@
 	CKEDITOR.dialog.add( 'creatediv', function( editor ) {
 		return divDialog( editor, 'creatediv' );
 	} );
+
 	CKEDITOR.dialog.add( 'editdiv', function( editor ) {
 		return divDialog( editor, 'editdiv' );
 	} );
+
 } )();
 
 /**
- * Whether to wrap the whole table instead of indivisual cells when created `<div>` in table cell.
+ * Whether to wrap the entire table instead of individual cells when creating a `<div>` in a table cell.
  *
  *		config.div_wrapTable = true;
  *

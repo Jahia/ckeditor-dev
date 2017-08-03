@@ -1,10 +1,11 @@
 /* bender-tags: editor,unit,insertion */
+/* global insertionDT */
 
 ( function() {
 	'use strict';
 
 	insertionDT.run( {
-		allowedContent : true // Disable filter.
+		allowedContent: true
 	}, {
 		// Rules:
 		// TODO
@@ -14,20 +15,20 @@
 		// text -> text
 		//
 
-		'G1. inline' : function() {
+		'G1. inline': function() {
 			var a = this.createAssertInsertionFunction( 'body,div', '', 'insertElement' );
 
 			a.insertion = '<b>baz<i>quz</i></b>';
-			a( '<p>foo^bar</p>',				 '<p>foo<b>baz<i>quz</i></b>^bar</p>' );
+			a( '<p>foo^bar</p>',				'<p>foo<b>baz<i>quz</i></b>^bar</p>' );
 		},
 
-		'G1. inline into blockless' : function() {
+		'G1. inline into blockless': function() {
 			var a = this.createAssertInsertionFunction( 'h1', '<b>baz<i>quz</i></b>', 'insertElement' );
 
-			a( 'foo^bar', 						'foo<b>baz<i>quz</i></b>^bar' );
+			a( 'foo^bar',						'foo<b>baz<i>quz</i></b>^bar' );
 		},
 
-		'G2. block' : function() {
+		'G2. block': function() {
 			var a = this.createAssertInsertionFunction( 'body,div', '', 'insertElement' );
 
 			a.insertion = '<p>baz</p>';
@@ -40,7 +41,7 @@
 
 		},
 
-		'G2. block - inserted at the end of block limit' : function() {
+		'G2. block - inserted at the end of block limit': function() {
 			var a = this.createAssertInsertionFunction( 'body,div', '', 'insertElement' );
 
 			a.insertion = '<p>baz</p>';
@@ -50,7 +51,7 @@
 			a( '<ul><li>foo^<ol><li>bar</li></ol></li></ul>', '<ul><li>foo<p>baz^</p><ol><li>bar</li></ol></li></ul>', 'move to next (2)' );
 		},
 
-		'G3. table/list' : function() {
+		'G3. table/list': function() {
 			var a = this.createAssertInsertionFunction( 'body,div', '', 'insertElement' );
 
 			a.insertion = '<table><tr><td>1.1</td><td>1.2</td></tr></table>';
@@ -72,7 +73,7 @@
 				ts + '<tr><td>x<b>foo</b>^y</td></tr>' + te,												'collapsed' );
 			a(	ts + r + '<tr><td>x[y</td><td>y]z</td></tr>' + r + te,
 				ts + r + '<tr><td>x<b>foo</b>^z</td></tr>' + r + te,										'one row' );
-			// Result of this test is incorrect, however it doesn't test correctness, but stableness (#11183).
+			// Result of this test is incorrect, however it doesn't test correctness, but stableness (http://dev.ckeditor.com/ticket/11183).
 			a(	ts + r + '<tr><td>[a1</td><td>a2</td></tr><tr><td>b1</td><td>b2]</td></tr>' + r + te,
 				ts + '<tr><td>r1</td><td>r2</td><td><b>foo</b>^</td><td>&nbsp;</td></tr>' + r + te, 'two rows' );
 		},
@@ -117,7 +118,7 @@
 			a(	ts + '<tr><td>x^y</td></tr>' + te,
 				ts + '<tr><td>x<p contenteditable="false">foo</p>^y</td></tr>' + te,						'collapsed - middle' );
 
-			// #11798
+			// http://dev.ckeditor.com/ticket/11798
 			a(	ts + '<tr><td>x^</td></tr>' + te,
 				ts + '<tr><td>x<p contenteditable="false">foo</p><p>^&nbsp;</p></td></tr>' + te,			'collapsed - boundary' );
 

@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2017, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
@@ -18,8 +18,7 @@
 	CKEDITOR.plugins.add( 'indentlist', {
 		requires: 'indent',
 		init: function( editor ) {
-			var globalHelpers = CKEDITOR.plugins.indent,
-				editable = editor;
+			var globalHelpers = CKEDITOR.plugins.indent;
 
 			// Register commands.
 			globalHelpers.registerCommands( editor, {
@@ -27,7 +26,7 @@
 				outdentlist: new commandDefinition( editor, 'outdentlist' )
 			} );
 
-			function commandDefinition( editor, name ) {
+			function commandDefinition( editor ) {
 				globalHelpers.specificDefinition.apply( this, arguments );
 
 				// Require ul OR ol list.
@@ -36,17 +35,24 @@
 				// Indent and outdent lists with TAB/SHIFT+TAB key. Indenting can
 				// be done for any list item that isn't the first child of the parent.
 				editor.on( 'key', function( evt ) {
+					var path = editor.elementPath();
+
 					if ( editor.mode != 'wysiwyg' )
 						return;
 
 					if ( evt.data.keyCode == this.indentKey ) {
-						var list = this.getContext( editor.elementPath() );
+						// Prevent of getting context of empty path (#424)(https://dev.ckeditor.com/ticket/17028).
+						if ( !path ) {
+							return;
+						}
+
+						var list = this.getContext( path );
 
 						if ( list ) {
 							// Don't indent if in first list item of the parent.
 							// Outdent, however, can always be done to collapse
 							// the list into a paragraph (div).
-							if ( this.isIndent && firstItemInPath.call( this, editor.elementPath(), list ) )
+							if ( this.isIndent && CKEDITOR.plugins.indentList.firstItemInPath( this.context, path, list ) )
 								return;
 
 							// Exec related global indentation command. Global
@@ -78,24 +84,22 @@
 
 				this.jobs[ this.isIndent ? 10 : 30 ] = {
 					refresh: this.isIndent ?
-							function( editor, path ) {
-								var list = this.getContext( path ),
-									inFirstListItem = firstItemInPath.call( this, path, list );
+						function( editor, path ) {
+							var list = this.getContext( path ),
+								inFirstListItem = CKEDITOR.plugins.indentList.firstItemInPath( this.context, path, list );
 
-								if ( !list || !this.isIndent || inFirstListItem )
-									return TRISTATE_DISABLED;
+							if ( !list || !this.isIndent || inFirstListItem )
+								return TRISTATE_DISABLED;
 
-								return TRISTATE_OFF;
-							}
-						:
-							function( editor, path ) {
-								var list = this.getContext( path );
+							return TRISTATE_OFF;
+						} : function( editor, path ) {
+							var list = this.getContext( path );
 
-								if ( !list || this.isIndent )
-									return TRISTATE_DISABLED;
+							if ( !list || this.isIndent )
+								return TRISTATE_DISABLED;
 
-								return TRISTATE_OFF;
-							},
+							return TRISTATE_OFF;
+						},
 
 					exec: CKEDITOR.tools.bind( indentList, this )
 				};
@@ -112,7 +116,8 @@
 	function indentList( editor ) {
 		var that = this,
 			database = this.database,
-			context = this.context;
+			context = this.context,
+			range;
 
 		function indent( listNode ) {
 			// Our starting and ending points of the range might be inside some blocks under a list item...
@@ -167,7 +172,7 @@
 
 			for ( i = startItem.getCustomData( 'listarray_index' ); i <= lastItem.getCustomData( 'listarray_index' ); i++ ) {
 				listArray[ i ].indent += indentOffset;
-				// Make sure the newly created sublist get a brand-new element of the same type. (#5372)
+				// Make sure the newly created sublist get a brand-new element of the same type. (http://dev.ckeditor.com/ticket/5372)
 				if ( indentOffset > 0 ) {
 					var listRoot = listArray[ i ].parent;
 					listArray[ i ].parent = new CKEDITOR.dom.element( listRoot.getName(), listRoot.getDocument() );
@@ -182,7 +187,7 @@
 			var newList = CKEDITOR.plugins.list.arrayToList( listArray, database, null, editor.config.enterMode, listNode.getDirection() );
 
 			// Avoid nested <li> after outdent even they're visually same,
-			// recording them for later refactoring.(#3982)
+			// recording them for later refactoring.(http://dev.ckeditor.com/ticket/3982)
 			if ( !that.isIndent ) {
 				var parentLiElement;
 				if ( ( parentLiElement = listNode.getParent() ) && parentLiElement.is( 'li' ) ) {
@@ -210,7 +215,7 @@
 					// Nest preceding <ul>/<ol> inside current <li> if any.
 					while ( ( followingList = followingList.getNext() ) && followingList.is && followingList.getName() in context ) {
 						// IE requires a filler NBSP for nested list inside empty list item,
-						// otherwise the list item will be inaccessiable. (#4476)
+						// otherwise the list item will be inaccessiable. (http://dev.ckeditor.com/ticket/4476)
 						if ( CKEDITOR.env.needsNbspFiller && !li.getFirst( neitherWhitespacesNorBookmark ) )
 							li.append( range.document.createText( '\u00a0' ) );
 
@@ -229,15 +234,19 @@
 
 		var selection = editor.getSelection(),
 			ranges = selection && selection.getRanges(),
-			iterator = ranges.createIterator(),
-			range;
+			iterator = ranges.createIterator();
 
 		while ( ( range = iterator.getNextRange() ) ) {
-			var rangeRoot = range.getCommonAncestor(),
-				nearestListBlock = rangeRoot;
+			var nearestListBlock = range.getCommonAncestor();
 
-			while ( nearestListBlock && !( nearestListBlock.type == CKEDITOR.NODE_ELEMENT && context[ nearestListBlock.getName() ] ) )
+			while ( nearestListBlock && !( nearestListBlock.type == CKEDITOR.NODE_ELEMENT && context[ nearestListBlock.getName() ] ) ) {
+				// Avoid having plugin propagate to parent of editor in inline mode by canceling the indentation. (http://dev.ckeditor.com/ticket/12796)
+				if ( editor.editable().equals( nearestListBlock ) ) {
+					nearestListBlock = false;
+					break;
+				}
 				nearestListBlock = nearestListBlock.getParent();
+			}
 
 			// Avoid having selection boundaries out of the list.
 			// <ul><li>[...</li></ul><p>...]</p> => <ul><li>[...]</li></ul><p>...</p>
@@ -246,7 +255,7 @@
 					range.setEndAt( nearestListBlock, CKEDITOR.POSITION_BEFORE_END );
 			}
 
-			// Avoid having selection enclose the entire list. (#6138)
+			// Avoid having selection enclose the entire list. (http://dev.ckeditor.com/ticket/6138)
 			// [<ul><li>...</li></ul>] =><ul><li>[...]</li></ul>
 			if ( !nearestListBlock ) {
 				var selectedNode = range.getEnclosedNode();
@@ -277,16 +286,6 @@
 		return 0;
 	}
 
-	// Check whether a first child of a list is in the path.
-	// The list can be extracted from path or given explicitly
-	// e.g. for better performance if cached.
-	function firstItemInPath( path, list ) {
-		if ( !list )
-			list = path.contains( this.context );
-
-		return list && path.block && path.block.equals( list.getFirst( listItem ) );
-	}
-
 	// Determines whether a node is a list <li> element.
 	function listItem( node ) {
 		return node.type == CKEDITOR.NODE_ELEMENT && node.is( 'li' );
@@ -295,4 +294,32 @@
 	function neitherWhitespacesNorBookmark( node ) {
 		return isNotWhitespaces( node ) && isNotBookmark( node );
 	}
+
+	/**
+	 * Global namespace for methods exposed by the Indent List plugin.
+	 *
+	 * @singleton
+	 * @class
+	 */
+	CKEDITOR.plugins.indentList = {};
+
+	/**
+	 * Checks whether the first child of the list is in the path.
+	 * The list can be extracted from the path or given explicitly
+	 * e.g. for better performance if cached.
+	 *
+	 * @since 4.4.6
+	 * @param {Object} query See the {@link CKEDITOR.dom.elementPath#contains} method arguments.
+	 * @param {CKEDITOR.dom.elementPath} path
+	 * @param {CKEDITOR.dom.element} [list]
+	 * @returns {Boolean}
+	 * @member CKEDITOR.plugins.indentList
+	 */
+	CKEDITOR.plugins.indentList.firstItemInPath = function( query, path, list ) {
+		var firstListItemInPath = path.contains( listItem );
+		if ( !list )
+			list = path.contains( query );
+
+		return list && firstListItemInPath && firstListItemInPath.equals( list.getFirst( listItem ) );
+	};
 } )();

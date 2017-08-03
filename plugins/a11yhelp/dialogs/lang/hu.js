@@ -1,5 +1,5 @@
-﻿/**
- * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+/**
+ * @license Copyright (c) 2003-2017, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
@@ -12,12 +12,13 @@ CKEDITOR.plugins.setLang( 'a11yhelp', 'hu', {
 		items: [
 			{
 			name: 'Szerkesztő Eszköztár',
-			legend: 'Nyomjon ${toolbarFocus} hogy kijelölje az eszköztárat. A következő és előző eszköztár csoporthoz a TAB és SHIFT TAB-al juthat el. A következő és előző eszköztár gombhoz a BAL NYÍL vagy JOBB NYÍL gombbal juthat el. Nyomjon SPACE-t vagy ENTER-t hogy aktiválja az eszköztár gombot.'
+			legend: 'Nyomjon ${toolbarFocus} hogy kijelölje az eszköztárat. A következő és előző eszköztár csoporthoz a TAB és SHIFT+TAB-al juthat el. A következő és előző eszköztár gombhoz a BAL NYÍL vagy JOBB NYÍL gombbal juthat el. Nyomjon SPACE-t vagy ENTER-t hogy aktiválja az eszköztár gombot.'
 		},
 
 			{
 			name: 'Szerkesző párbeszéd ablak',
-			legend: 'Párbeszédablakban nyomjon TAB-ot a következő párbeszédmezőhöz ugráshoz, nyomjon SHIFT + TAB-ot az előző mezőhöz ugráshoz, nyomjon ENTER-t a párbeszédablak elfogadásához, nyomjon ESC-et a párbeszédablak elvetéséhez. Azokhoz a párbeszédablakokhoz, amik több fület tartalmaznak, nyomjon ALT + F10-et hogy a fülekre ugorjon. Ezután a TAB-al vagy a JOBB NYÍLLAL a következő fülre ugorhat. Az előző fülre ugráshoz használja a SHIFT + TAB-ot vagy a BAL NYILAT. Nyomjon SPACE-t vagy ENTER-t hogy kijelölje a fület.'
+			legend:
+				'Párbeszédablakban nyomjon TAB-ot a következő párbeszédmezőhöz ugráshoz, nyomjon SHIFT + TAB-ot az előző mezőhöz ugráshoz, nyomjon ENTER-t a párbeszédablak elfogadásához, nyomjon ESC-et a párbeszédablak elvetéséhez. Azokhoz a párbeszédablakokhoz, amik több fület tartalmaznak, nyomjon ALT + F10-et vagy TAB-ot hogy a fülekre ugorjon. Ezután a TAB-al vagy a JOBB NYÍLLAL a következő fülre ugorhat.' 
 		},
 
 			{
@@ -78,29 +79,26 @@ CKEDITOR.plugins.setLang( 'a11yhelp', 'hu', {
 			{
 			name: 'Kisegítő súgó',
 			legend: 'Nyomjon ${a11yHelp}'
+		},
+			{
+			name: ' Paste as plain text', // MISSING
+			legend: 'Press ${pastetext}', // MISSING
+			legendEdge: 'Press ${pastetext}, followed by ${paste}' // MISSING
 		}
 		]
 	}
 	],
-	backspace: 'Backspace',
 	tab: 'Tab',
-	enter: 'Enter',
-	shift: 'Shift',
-	ctrl: 'Ctrl',
-	alt: 'Alt',
 	pause: 'Pause',
 	capslock: 'Caps Lock',
 	escape: 'Escape',
 	pageUp: 'Page Up',
 	pageDown: 'Page Down',
-	end: 'End',
-	home: 'Home',
 	leftArrow: 'balra nyíl',
 	upArrow: 'felfelé nyíl',
 	rightArrow: 'jobbra nyíl',
 	downArrow: 'lefelé nyíl',
 	insert: 'Insert',
-	'delete': 'Delete',
 	leftWindowKey: 'bal Windows-billentyű',
 	rightWindowKey: 'jobb Windows-billentyű',
 	selectKey: 'Billentyű választása',

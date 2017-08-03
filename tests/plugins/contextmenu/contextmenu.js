@@ -31,12 +31,38 @@
 			} );
 		},
 
+		'test opening context menu default config': function() {
+			bender.editorBot.create( {
+				name: 'editor_nocontextmenu1'
+			}, function( bot ) {
+				bot.editor.contextMenu.show = sinon.spy();
+
+				bot.editor.contextMenu.open( bot.editor.editable() );
+
+				assert.isTrue( bot.editor.contextMenu.show.called );
+			} );
+		},
+
+		'test opening disabled context menu': function() {
+			bender.editorBot.create( {
+					name: 'editor_nocontextmenu2',
+					config: {
+						enableContextMenu: false
+					}
+				}, function( bot ) {
+				bot.editor.contextMenu.show = sinon.spy();
+
+				bot.editor.contextMenu.open( bot.editor.editable() );
+
+				assert.isFalse( bot.editor.contextMenu.show.called );
+			} );
+		},
+
 		'#9706: test opening contextmenu in editable that does not autoparagraph': function() {
 			bender.editorBot.create( {
 				name: 'editor3',
 				creator: 'inline'
 			}, function( bot ) {
-				var editor = bot.editor
 				bot.setHtmlWithSelection( '<strong>[aaa]</strong> bbb' );
 
 				bot.contextmenu( function() {
@@ -58,7 +84,8 @@
 				name: 'editor4',
 				config: {
 					allowedContent: true
-			} }, function( bot ) {
+				}
+			}, function( bot ) {
 				bot.setData( html, function() {
 					var editor = bot.editor,
 						editable = editor.editable(),
@@ -67,6 +94,9 @@
 						nonEditable = doc.getById( 'a' ),
 						nestedEditable = doc.getById( 'b' ),
 						preventDefaultCalled = 0;
+
+					// http://dev.ckeditor.com/ticket/13910
+					editor.focus();
 
 					editable.fire( 'contextmenu', new CKEDITOR.dom.event( {
 						target: nonEditable.$,

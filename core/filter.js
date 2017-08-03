@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2017, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
@@ -299,7 +299,7 @@
 					if ( el.attributes[ 'data-cke-filter' ] == 'off' )
 						return false;
 
-					// (#10260) Don't touch elements like spans with data-cke-* attribute since they're
+					// (http://dev.ckeditor.com/ticket/10260) Don't touch elements like spans with data-cke-* attribute since they're
 					// responsible e.g. for placing markers, bookmarks, odds and stuff.
 					// We love 'em and we don't wanna lose anything during the filtering.
 					// '|' is to avoid tricky joints like data-="foo" + cke-="bar". Yes, they're possible.
@@ -327,7 +327,8 @@
 
 			var node, element, check,
 				toBeChecked = [],
-				enterTag = enterModeTags[ enterMode || ( this.editor ? this.editor.enterMode : CKEDITOR.ENTER_P ) ];
+				enterTag = enterModeTags[ enterMode || ( this.editor ? this.editor.enterMode : CKEDITOR.ENTER_P ) ],
+				parentDtd;
 
 			// Remove elements in reverse order - from leaves to root, to avoid conflicts.
 			while ( ( node = toBeRemoved.pop() ) ) {
@@ -345,6 +346,9 @@
 				if ( !element.parent )
 					continue;
 
+				// Handle custom elements as inline elements (http://dev.ckeditor.com/ticket/12683).
+				parentDtd = DTD[ element.parent.name ] || DTD.span;
+
 				switch ( check.check ) {
 					// Check if element itself is correct.
 					case 'it':
@@ -359,17 +363,13 @@
 					// Check if element is in correct context. If not - remove element.
 					case 'el-up':
 						// Check if e.g. li is a child of body after ul has been removed.
-						if ( element.parent.type != CKEDITOR.NODE_DOCUMENT_FRAGMENT &&
-							!DTD[ element.parent.name ][ element.name ]
-						)
+						if ( element.parent.type != CKEDITOR.NODE_DOCUMENT_FRAGMENT && !parentDtd[ element.name ] )
 							removeElement( element, enterTag, toBeChecked );
 						break;
 
 					// Check if element is in correct context. If not - remove parent.
 					case 'parent-down':
-						if ( element.parent.type != CKEDITOR.NODE_DOCUMENT_FRAGMENT &&
-							!DTD[ element.parent.name ][ element.name ]
-						)
+						if ( element.parent.type != CKEDITOR.NODE_DOCUMENT_FRAGMENT && !parentDtd[ element.name ] )
 							removeElement( element.parent, enterTag, toBeChecked );
 						break;
 				}
@@ -720,9 +720,10 @@
 
 				// Create test element from string.
 				element = mockElementFromString( test );
-			} else
+			} else {
 				// Create test element from CKEDITOR.style.
 				element = mockElementFromStyle( test );
+			}
 
 			// Make a deep copy.
 			var clone = CKEDITOR.tools.clone( element ),
@@ -749,13 +750,14 @@
 			} );
 
 			// Element has been marked for removal.
-			if ( toBeRemoved.length > 0 )
+			if ( toBeRemoved.length > 0 ) {
 				result = false;
 			// Compare only left to right, because clone may be only trimmed version of original element.
-			else if ( !CKEDITOR.tools.objectCompare( element.attributes, clone.attributes, true ) )
+			} else if ( !CKEDITOR.tools.objectCompare( element.attributes, clone.attributes, true ) ) {
 				result = false;
-			else
+			} else {
 				result = true;
+			}
 
 			// Cache result of this test - we can build cache only for string tests.
 			if ( typeof test == 'string' )
@@ -801,7 +803,21 @@
 
 				return CKEDITOR.ENTER_BR;
 			};
-		} )()
+		} )(),
+
+		/**
+		 * Destroys the filter instance and removes it from the global {@link CKEDITOR.filter#instances} object.
+		 *
+		 * @since 4.4.5
+		 */
+		destroy: function() {
+			delete CKEDITOR.filter.instances[ this.id ];
+			// Deleting reference to filter instance should be enough,
+			// but since these are big objects it's safe to clean them up too.
+			delete this._;
+			delete this.allowedContent;
+			delete this.disallowedContent;
+		}
 	};
 
 	function addAndOptimizeRules( that, newRules, featureName, standardizedRules, optimizedRules ) {
@@ -1207,7 +1223,7 @@
 	// Create pseudo element that will be passed through filter
 	// to check if tested string is allowed.
 	function mockElementFromString( str ) {
-		var element = parseRulesString( str )[ '$1' ],
+		var element = parseRulesString( str ).$1,
 			styles = element.styles,
 			classes = element.classes;
 
@@ -1232,21 +1248,20 @@
 			styles = styleDef.styles,
 			attrs = styleDef.attributes || {};
 
-		if ( styles ) {
+		if ( styles && !CKEDITOR.tools.isEmpty( styles ) ) {
 			styles = copy( styles );
 			attrs.style = CKEDITOR.tools.writeCssText( styles, true );
-		} else
+		} else {
 			styles = {};
+		}
 
-		var el = {
+		return {
 			name: styleDef.element,
 			attributes: attrs,
 			classes: attrs[ 'class' ] ? attrs[ 'class' ].split( /\s+/ ) : [],
 			styles: styles,
 			children: []
 		};
-
-		return el;
 	}
 
 	// Mock hash based on string.
@@ -1320,7 +1335,7 @@
 	function optimizeRules( optimizedRules, rules ) {
 		var elementsRules = optimizedRules.elements,
 			genericRules = optimizedRules.generic,
-			i, l, j, rule, element, priority;
+			i, l, rule, element, priority;
 
 		for ( i = 0, l = rules.length; i < l; ++i ) {
 			// Shallow copy. Do not modify original rule.
@@ -1352,8 +1367,8 @@
 		}
 	}
 
-	//                  <   elements   ><                      styles, attributes and classes                       >< separator >
-	var rulePattern = /^([a-z0-9*\s]+)((?:\s*\{[!\w\-,\s\*]+\}\s*|\s*\[[!\w\-,\s\*]+\]\s*|\s*\([!\w\-,\s\*]+\)\s*){0,3})(?:;\s*|$)/i,
+	//                  <   elements   ><                       styles, attributes and classes                        >< separator >
+	var rulePattern = /^([a-z0-9\-*\s]+)((?:\s*\{[!\w\-,\s\*]+\}\s*|\s*\[[!\w\-,\s\*]+\]\s*|\s*\([!\w\-,\s\*]+\)\s*){0,3})(?:;\s*|$)/i,
 		groupsPatterns = {
 			styles: /{([^}]+)}/,
 			attrs: /\[([^\]]+)\]/,
@@ -1373,8 +1388,9 @@
 				styles = parseProperties( props, 'styles' );
 				attrs = parseProperties( props, 'attrs' );
 				classes = parseProperties( props, 'classes' );
-			} else
+			} else {
 				styles = attrs = classes = null;
+			}
 
 			// Add as an unnamed rule, because there can be two rules
 			// for one elements set defined in string format.
@@ -1571,8 +1587,7 @@
 	// Copy element's styles and classes back to attributes array.
 	function updateAttributes( element ) {
 		var attrs = element.attributes,
-			stylesArr = [],
-			name, styles;
+			styles;
 
 		// Will be recreated later if any of styles/classes exists.
 		delete attrs.style;
@@ -1645,8 +1660,9 @@
 			if ( stylesArr.length )
 				attrs.style = stylesArr.sort().join( '; ' );
 		}
-		else if ( origStyles )
+		else if ( origStyles ) {
 			attrs.style = origStyles;
+		}
 
 		if ( !status.allClasses || status.hadInvalidClass ) {
 			for ( i = 0; i < classes.length; ++i ) {
@@ -1660,19 +1676,18 @@
 			if ( origClasses && classesArr.length < origClasses.split( /\s+/ ).length )
 				isModified = true;
 		}
-		else if ( origClasses )
+		else if ( origClasses ) {
 			attrs[ 'class' ] = origClasses;
+		}
 
 		return isModified;
 	}
 
 	function validateElement( element ) {
-		var attrs;
-
 		switch ( element.name ) {
 			case 'a':
 				// Code borrowed from htmlDataProcessor, so ACF does the same clean up.
-				if ( !( element.children.length || element.attributes.name ) )
+				if ( !( element.children.length || element.attributes.name || element.attributes.id ) )
 					return false;
 				break;
 			case 'img':
@@ -1703,15 +1718,6 @@
 	//
 	// REMOVE ELEMENT ---------------------------------------------------------
 	//
-
-	// Checks whether node is allowed by DTD.
-	function allowedIn( node, parentDtd ) {
-		if ( node.type == CKEDITOR.NODE_ELEMENT )
-			return parentDtd[ node.name ];
-		if ( node.type == CKEDITOR.NODE_TEXT )
-			return parentDtd[ '#' ];
-		return true;
-	}
 
 	// Check whether all children will be valid in new context.
 	// Note: it doesn't verify if text node is valid, because
@@ -1771,10 +1777,8 @@
 			else
 				stripBlock( element, enterTag, toBeChecked );
 		}
-		// Special case - elements that may contain CDATA
-		// should be removed completely. <script> is handled
-		// by processProtectedElement().
-		else if ( name == 'style' )
+		// Special case - elements that may contain CDATA should be removed completely.
+		else if ( name in { style: 1, script: 1 } )
 			element.remove();
 		// The rest of inline elements. May also be the last resort
 		// for some special elements.
@@ -1805,8 +1809,7 @@
 
 		var parent = element.parent,
 			shouldAutoP = parent.type == CKEDITOR.NODE_DOCUMENT_FRAGMENT || parent.name == 'body',
-			i, j, child, p, node,
-			toBeRemoved = [];
+			i, child, p, parentDtd;
 
 		for ( i = children.length; i > 0; ) {
 			child = children[ --i ];
@@ -1827,12 +1830,14 @@
 			// Child which doesn't need to be auto paragraphed.
 			else {
 				p = null;
+				parentDtd = DTD[ parent.name ] || DTD.span;
+
 				child.insertAfter( element );
 				// If inserted into invalid context, mark it and check
 				// after removing all elements.
 				if ( parent.type != CKEDITOR.NODE_DOCUMENT_FRAGMENT &&
 					child.type == CKEDITOR.NODE_ELEMENT &&
-					!DTD[ parent.name ][ child.name ]
+					!parentDtd[ child.name ]
 				)
 					toBeChecked.push( { check: 'el-up', el: child } );
 			}
@@ -1847,7 +1852,7 @@
 	// isn't first/last child of its parent.
 	// Then replace element with its children.
 	// <p>a</p><p>b</p> => <p>a</p><br>b => a<br>b
-	function stripBlockBr( element, toBeChecked ) {
+	function stripBlockBr( element ) {
 		var br;
 
 		if ( element.previous && !isBrOrBlock( element.previous ) ) {
@@ -1866,6 +1871,7 @@
 	//
 	// TRANSFORMATIONS --------------------------------------------------------
 	//
+	var transformationsTools;
 
 	// Apply given transformations group to the element.
 	function applyTransformationsGroup( filter, element, group ) {
@@ -2014,7 +2020,7 @@
 	 * @class CKEDITOR.filter.transformationsTools
 	 * @singleton
 	 */
-	var transformationsTools = CKEDITOR.filter.transformationsTools = {
+	transformationsTools = CKEDITOR.filter.transformationsTools = {
 		/**
 		 * Converts `width` and `height` attributes to styles.
 		 *
@@ -2063,8 +2069,8 @@
 		 * Converts length in the `styleName` style to a valid length attribute (like `width` or `height`).
 		 *
 		 * @param {CKEDITOR.htmlParser.element} element
-		 * @param {String} styleName Name of the style that will be converted.
-		 * @param {String} [attrName=styleName] Name of the attribute into which the style will be converted.
+		 * @param {String} styleName The name of the style that will be converted.
+		 * @param {String} [attrName=styleName] The name of the attribute into which the style will be converted.
 		 */
 		lengthToAttribute: function( element, styleName, attrName ) {
 			attrName = attrName || styleName;
@@ -2084,7 +2090,7 @@
 		},
 
 		/**
-		 * Converts the `align` attribute to the `float` style if not set. Attribute
+		 * Converts the `align` attribute to the `float` style if not set. The attribute
 		 * is always removed.
 		 *
 		 * @param {CKEDITOR.htmlParser.element} element
@@ -2102,7 +2108,7 @@
 
 		/**
 		 * Converts the `float` style to the `align` attribute if not set.
-		 * Style is always removed.
+		 * The style is always removed.
 		 *
 		 * @param {CKEDITOR.htmlParser.element} element
 		 */
@@ -2118,6 +2124,107 @@
 		},
 
 		/**
+		 * Converts the shorthand form of the `border` style to seperate styles.
+		 *
+		 * @param {CKEDITOR.htmlParser.element} element
+		 */
+		splitBorderShorthand: function( element ) {
+			if ( !element.styles.border ) {
+				return;
+			}
+
+			var widths = element.styles.border.match( /([\.\d]+\w+)/g ) || [ '0px' ];
+			switch ( widths.length ) {
+				case 1:
+					element.styles[ 'border-width' ] = widths[0];
+					break;
+				case 2:
+					mapStyles( [ 0, 1, 0, 1 ] );
+					break;
+				case 3:
+					mapStyles( [ 0, 1, 2, 1 ] );
+					break;
+				case 4:
+					mapStyles( [ 0, 1, 2, 3 ] );
+					break;
+			}
+
+			element.styles[ 'border-style' ] = element.styles[ 'border-style' ] ||
+				( element.styles.border.match( /(none|hidden|dotted|dashed|solid|double|groove|ridge|inset|outset|initial|inherit)/ ) || [] )[ 0 ];
+			if ( !element.styles[ 'border-style' ] )
+				delete element.styles[ 'border-style' ];
+
+			delete element.styles.border;
+
+			function mapStyles( map ) {
+				element.styles['border-top-width'] = widths[ map[0] ];
+				element.styles['border-right-width'] = widths[ map[1] ];
+				element.styles['border-bottom-width'] = widths[ map[2] ];
+				element.styles['border-left-width'] = widths[ map[3] ];
+			}
+		},
+
+		listTypeToStyle: function( element ) {
+			if ( element.attributes.type ) {
+				switch ( element.attributes.type ) {
+					case 'a':
+						element.styles[ 'list-style-type' ] = 'lower-alpha';
+						break;
+					case 'A':
+						element.styles[ 'list-style-type' ] = 'upper-alpha';
+						break;
+					case 'i':
+						element.styles[ 'list-style-type' ] = 'lower-roman';
+						break;
+					case 'I':
+						element.styles[ 'list-style-type' ] = 'upper-roman';
+						break;
+					case '1':
+						element.styles[ 'list-style-type' ] = 'decimal';
+						break;
+					default:
+						element.styles[ 'list-style-type' ] = element.attributes.type;
+				}
+			}
+		},
+
+		/**
+		 * Converts the shorthand form of the `margin` style to seperate styles.
+		 *
+		 * @param {CKEDITOR.htmlParser.element} element
+		 */
+		splitMarginShorthand: function( element ) {
+			if ( !element.styles.margin ) {
+				return;
+			}
+
+			var widths = element.styles.margin.match( /(\-?[\.\d]+\w+)/g ) || [ '0px' ];
+			switch ( widths.length ) {
+				case 1:
+					mapStyles( [ 0, 0, 0, 0 ] );
+					break;
+				case 2:
+					mapStyles( [ 0, 1, 0, 1 ] );
+					break;
+				case 3:
+					mapStyles( [ 0, 1, 2, 1 ] );
+					break;
+				case 4:
+					mapStyles( [ 0, 1, 2, 3 ] );
+					break;
+			}
+
+			delete element.styles.margin;
+
+			function mapStyles( map ) {
+				element.styles['margin-top'] = widths[ map[0] ];
+				element.styles['margin-right'] = widths[ map[1] ];
+				element.styles['margin-bottom'] = widths[ map[2] ];
+				element.styles['margin-left'] = widths[ map[3] ];
+			}
+		},
+
+		/**
 		 * Checks whether an element matches a given {@link CKEDITOR.style}.
 		 * The element can be a "superset" of a style, e.g. it may have
 		 * more classes, but needs to have at least those defined in the style.
@@ -2128,12 +2235,12 @@
 		matchesStyle: elementMatchesStyle,
 
 		/**
-		 * Transforms element to given form.
+		 * Transforms an element to a given form.
 		 *
 		 * Form may be a:
 		 *
 		 *	* {@link CKEDITOR.style},
-		 *	* string &ndash; the new name of an element.
+		 *	* string &ndash; the new name of the element.
 		 *
 		 * @param {CKEDITOR.htmlParser.element} el
 		 * @param {CKEDITOR.style/String} form
@@ -2160,8 +2267,9 @@
 							if ( existingClassesPattern.indexOf( cl ) == -1 )
 								el.classes.push( cl );
 						}
-					} else
+					} else {
 						el.attributes[ attrName ] = defAttrs[ attrName ];
+					}
 
 				}
 
@@ -2183,7 +2291,7 @@
  *	* {@link CKEDITOR.filter.allowedContentRules} &ndash; defined rules will be added
  *	to the {@link CKEDITOR.editor#filter}.
  *	* `true` &ndash; will disable the filter (data will not be filtered,
- *	all features will be activated).
+ *	all features will be activated). Reading [security best practices](#!/guide/dev_best_practices) before setting `true` is recommended.
  *	* default &ndash; the filter will be configured by loaded features
  *	(toolbar items, commands, etc.).
  *
@@ -2209,6 +2317,9 @@
  * It is also possible to disallow some already allowed content. It is especially
  * useful when you want to "trim down" the content allowed by default by
  * editor features. To do that, use the {@link #disallowedContent} option.
+ *
+ * Read more in the [documentation](#!/guide/dev_acf)
+ * and see the [SDK sample](http://sdk.ckeditor.com/samples/acf.html).
  *
  * @since 4.1
  * @cfg {CKEDITOR.filter.allowedContentRules/Boolean} [allowedContent=null]
@@ -2238,7 +2349,9 @@
  *			}
  *		} );
  *
- * See {@link CKEDITOR.config#allowedContent} for more details.
+ * Read more in the [documentation](#!/guide/dev_acf-section-automatic-mode-and-allow-additional-tags%2Fproperties)
+ * and see the [SDK sample](http://sdk.ckeditor.com/samples/acf.html).
+ * See also {@link CKEDITOR.config#allowedContent} for more details.
  *
  * @since 4.1
  * @cfg {Object/String} extraAllowedContent
@@ -2249,6 +2362,8 @@
  * Disallowed content rules. They have precedence over {@link #allowedContent allowed content rules}.
  * Read more in the [Disallowed Content guide](#!/guide/dev_disallowed_content).
  *
+ * Read more in the [documentation](#!/guide/dev_acf-section-automatic-mode-but-disallow-certain-tags%2Fproperties)
+ * and see the [SDK sample](http://sdk.ckeditor.com/samples/acf.html).
  * See also {@link CKEDITOR.config#allowedContent} and {@link CKEDITOR.config#extraAllowedContent}.
  *
  * @since 4.4
