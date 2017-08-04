@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 CKEDITOR.plugins.setLang( 'scayt', 'sv', {
@@ -9,5 +9,5 @@ CKEDITOR.plugins.setLang( 'scayt', 'sv', {
 	btn_enable: 'Aktivera SCAYT',
 	btn_langs:'Språk',
 	btn_options: 'Inställningar',
-	text_title: ''
+	text_title: 'Stavningskontroll medan du skriver'
 });
