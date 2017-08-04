@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.html or http://ckeditor.com/license
  */
  (function() {
@@ -181,10 +181,12 @@
 		NS.onLoadOverlay = null;
 		NS.LocalizationComing = {};
 		NS.OverlayPlace = null;
+		NS.sessionid = '';
 		NS.LocalizationButton = {
-			'ChangeTo': {
+			'ChangeTo_button': {
 				'instance' : null,
-				'text' : 'Change to'
+				'text' : 'Change to',
+				'localizationID': 'ChangeTo'
 			},
 
 			'ChangeAll': {
@@ -215,41 +217,81 @@
 				'text' : 'Add word'
 			},
 
-			'FinishChecking': {
+			'FinishChecking_button': {
 				'instance' : null,
-				'text' : 'Finish Checking'
+				'text' : 'Finish Checking',
+				'localizationID': 'FinishChecking'
+			},
+
+			'Option_button': {
+				'instance' : null,
+				'text' : 'Options',
+				'localizationID': 'Options'
+			},
+
+			'FinishChecking_button_block': {
+				'instance' : null,
+				'text' : 'Finish Checking',
+				'localizationID': 'FinishChecking'
 			}
 		};
 
 		NS.LocalizationLabel = {
-			'ChangeTo': {
+			'ChangeTo_label': {
 				'instance' : null,
-				'text' : 'Change to'
+				'text' : 'Change to',
+				'localizationID': 'ChangeTo'
 			},
 
 			'Suggestions': {
 				'instance' : null,
 				'text' : 'Suggestions'
+			},
+
+			'Categories': {
+				'instance' : null,
+				'text' : 'Categories'
+			},
+
+			'Synonyms': {
+				'instance' : null,
+				'text' : 'Synonyms'
 			}
 		};
 
 	var SetLocalizationButton = function(obj) {
-		var el;
+		var el, localizationID;
 
 		for(var i in obj) {
-			el = obj[i].instance.getElement().getFirst() || obj[i].instance.getElement();
+			el = NS.dialog.getContentElement(NS.dialog._.currentTabId, i);
 
-			el.setText(NS.LocalizationComing[i]);
+			if(el) {
+				el = el.getElement();
+			} else if(obj[i].instance){
+				el = obj[i].instance.getElement().getFirst() || obj[i].instance.getElement();
+			} else{
+				continue;
+			}
+
+			localizationID = obj[i].localizationID || i;
+			el.setText(NS.LocalizationComing[localizationID]);
 		}
 	};
 
 	var SetLocalizationLabel = function(obj) {
+		var el, localizationID;
 
 		for(var i in obj) {
-			if (!obj[i].instance.setLabel) {
-				return;
+			el = NS.dialog.getContentElement(NS.dialog._.currentTabId, i);
+
+			if(!el) {
+				el = obj[i].instance;
 			}
-			obj[i].instance.setLabel(NS.LocalizationComing[i]);
+
+			if(el.setLabel) {
+				localizationID = obj[i].localizationID || i;
+				el.setLabel(NS.LocalizationComing[localizationID] + ':');
+			}
 		}
 	};
 	var OptionsConfirm = function(state) {
@@ -397,6 +439,8 @@
 		iframe.document.open();
 		iframe.document.write(iframeInnerHtml);
 		iframe.document.close();
+		NS.div_overlay.setEnable();
+		iframeOnload = true;
 	};
 
 	NS.setCurrentIframe = function(currentTab) {
@@ -426,55 +470,25 @@
 		iframe.style.height = '240px';
 	};
 
-	/*NS.sendData = function() {
-		var currentTab = NS.dialog._.currentTabId,
-			that = NS.dialog._.contents[currentTab].Content,
-			tabID, iframe;
-
-		NS.setIframe(that, currentTab);
-		NS.dialog.parts.tabs.removeAllListeners();
-
-		NS.dialog.parts.tabs.on('click', function(event) {
-			event = event || window.event;
-			if (!event.data.getTarget().is('a')) {
-				return
-			};
-
-			if (currentTab == NS.dialog._.currentTabId) { return };
-
-			currentTab = NS.dialog._.currentTabId;
-			that = NS.dialog._.contents[currentTab].Content;
-			tabID = NS.iframeNumber + '_' + currentTab;
-
-			if (that.getElement().$.children.length == 0) {
-				NS.setIframe(that, currentTab);
-				iframe = document.getElementById(tabID);
-				NS.targetFromFrame[tabID] = iframe.contentWindow;
-			} else {
-				sendData(NS.targetFromFrame[tabID], NS.cmd[currentTab]);
-			};
-		});
-
-	};*/
-
 	NS.sendData = function(scope) {
 		var currentTab = scope._.currentTabId,
 			that = scope._.contents[currentTab].Content,
 			tabID, iframe;
 
-
+		NS.previousTab = currentTab;
 		NS.setIframe(that, currentTab);
 
 		var loadNewTab = function(event) {
+			currentTab = scope._.currentTabId;
 			event = event || window.event;
 
 			if (!event.data.getTarget().is('a')) {
 				return;
 			}
 
-			if (currentTab == scope._.currentTabId) { return; }
+			if(currentTab === NS.previousTab) return;
+			NS.previousTab = currentTab;
 
-			currentTab = scope._.currentTabId;
 			that = scope._.contents[currentTab].Content;
 			tabID = NS.iframeNumber + '_' + currentTab;
 			NS.div_overlay.setEnable();
@@ -541,26 +555,36 @@
 				txt_option = document.createTextNode(sort[i][0]);
 				create_option.appendChild(txt_option);
 
-				if (sort[i][1] == NS.selectingLang) {
-					create_option.setAttribute("selected", "selected");
-				}
-
 				fragment.appendChild(create_option);
 			}
 			select.appendChild(fragment);
+		}
+
+		// make appropriate option selected according to current selected language
+		for (var j = 0; j < select.options.length; j++) {
+			if (select.options[j].value == NS.selectingLang) {
+				select.options[j].selected = "selected";
+			}
 		}
 	};
 
 	NS.buildOptionSynonyms = function(key) {
 		var syn = NS.selectNodeResponce[key];
-		NS.selectNode['synonyms'].clear();
 
-		for (var item = 0; item < syn.length; item++) {
-			NS.selectNode['synonyms'].add(syn[item], syn[item]);
+		var select = getSelect( NS.selectNode['Synonyms'] );
+
+		NS.selectNode['Synonyms'].clear();
+
+		for (var i = 0; i < syn.length; i++) {
+			var option = document.createElement('option');
+				option.text = syn[i];
+				option.value = syn[i];
+
+			select.$.add(option, i);
 		}
 
-		NS.selectNode['synonyms'].getInputElement().$.firstChild.selected = true;
-		NS.textNode['Thesaurus'].setValue(NS.selectNode['synonyms'].getInputElement().getValue());
+		NS.selectNode['Synonyms'].getInputElement().$.firstChild.selected = true;
+		NS.textNode['Thesaurus'].setValue(NS.selectNode['Synonyms'].getInputElement().getValue());
 	};
 
 	var setBannerInPlace = function(htmlBanner) {
@@ -669,22 +693,42 @@
 			frameId = NS.iframeNumber + '_' + currentTabId;
 
 		NS.buildOptionLang(langSelectBox.setLangList, NS.dialog.getParentEditor().name);
-		tabView[langSelectBox.getCurrentLangGroup(NS.selectingLang)]();
+		tabView[langSelectBox.getCurrentLangGroup(NS.selectingLang)].onShow();
 		statusGrammarTab(NS.show_grammar);
 
-		selectContainer.onchange = function(e){
+		selectContainer.onchange = function(e) {
+			var langGroup = langSelectBox.getCurrentLangGroup(this.value),
+				currentTabId = NS.dialog._.currentTabId,
+				cmd;
+
 			e = e || window.event;
-			tabView[langSelectBox.getCurrentLangGroup(this.value)]();
+
+			tabView[langGroup].onShow();
 			statusGrammarTab(NS.show_grammar);
-
 			NS.div_overlay.setEnable();
-
 			NS.selectingLang = this.value;
+
+			// get command for current opened tan
+			cmd = NS.cmd[currentTabId];
+			// check whether current tab can be opened after language switching
+			if(!langGroup || !tabView[langGroup] || !tabView[langGroup].allowedTabCommands[cmd]) {
+				// if not so - set default tab to open after reload
+				cmd = tabView[langGroup].defaultTabCommand;
+			}
+
+			for(var key in NS.cmd) {
+				if(NS.cmd[key] == cmd) {
+					NS.previousTab = key;
+					break;
+				}
+			}
 
 			appTools.postMessage.send({
 			 	'message': {
 			 		'changeLang': NS.selectingLang,
-			 		'text': NS.dataTemp
+			 		'interfaceLang' : NS.interfaceLang,
+			 		'text': NS.dataTemp,
+			 		'cmd': cmd
 			 	},
 				'target': NS.targetFromFrame[frameId],
 				'id': 'selectionLang_outer__page'
@@ -694,33 +738,47 @@
 	};
 
 	var disableButtonSuggest = function(word) {
-		if (word == 'no_any_suggestions') {
-			word = 'No suggestions';
-			NS.LocalizationButton['ChangeTo'].instance.disable();
-			NS.LocalizationButton['ChangeAll'].instance.disable();
-
-			var styleDisable = function(instanceButton) {
-				var button = NS.LocalizationButton[instanceButton].instance;
+		var changeToButton, changeAllButton,
+			styleDisable = function(instanceButton) {
+				var button = NS.dialog.getContentElement(NS.dialog._.currentTabId, instanceButton) || NS.LocalizationButton[instanceButton].instance;
 				button.getElement().hasClass('cke_disabled') ? button.getElement().setStyle('color', '#a0a0a0') : button.disable();
+			},
+			styleEnable = function(instanceButton) {
+				var button = NS.dialog.getContentElement(NS.dialog._.currentTabId, instanceButton) || NS.LocalizationButton[instanceButton].instance;
+				button.enable();
+				button.getElement().setStyle('color', '#333');
 			};
 
-			styleDisable('ChangeTo');
+		if (word == 'no_any_suggestions') {
+			word = 'No suggestions';
+
+			changeToButton = NS.dialog.getContentElement(NS.dialog._.currentTabId, 'ChangeTo_button') || NS.LocalizationButton['ChangeTo_button'].instance;
+			changeToButton.disable();
+			changeAllButton = NS.dialog.getContentElement(NS.dialog._.currentTabId, 'ChangeAll') || NS.LocalizationButton['ChangeAll'].instance;
+			changeAllButton.disable();
+
+			styleDisable('ChangeTo_button');
 			styleDisable('ChangeAll');
 
 			return word;
 		} else {
-			NS.LocalizationButton['ChangeTo'].instance.enable();
-			NS.LocalizationButton['ChangeAll'].instance.enable();
-			NS.LocalizationButton['ChangeTo'].instance.getElement().setStyle('color', '#333');
-			NS.LocalizationButton['ChangeAll'].instance.getElement().setStyle('color', '#333');
+			styleEnable('ChangeTo_button');
+			styleEnable('ChangeAll');
+
 			return word;
 		}
 	};
 
+	function getSelect( obj ) {
+		if ( obj && obj.domId && obj.getInputElement().$ )
+		return obj.getInputElement();
+		else if ( obj && obj.$ )
+			return obj;
+		return false;
+	}
+
 	var handlerId = {
 		iframeOnload: function(response) {
-			NS.div_overlay.setEnable();
-			iframeOnload = true;
 			var currentTab = NS.dialog._.currentTabId,
 				tabId = NS.iframeNumber + '_' + currentTab;
 			sendData(NS.targetFromFrame[tabId], NS.cmd[currentTab]);
@@ -741,11 +799,19 @@
 
 			word = word.split(',');
 			suggestionsList = word;
-			selectNode.clear();
+
 			NS.textNode['SpellTab'].setValue(suggestionsList[0]);
 
-			for (var item = 0; item < suggestionsList.length; item++) {
-				selectNode.add(suggestionsList[item], suggestionsList[item]);
+			var select = getSelect( selectNode );
+
+			selectNode.clear();
+
+			for (var i = 0; i < suggestionsList.length; i++) {
+				var option = document.createElement('option');
+					option.text = suggestionsList[i];
+					option.value = suggestionsList[i];
+
+				select.$.add(option, i);
 			}
 
 			showCurrentTabs();
@@ -790,18 +856,29 @@
 			NS.selectNodeResponce = response;
 
 			NS.textNode['Thesaurus'].reset();
-			NS.selectNode['categories'].clear();
+
+			var select = getSelect( NS.selectNode['Categories'] ),
+				count = 0;
+
+			NS.selectNode['Categories'].clear();
 
 			for (var i in response) {
-				NS.selectNode['categories'].add(i, i);
+
+				var option = document.createElement('option');
+					option.text = i;
+					option.value = i;
+
+				select.$.add(option, count);
+				count++
 			}
 
-			var synKey = NS.selectNode['categories'].getInputElement().getChildren().$[0].value;
-			NS.selectNode['categories'].getInputElement().getChildren().$[0].selected = true;
+			var synKey = NS.selectNode['Categories'].getInputElement().getChildren().$[0].value;
+			NS.selectNode['Categories'].getInputElement().getChildren().$[0].selected = true;
 			NS.buildOptionSynonyms(synKey);
 
 			showCurrentTabs();
 			NS.div_overlay.setDisable();
+			count = 0;
 		},
 		finish: function(response) {
 			delete response.id;
@@ -816,6 +893,18 @@
 			var command = NS.dialog.getParentEditor().getCommand( 'checkspell' ),
 				editor = NS.dialog.getParentEditor();
 
+			//set local storage for synchronization before scayt reinit
+			if (editor.scayt && editor.wsc.isSsrvSame) {
+				var	wscUDN = editor.wsc.udn;
+
+					if (!wscUDN) {
+						editor.wsc.DataStorage.setData('scayt_user_dictionary_name', '');
+					} else {
+						editor.wsc.DataStorage.setData('scayt_user_dictionary_name', wscUDN);
+					}
+			}
+
+
 			try {
 				editor.focus();
 			} catch(e) {}
@@ -829,17 +918,22 @@
 
 		},
 		ReplaceText: function(response) {
+
 			delete response.id;
 			NS.div_overlay.setEnable();
 
 			NS.dataTemp = response.text;
 			NS.selectingLang = response.currentLang;
 
-			window.setTimeout(function() {
-				try {
-					NS.div_overlay.setDisable();
-				} catch(e) {}
-			}, 500);
+			if (response.cmd = 'spell' && response.len !== '0' && response.len) {
+				NS.div_overlay.setDisable();
+			} else {
+				window.setTimeout(function() {
+					try {
+						NS.div_overlay.setDisable();
+					} catch(e) {}
+				}, 500);
+			}
 
 			SetLocalizationButton(NS.LocalizationButton);
 			SetLocalizationLabel(NS.LocalizationLabel);
@@ -870,6 +964,7 @@
 			NS.show_grammar = response.show_grammar;
 			NS.langList = response.lang;
 			NS.bnr = response.bannerId;
+			NS.sessionid = response.sessionid;
 			if (response.bannerId) {
 				NS.setHeightBannerFrame();
 				setBannerInPlace(response.banner);
@@ -986,7 +1081,6 @@
 		cmd = cmd || CKEDITOR.config.wsc_cmd;
 		reset_suggest = reset_suggest || false;
 		sendText = sendText || NS.dataTemp;
-
 		appTools.postMessage.send({
 			'message': {
 				'customerId': NS.wsc_customerId,
@@ -996,7 +1090,9 @@
 				'cust_dic_ids': NS.cust_dic_ids,
 				'udn': NS.userDictionaryName,
 				'slang': NS.selectingLang,
-				'reset_suggest': reset_suggest
+				'interfaceLang' : NS.interfaceLang,
+				'reset_suggest': reset_suggest,
+				'sessionid': NS.sessionid
 			},
 			'target': frameTarget,
 			'id': 'data_outer__page'
@@ -1006,20 +1102,64 @@
 	};
 
 	var tabView = {
-		"superset" : function() {
-			showThesaurusTab();
-			showGrammTab();
-			showSpellTab();
+		"superset": {
+			onShow: function() {
+				showThesaurusTab();
+				showGrammTab();
+				showSpellTab();
+			},
+			allowedTabCommands: {
+				"spell": true,
+				"grammar": true,
+				"thes": true
+			},
+			defaultTabCommand: "spell"
 		},
-		"usual"    : function() {
-			hideThesaurusTab();
-			hideGrammTab();
-			showSpellTab();
+		"usual": {
+			onShow: function() {
+				hideThesaurusTab();
+				hideGrammTab();
+				showSpellTab();
+			},
+			allowedTabCommands: {
+				"spell": true
+			},
+			defaultTabCommand: "spell"
 		},
-		"rtl"    : function() {
-			hideThesaurusTab();
-			hideGrammTab();
-			showSpellTab();
+		"rtl": {
+			onShow: function() {
+				hideThesaurusTab();
+				hideGrammTab();
+				showSpellTab();
+			},
+			allowedTabCommands: {
+				"spell": true
+			},
+			defaultTabCommand: "spell"
+		},
+		"spellgrammar": {
+			onShow: function() {
+				hideThesaurusTab();
+				showGrammTab();
+				showSpellTab();
+			},
+			allowedTabCommands: {
+				"spell": true,
+				"grammar": true
+			},
+			defaultTabCommand: "spell"
+		},
+		"spellthes": {
+			onShow: function() {
+				showThesaurusTab();
+				hideGrammTab();
+				showSpellTab();
+			},
+			allowedTabCommands: {
+				"spell": true,
+				"thes": true
+			},
+			defaultTabCommand: "spell"
 		}
 	};
 
@@ -1037,8 +1177,11 @@
 			};
 		};
 
-		var cmdM = new cmdManger(NS.cmd);
-		scope.selectPage(cmdM.getCmdByTab(CKEDITOR.config.wsc_cmd));
+		var cmdM = new cmdManger(NS.cmd),
+			tabToOpen = cmdM.getCmdByTab(CKEDITOR.config.wsc_cmd);
+
+		showCurrentTabs();
+		scope.selectPage(tabToOpen);
 		NS.sendData(scope);
 	};
 
@@ -1227,58 +1370,430 @@ function __constructLangSelectbox(languageGroup) {
 
 CKEDITOR.dialog.add('checkspell', function(editor) {
 	var handlerButtons = function(event) {
-		event = event || window.event;
+			event = event || window.event;
 
-		// because in chrome and safary document.activeElement returns <body> tag. We need to signal that clicked element is active
-		this.getElement().focus();
+			// because in chrome and safary document.activeElement returns <body> tag. We need to signal that clicked element is active
+			this.getElement().focus();
 
-		NS.div_overlay.setEnable();
-		var currentTabId = NS.dialog._.currentTabId,
-			frameId = NS.iframeNumber + '_' + currentTabId,
-			new_word = NS.textNode[currentTabId].getValue(),
-			cmd = this.getElement().getAttribute("title-cmd");
+			NS.div_overlay.setEnable();
+			var currentTabId = NS.dialog._.currentTabId,
+				frameId = NS.iframeNumber + '_' + currentTabId,
+				new_word = NS.textNode[currentTabId].getValue(),
+				cmd = this.getElement().getAttribute("title-cmd");
 
+			appTools.postMessage.send({
+				'message': {
+					'cmd': cmd,
+					'tabId': currentTabId,
+					'new_word': new_word
+				},
+				'target': NS.targetFromFrame[frameId],
+				'id': 'cmd_outer__page'
+			});
 
-		appTools.postMessage.send({
-			'message': {
-				'cmd': cmd,
-				'tabId': currentTabId,
-				'new_word': new_word
+			if (cmd == 'ChangeTo' || cmd == 'ChangeAll') {
+				editor.fire('saveSnapshot');
+			}
+
+			if (cmd == 'FinishChecking') {
+				editor.config.wsc_onFinish.call(CKEDITOR.document.getWindow().getFrame());
+			}
+
+		},
+		constraints = {
+			minWidth: 560,
+			minHeight: 444
+		};
+
+	function initView(dialog) {
+		var newViewSettings = {
+				left: parseInt(editor.config.wsc_left, 10),
+				top: parseInt(editor.config.wsc_top, 10),
+				width: parseInt(editor.config.wsc_width, 10),
+				height: parseInt(editor.config.wsc_height, 10)
 			},
-			'target': NS.targetFromFrame[frameId],
-			'id': 'cmd_outer__page'
-		});
+			viewSize = CKEDITOR.document.getWindow().getViewPaneSize(),
+			currentPosition = dialog.getPosition(),
+			currentSize = dialog.getSize(),
+			savePosition = 0;
 
-		if (cmd == 'ChangeTo' || cmd == 'ChangeAll') {
-			editor.fire('saveSnapshot');
+		if(!dialog._.resized) {
+			var wrapperHeight = currentSize.height - dialog.parts.contents.getSize('height',  !(CKEDITOR.env.gecko || CKEDITOR.env.opera || CKEDITOR.env.ie && CKEDITOR.env.quirks)),
+				wrapperWidth = currentSize.width - dialog.parts.contents.getSize('width', 1);
+
+			if(newViewSettings.width < constraints.minWidth || isNaN(newViewSettings.width)) {
+				newViewSettings.width = constraints.minWidth;
+			}
+			if(newViewSettings.width > viewSize.width - wrapperWidth) {
+				newViewSettings.width = viewSize.width - wrapperWidth;
+			}
+
+			if(newViewSettings.height < constraints.minHeight || isNaN(newViewSettings.height)) {
+				newViewSettings.height = constraints.minHeight;
+			}
+			if(newViewSettings.height > viewSize.height - wrapperHeight) {
+				newViewSettings.height = viewSize.height - wrapperHeight;
+			}
+
+			currentSize.width = newViewSettings.width + wrapperWidth;
+			currentSize.height = newViewSettings.height + wrapperHeight;
+
+			dialog._.fromResizeEvent = false;
+			dialog.resize(newViewSettings.width, newViewSettings.height);
+			setTimeout(function() {
+				dialog._.fromResizeEvent = false;
+				CKEDITOR.dialog.fire('resize', {
+					dialog: dialog,
+					width: newViewSettings.width,
+					height: newViewSettings.height
+				}, editor);
+			}, 300);
 		}
 
-		if (cmd == 'FinishChecking') {
-			editor.config.wsc_onFinish.call(CKEDITOR.document.getWindow().getFrame());
+		if(!dialog._.moved) {
+			savePosition = isNaN(newViewSettings.left) && isNaN(newViewSettings.top) ? 0 : 1;
+
+			if(isNaN(newViewSettings.left)) {
+				newViewSettings.left = (viewSize.width - currentSize.width) / 2;
+			}
+			if(newViewSettings.left < 0) {
+				newViewSettings.left = 0;
+			}
+			if(newViewSettings.left > viewSize.width - currentSize.width) {
+				newViewSettings.left = viewSize.width - currentSize.width;
+			}
+
+			if(isNaN(newViewSettings.top)) {
+				newViewSettings.top = (viewSize.height - currentSize.height) / 2;
+			}
+			if(newViewSettings.top < 0) {
+				newViewSettings.top = 0;
+			}
+			if(newViewSettings.top > viewSize.height - currentSize.height) {
+				newViewSettings.top = viewSize.height - currentSize.height;
+			}
+
+			dialog.move(newViewSettings.left, newViewSettings.top, savePosition);
 		}
+	}
 
-	};
+	function createWscObjectForUdAndUdnSyncrhonization() {
+		editor.wsc = {};
 
-	var oneLoadFunction = null;
+		//DataStorage object for cookies and localStorage manipulation
+		(function( object ) {
+			'use strict';
+
+			var DataTypeManager = {
+				separator: '<$>',
+				getDataType: function(value) {
+					var type;
+
+					if(typeof value === 'undefined') {
+						type = 'undefined';
+					} else if(value === null) {
+						type = 'null';
+					} else {
+						type = Object.prototype.toString.call(value).slice(8, -1);
+					}
+					return type;
+				},
+				convertDataToString: function(value) {
+					var str,
+						type = this.getDataType(value).toLowerCase();
+
+					str = type + this.separator + value;
+					return str;
+				},
+				// get value type and convert value due to type, since all stored values are String
+				restoreDataFromString: function(str) {
+					var value = str,
+						type,
+						separatorStartIndex;
+
+					// @TODO: remove this line much later. Support of old format for options
+					str = this.backCompatibility(str);
+
+					if(typeof str === 'string') {
+						separatorStartIndex = str.indexOf(this.separator);
+						type = str.substring(0, separatorStartIndex);
+						value = str.substring(separatorStartIndex + this.separator.length);
+
+						switch(type) {
+							case 'boolean':
+								value = value === 'true';
+							break;
+							case 'number':
+								value = parseFloat(value);
+							break;
+							// we assume that we will store string values only, due to performance
+							case 'array':
+								value = value === '' ? [] : value.split(',');
+							break;
+							case 'null':
+								value = null;
+							break;
+							case 'undefined':
+								value = undefined;
+							break;
+						}
+					}
+					return value;
+				},
+				// old data type support
+				// here we trying to convert data from old format into new
+				// @TODO: remove this function much later
+				backCompatibility: function(str) {
+					var convertedStr = str,
+						value,
+						separatorStartIndex;
+
+					if(typeof str === 'string') {
+						separatorStartIndex = str.indexOf(this.separator);
+						// is it old format?
+						if(separatorStartIndex < 0) {
+							// try to get number from string
+							value = parseFloat(str);
+							// is it not a number?
+							if(isNaN(value)) {
+								// yes, this is not a number. Lets check is this is an array "[comma,separated,values]"
+								if((str[0] === '[') && (str[str.length - 1] === ']')) {
+									// this is an array. Lets remove brackets symbols and extract the words
+									str = str.replace('[', '');
+									str = str.replace(']', '');
+									if(str === '') {
+										value = [];
+									} else {
+										value = str.split(',');
+									}
+									// value = str === '[]' ? [] : str.split(',');
+								} else if(str === 'true' || str === 'false') {
+									// this is boolean value
+									value = str === 'true';
+								} else {
+									// this is string
+									value = str;
+								}
+							}
+
+							convertedStr = this.convertDataToString(value);
+						}
+					}
+
+					return convertedStr;
+				}
+			};
+
+			var LocalStorage = {
+
+				get: function( key ) {
+					var value = DataTypeManager.restoreDataFromString( window.localStorage.getItem(key) );
+					return value;
+				},
+
+				set: function( key, value ) {
+					var _value = DataTypeManager.convertDataToString( value );
+					window.localStorage.setItem( key, _value );
+				},
+
+				del: function( key ) {
+					window.localStorage.removeItem( key );
+				},
+
+				clear: function() {
+					window.localStorage.clear();
+				}
+			};
+
+			var CookiesStorage = {
+
+				expiration: (function() {
+					return 60 * 60 * 24 * 366;
+				}()),
+
+				get: function(key) {
+					var value = DataTypeManager.restoreDataFromString(this.getCookie(key));
+					return value;
+				},
+
+				set: function(key, value) {
+					var _value = DataTypeManager.convertDataToString(value);
+					this.setCookie(key, _value, {expires: this.expiration});
+				},
+
+				del: function(key) {
+					this.deleteCookie(key);
+				},
+
+				getCookie: function(name) {
+					var matches = document.cookie.match(new RegExp("(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"));
+					return matches ? decodeURIComponent(matches[1]) : undefined;
+				},
+
+				setCookie: function(name, value, props) {
+					props = props || {};
+					var exp = props.expires;
+
+					if (typeof exp === "number" && exp) {
+						var d = new Date();
+
+						d.setTime(d.getTime() + exp * 1000);
+						exp = props.expires = d;
+					}
+
+					if(exp && exp.toUTCString) {
+						props.expires = exp.toUTCString();
+					}
+
+					value = encodeURIComponent(value);
+					var updatedCookie = name + "=" + value;
+
+					for(var propName in props) {
+						var propValue = props[propName];
+
+						updatedCookie += "; " + propName;
+
+						if(propValue !== true) {
+							updatedCookie += "=" + propValue;
+						}
+					}
+
+					document.cookie = updatedCookie;
+				},
+
+				deleteCookie: function(name) {
+					this.setCookie(name, null, {expires: -1});
+				},
+
+				// delete all cookies
+				clear: function() {
+					var cookies = document.cookie.split(";");
+
+					for (var i = 0; i < cookies.length; i++) {
+						var cookie = cookies[i];
+						var eqPos = cookie.indexOf("=");
+						var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+
+						this.deleteCookie(name);
+					}
+				}
+			};
+
+			var strategy = window.localStorage ? LocalStorage : CookiesStorage;
+
+			var DataStorage = {
+				// Get data within storage for key
+				getData: function( key ) {
+					return strategy.get( key );
+				},
+
+				// Set data within storage
+				setData: function( key, value ) {
+					strategy.set( key, value );
+				},
+
+				// Delete data within storage for key
+				deleteData: function( key ) {
+					strategy.del( key );
+				},
+
+				// Clear storage
+				clear: function() {
+					strategy.clear();
+				}
+			};
+
+			// Static Module of Storage Data in the localStorage.
+			object.DataStorage = DataStorage;
+		}( editor.wsc ));
+
+		editor.wsc.operationWithUDN = function(command, UDName) {
+			var obj = {
+				'udn': UDName,
+				'id': 'operationWithUDN',
+				'udnCmd': command
+			};
+			var currentTabId = NS.dialog._.currentTabId,
+				frameId = NS.iframeNumber + '_' + currentTabId;
+
+			appTools.postMessage.send({
+				'message': obj,
+				'target': NS.targetFromFrame[frameId]
+			});
+		};
+		editor.wsc.getLocalStorageUDN = function() {
+			var udn = editor.wsc.DataStorage.getData('scayt_user_dictionary_name');
+
+			if (!udn) {
+				return;
+			}
+
+			return udn;
+		};
+		editor.wsc.getLocalStorageUD = function() {
+			var ud = editor.wsc.DataStorage.getData('scayt_user_dictionary');
+
+			if (!ud) {
+				return;
+			}
+
+			return ud;
+		};
+		editor.wsc.addWords = function(words, callback) {
+			var url = editor.config.wsc.DefaultParams.serviceHost + editor.config.wsc.DefaultParams.ssrvHost +
+						'?cmd=dictionary&format=json&' +
+						'customerid=1%3AncttD3-fIoSf2-huzwE4-Y5muI2-mD0Tt-kG9Wz-UEDFC-tYu243-1Uq474-d9Z2l3&' +
+						'action=addword&word='+ words + '&callback=toString&synchronization=true',
+				script = document.createElement('script');
+
+			script['type'] = 'text/javascript';
+			script['src'] = url;
+			document.getElementsByTagName("head")[0].appendChild(script);
+
+			//chrome, firefox, safari
+			script.onload = callback;
+
+			//IE
+			script.onreadystatechange = function() {
+				if (this.readyState === 'loaded') {
+					callback();
+				}
+			};
+		};
+		editor.wsc.cgiOrigin = function() {
+			var wscServiceHostString = editor.config.wsc.DefaultParams.serviceHost,
+				wscServiceHostArray = wscServiceHostString.split('/'),
+				cgiOrigin = wscServiceHostArray[0] + '//' + wscServiceHostArray[2];
+
+			return cgiOrigin;
+		};
+		editor.wsc.isSsrvSame = false;
+	}
 
  return {
 		title: editor.config.wsc_dialogTitle || editor.lang.wsc.title,
-		minWidth: 560,
-		minHeight: 444,
+		minWidth: constraints.minWidth,
+		minHeight: constraints.minHeight,
 		buttons: [CKEDITOR.dialog.cancelButton],
 		onLoad: function() {
 			NS.dialog = this;
-
 			hideThesaurusTab();
 			hideGrammTab();
 			showSpellTab();
+
+			//creating wsc object for UD synchronization between wsc and scayt
+			if (editor.plugins.scayt) {
+				createWscObjectForUdAndUdnSyncrhonization();
+			}
 		},
 		onShow: function() {
+			NS.dialog = this;
+
 			editor.lockSelection(editor.getSelection());
 
-			NS.TextAreaNumber = 'cke_textarea_' + CKEDITOR.currentInstance.name;
+			NS.TextAreaNumber = 'cke_textarea_' + editor.name;
 			appTools.postMessage.init(handlerIncomingData);
-			NS.dataTemp = CKEDITOR.currentInstance.getData();
+			NS.dataTemp = editor.getData();
 			//NS.div_overlay.setDisable();
 			NS.OverlayPlace = NS.dialog.parts.tabs.getParent().$;
 			if(CKEDITOR && CKEDITOR.config){
@@ -1287,14 +1802,14 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 				NS.userDictionaryName = editor.config.wsc_userDictionaryName;
 				NS.defaultLanguage = CKEDITOR.config.defaultLanguage;
 				var	protocol = document.location.protocol == "file:" ? "http:" : document.location.protocol;
-				var wscCoreUrl = editor.config.wsc_customLoaderScript  || ( protocol + '//loader.webspellchecker.net/sproxy_fck/sproxy.php?plugin=fck2&customerid=' + NS.wsc_customerId + '&cmd=script&doc=wsc&schema=22');
+				var wscCoreUrl = editor.config.wsc_customLoaderScript  || ( protocol + '//www.webspellchecker.net/spellcheck3/script/ssrv.cgi?plugin=fck2&customerid=' + NS.wsc_customerId + '&cmd=script&doc=wsc&schema=22');
 			} else {
 				NS.dialog.hide();
 				return;
 			}
 
+			initView(this);
 			CKEDITOR.scriptLoader.load(wscCoreUrl, function(success) {
-
 				if(CKEDITOR.config && CKEDITOR.config.wsc && CKEDITOR.config.wsc.DefaultParams){
 					NS.serverLocationHash = CKEDITOR.config.wsc.DefaultParams.serviceHost;
 					NS.logotype = CKEDITOR.config.wsc.DefaultParams.logoPath;
@@ -1313,7 +1828,8 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 				NS.iframeNumber = NS.TextAreaNumber;
 				NS.templatePath = NS.pluginPath + 'dialogs/tmp.html';
 				NS.LangComparer.setDefaulLangCode( NS.defaultLanguage );
-				NS.currentLang = editor.config.wsc_lang || NS.LangComparer.getSPLangCode( editor.langCode );
+				NS.currentLang = editor.config.wsc_lang || NS.LangComparer.getSPLangCode( editor.langCode ) || 'en_US';
+				NS.interfaceLang = editor.config.wsc_interfaceLang; //option to customize the interface language 12/28/2015
 				NS.selectingLang = NS.currentLang;
 				NS.div_overlay = new overlayBlock({
 					opacity: "1",
@@ -1337,11 +1853,120 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 					target: NS.OverlayPlace
 				});
 
-
-
 				if (success) {
 					showFirstTab(NS.dialog);
 					NS.dialog.setupContent(NS.dialog);
+				}
+
+				if (editor.plugins.scayt) {
+					//is ssrv.cgi path for WSC and scayt same
+					editor.wsc.isSsrvSame = (function() {
+						var wscSsrvWholePath,
+							wscServiceHost = CKEDITOR.config.wsc.DefaultParams.serviceHost.replace('lf/22/js/../../../', '').split('//')[1],
+							wscSsrvHost = CKEDITOR.config.wsc.DefaultParams.ssrvHost,
+							scaytSsrvWholePath,
+							scaytSsrvProtocol,
+							scaytSsrvHost,
+							scaytSsrvPath,
+
+							scaytSrcUrl = editor.config.scayt_srcUrl,
+							scaytSsrvSrcUrlSsrvProtocol,
+							scaytSsrvSrcUrlSsrvHost,
+							scaytSsrvSrcUrlSsrvPath,
+
+							scaytBasePath,
+							scaytBasePathSsrvProtocol,
+							scaytBasePathSsrvHost,
+							scaytBasePathSsrvPath;
+
+						if (window.SCAYT && window.SCAYT.CKSCAYT) {
+							scaytBasePath = SCAYT.CKSCAYT.prototype.basePath;
+							scaytBasePathSsrvProtocol = scaytBasePath.split('//')[0];
+							scaytBasePathSsrvHost = scaytBasePath.split('//')[1].split('/')[0];
+							scaytBasePathSsrvPath = scaytBasePath.split(scaytBasePathSsrvHost + '/')[1].replace('/lf/scayt3/ckscayt/', '') + '/script/ssrv.cgi';
+						}
+
+						if (scaytSrcUrl && !scaytBasePath && !editor.config.scayt_servicePath) {
+							scaytSsrvSrcUrlSsrvProtocol = scaytSrcUrl.split('//')[0];
+							scaytSsrvSrcUrlSsrvHost = scaytSrcUrl.split('//')[1].split('/')[0];
+							scaytSsrvSrcUrlSsrvPath = scaytSrcUrl.split(scaytSsrvSrcUrlSsrvHost + '/')[1].replace('/lf/scayt3/ckscayt/ckscayt.js', '') + '/script/ssrv.cgi';
+						}
+
+						scaytSsrvProtocol = editor.config.scayt_serviceProtocol || scaytBasePathSsrvProtocol || scaytSsrvSrcUrlSsrvProtocol;
+						scaytSsrvHost = editor.config.scayt_serviceHost || scaytBasePathSsrvHost || scaytSsrvSrcUrlSsrvHost;
+						scaytSsrvPath = editor.config.scayt_servicePath || scaytBasePathSsrvPath || scaytSsrvSrcUrlSsrvPath;
+
+						wscSsrvWholePath = '//' + wscServiceHost + wscSsrvHost;
+						scaytSsrvWholePath = '//' + scaytSsrvHost + '/' + scaytSsrvPath;
+
+						return wscSsrvWholePath === scaytSsrvWholePath;
+					})();
+				}
+
+				//wsc on scayt UserDictionary and UserDictionaryName synchronization
+				if (window.SCAYT && editor.wsc && editor.wsc.isSsrvSame) {
+					var cgiOrigin = editor.wsc.cgiOrigin();
+					editor.wsc.syncIsDone = false;
+
+					var getUdOrUdn = function (e) {
+						if (e.origin === cgiOrigin) {
+							var data = JSON.parse(e.data);
+
+							if (data.ud && data.ud !== 'undefined') {
+								editor.wsc.ud = data.ud;
+							} else if (data.ud === 'undefined') {
+								editor.wsc.ud = undefined;
+							}
+
+							if (data.udn && data.udn !== 'undefined') {
+								editor.wsc.udn = data.udn;
+							} else if (data.udn === 'undefined') {
+								editor.wsc.udn = undefined;
+							}
+
+							if (!editor.wsc.syncIsDone) {
+								udSynchronization(editor.wsc.ud);
+								editor.wsc.syncIsDone = true;
+							}
+						}
+					};
+
+					var udSynchronization = function(cookieUd) {
+						var localStorageUdArray = editor.wsc.getLocalStorageUD(),
+							newUd;
+
+						if (localStorageUdArray instanceof Array) {
+							newUd = localStorageUdArray.toString();
+						}
+
+						if (newUd !== undefined && newUd !== '') {
+							setTimeout(function() {
+								editor.wsc.addWords(newUd, function() {
+									showFirstTab(NS.dialog);
+									NS.dialog.setupContent(NS.dialog);
+								});
+							}, 400);
+						}
+					};
+
+					if (window.addEventListener){
+						addEventListener("message", getUdOrUdn, false);
+					} else {
+						window.attachEvent("onmessage", getUdOrUdn);
+					}
+
+					//wsc on scayt UserDictionaryName synchronization
+					setTimeout(
+						function() {
+							var udn = editor.wsc.getLocalStorageUDN();
+
+							if (udn !== undefined) {
+								editor.wsc.operationWithUDN('restore', udn);
+							}
+
+						},
+					500); //need to wait spell.js file to load
+
 				}
 			});
 
@@ -1352,12 +1977,57 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 
 			editor.unlockSelection();
 
-			if(scaytPlugin && scaytInstance && scaytPlugin.state[editor.name] && scaytInstance.setMarkupPaused) {
+			if(scaytPlugin && scaytInstance && scaytPlugin.state[editor.name]) {
 				scaytInstance.setMarkupPaused(false);
 			}
 
 			NS.dataTemp = '';
+			NS.sessionid = '';
 			appTools.postMessage.unbindHandler(handlerIncomingData);
+
+			//scayt on wsc UserDictionary and UserDictionaryName synchronization
+			if (editor.plugins.scayt && editor.wsc && editor.wsc.isSsrvSame) {
+				var	wscUDN = editor.wsc.udn,
+					wscUD = editor.wsc.ud,
+					wscUDarray,
+					i;
+
+				if (editor.scayt) { // if SCAYT active
+					if (!wscUDN) {
+						editor.wsc.DataStorage.setData('scayt_user_dictionary_name', '');
+						editor.scayt.removeUserDictionary();
+					} else {
+						editor.wsc.DataStorage.setData('scayt_user_dictionary_name', wscUDN);
+						editor.scayt.restoreUserDictionary(wscUDN);
+					}
+
+					if (wscUD) {
+						setTimeout(function() {
+							wscUDarray = wscUD.split(',');
+							for (i = 0; i < wscUDarray.length; i += 1) {
+								editor.scayt.addWordToUserDictionary(wscUDarray[i]);
+							}
+						}, 200); //wait for 'removeUserDictionary' command response
+					}
+
+					if (!wscUD) {
+						editor.wsc.DataStorage.setData('scayt_user_dictionary', []);
+					}
+
+				} else { //if SCAYT not active
+
+					if (!wscUDN) {
+						editor.wsc.DataStorage.setData('scayt_user_dictionary_name', '');
+					} else {
+						editor.wsc.DataStorage.setData('scayt_user_dictionary_name', wscUDN);
+					}
+
+					if (wscUD) {
+						wscUDarray = wscUD.split(',');
+						editor.wsc.DataStorage.setData('scayt_user_dictionary', wscUDarray);
+					}
+				}
+			}
 		},
 		contents: [
 			{
@@ -1377,7 +2047,7 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 						id: 'Content',
 						label: 'spellContent',
 						html: '',
-						setup: function(dialog) {// debugger;
+						setup: function(dialog) {
 							var tabId = NS.iframeNumber + '_' + dialog._.currentTabId;
 							var iframe = document.getElementById(tabId);
 							NS.targetFromFrame[tabId] = iframe.contentWindow;
@@ -1388,6 +2058,7 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 						id: 'bottomGroup',
 						style: 'width:560px; margin: 0 auto;',
 						widths: ['50%', '50%'],
+						className: 'wsc-spelltab-bottom',
 						children: [
 							{
 								type: 'hbox',
@@ -1402,15 +2073,15 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 										children: [
 											{
 												type: 'text',
-												id: 'text',
-												label: NS.LocalizationLabel['ChangeTo'].text + ':',
+												id: 'ChangeTo_label',
+												label: NS.LocalizationLabel['ChangeTo_label'].text + ':',
 												labelLayout: 'horizontal',
 												labelStyle: 'font: 12px/25px arial, sans-serif;',
 												width: '140px',
 												'default': '',
 												onShow: function() {
 													NS.textNode['SpellTab'] = this;
-													NS.LocalizationLabel['ChangeTo'].instance = this;
+													NS.LocalizationLabel['ChangeTo_label'].instance = this;
 												},
 												onHide: function() {
 													this.reset();
@@ -1433,16 +2104,14 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 																onShow: function() {
 																	NS.LocalizationLabel['Suggestions'].instance = this;
 																	this.getInputElement().setStyles({
-																		display: 'block',
-																		position: 'absolute',
-																		left: '-9999px'
+																		display: 'none'
 																	});
 																}
 															},
 						 									{
 																type: 'html',
 																id: 'logo',
-																html: '<img width="99" height="68" border="0" src="" title="WebSpellChecker.net" alt="WebSpellChecker.net" style="display: inline-block;">',
+																html: '<img width="99" height="68" border="0" src="" title="logo" alt="logo" style="display: inline-block;">',
 																setup: function(dialog) {
 																	this.getElement().$.src = NS.logotype;
 																	this.getElement().getParent().setStyles({
@@ -1461,9 +2130,6 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 														items: [['loading...']],
 														onShow: function() {
 															selectNode = this;
-														},
-														onHide: function() {
-															this.clear();
 														},
 														onChange: function() {
 															NS.textNode['SpellTab'].setValue(this.getValue());
@@ -1488,13 +2154,13 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 										children: [
 											{
 												type: 'button',
-												id: 'ChangeTo',
-												label: NS.LocalizationButton['ChangeTo'].text,
+												id: 'ChangeTo_button',
+												label: NS.LocalizationButton['ChangeTo_button'].text,
 												title: 'Change to',
 												style: 'width: 100%;',
 												onLoad: function() {
-													this.getElement().setAttribute("title-cmd", this.id);
-													NS.LocalizationButton['ChangeTo'].instance = this;
+													this.getElement().setAttribute("title-cmd", 'ChangeTo');
+													NS.LocalizationButton['ChangeTo_button'].instance = this;
 												},
 												onClick: handlerButtons
 											},
@@ -1524,13 +2190,13 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 											},
 											{
 												type: 'button',
-												id: 'FinishChecking',
-												label: NS.LocalizationButton['FinishChecking'].text,
+												id: 'FinishChecking_button',
+												label: NS.LocalizationButton['FinishChecking_button'].text,
 												title: 'Finish Checking',
 												style: 'width: 100%;margin-top: 9px;',
 												onLoad: function() {
-													this.getElement().setAttribute("title-cmd", this.id);
-													NS.LocalizationButton['FinishChecking'].instance = this;
+													this.getElement().setAttribute("title-cmd", 'FinishChecking');
+													NS.LocalizationButton['FinishChecking_button'].instance = this;
 												},
 												onClick: handlerButtons
 											}
@@ -1567,7 +2233,7 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 											},
 											{
 												type: 'button',
-												id: 'option',
+												id: 'Options',
 												label: NS.LocalizationButton['Options'].text,
 												title: 'Option',
 												style: 'width: 100%;',
@@ -1628,7 +2294,7 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 									{
 										type: 'html',
 										id: 'logo',
-										html: '<img width="99" height="68" border="0" src="" title="WebSpellChecker.net" alt="WebSpellChecker.net" style="display: inline-block;">'
+										html: '<img width="99" height="68" border="0" src="" title="logo" alt="logo" style="display: inline-block;">'
 									}
 								]
 							}
@@ -1670,12 +2336,12 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 									},
 									{
 										type: 'button',
-										id: 'FinishChecking',
-										label: NS.LocalizationButton['FinishChecking'].text,
+										id: 'FinishChecking_button_block',
+										label: NS.LocalizationButton['FinishChecking_button_block'].text,
 										title: 'Finish Checking',
 										style: 'width: 100%;',
 										onLoad: function() {
-											this.getElement().setAttribute("title-cmd", this.id);
+											this.getElement().setAttribute("title-cmd", 'FinishChecking');
 										},
 										onClick: handlerButtons
 									}
@@ -1761,12 +2427,12 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 										children: [
 											{
 												type: 'button',
-												id: 'ChangeTo',
+												id: 'ChangeTo_button',
 												label: 'Change to',
 												title: 'Change to',
 												style: 'width: 133px; float: right;',
 												onLoad: function() {
-													this.getElement().setAttribute("title-cmd", this.id);
+													this.getElement().setAttribute("title-cmd", 'ChangeTo');
 												},
 												onClick: handlerButtons
 											},
@@ -1794,12 +2460,12 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 											},
 											{
 												type: 'button',
-												id: 'FinishChecking',
-												label: 'Finish Checking',
+												id: 'FinishChecking_button',
+												label: NS.LocalizationButton['FinishChecking_button'].text,
 												title: 'Finish Checking',
 												style: 'width: 133px; float: right; margin-top: 9px;',
 												onLoad: function() {
-													this.getElement().setAttribute("title-cmd", this.id);
+													this.getElement().setAttribute("title-cmd", 'FinishChecking');
 												},
 												onClick: handlerButtons
 											}
@@ -1836,7 +2502,7 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 											{
 												type: 'html',
 												id: 'logo',
-												html: '<img width="99" height="68" border="0" src="" title="WebSpellChecker.net" alt="WebSpellChecker.net" style="display: inline-block;">',
+												html: '<img width="99" height="68" border="0" src="" title="logo" alt="logo" style="display: inline-block;">',
 												setup: function() {
 													this.getElement().$.src = NS.logotype;
 													this.getElement().getParent().setStyles({
@@ -1860,12 +2526,12 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 										children: [
 											{
 												type: 'button',
-												id: 'FinishChecking',
-												label: 'Finish Checking',
+												id: 'FinishChecking_button_block',
+												label: NS.LocalizationButton['FinishChecking_button_block'].text,
 												title: 'Finish Checking',
 												style: 'width: 100%;',
 												onLoad: function() {
-													this.getElement().setAttribute("title-cmd", this.id);
+													this.getElement().setAttribute("title-cmd", 'FinishChecking');
 												},
 												onClick: handlerButtons
 											}
@@ -1918,14 +2584,15 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 												children: [
 													{
 														type: 'text',
-														id: 'ChangeTo',
-														label: 'Change to:',
+														id: 'ChangeTo_label',
+														label: NS.LocalizationLabel['ChangeTo_label'].text + ':',
 														labelLayout: 'horizontal',
 														inputStyle: 'width: 160px;',
 														labelStyle: 'font: 12px/25px arial, sans-serif;',
 														'default': '',
 														onShow: function(e) {
 															NS.textNode['Thesaurus'] = this;
+															NS.LocalizationLabel['ChangeTo_label'].instance = this;
 														},
 														onHide: function() {
 															this.reset();
@@ -1933,12 +2600,13 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 													},
 													{
 														type: 'button',
-														id: 'ChangeTo',
-														label: 'Change to',
+														id: 'ChangeTo_button',
+														label: NS.LocalizationButton['ChangeTo_button'].text,
 														title: 'Change to',
 														style: 'width: 121px; margin-top: 1px;',
 														onLoad: function() {
-															this.getElement().setAttribute("title-cmd", this.id);
+															this.getElement().setAttribute("title-cmd", 'ChangeTo');
+															NS.LocalizationButton['ChangeTo_button'].instance = this;
 														},
 														onClick: handlerButtons
 													}
@@ -1949,17 +2617,15 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 												children: [
 													{
 														type: 'select',
-														id: 'categories',
-														label: "Categories:",
+														id: 'Categories',
+														label: NS.LocalizationLabel['Categories'].text + ':',
 														labelStyle: 'font: 12px/25px arial, sans-serif;',
 														size: '5',
 														inputStyle: 'width: 180px; height: auto;',
 														items: [],
 														onShow: function() {
-															NS.selectNode['categories'] = this;
-														},
-														onHide: function() {
-															this.clear();
+															NS.selectNode['Categories'] = this;
+															NS.LocalizationLabel['Categories'].instance = this;
 														},
 														onChange: function() {
 															NS.buildOptionSynonyms(this.getValue());
@@ -1967,18 +2633,16 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 													},
 													{
 														type: 'select',
-														id: 'synonyms',
-														label: "Synonyms:",
+														id: 'Synonyms',
+														label: NS.LocalizationLabel['Synonyms'].text + ':',
 														labelStyle: 'font: 12px/25px arial, sans-serif;',
 														size: '5',
 														inputStyle: 'width: 180px; height: auto;',
 														items: [],
 														onShow: function() {
-															NS.selectNode['synonyms'] = this;
+															NS.selectNode['Synonyms'] = this;
 															NS.textNode['Thesaurus'].setValue(this.getValue());
-														},
-														onHide: function() {
-															this.clear();
+															NS.LocalizationLabel['Synonyms'].instance = this;
 														},
 														onChange: function(e) {
 															NS.textNode['Thesaurus'].setValue(this.getValue());
@@ -1997,7 +2661,7 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 												type: 'html',
 												id: 'logotype',
 												label: 'WebSpellChecker.net',
-												html: '<img width="99" height="68" border="0" src="" title="WebSpellChecker.net" alt="WebSpellChecker.net" style="display: inline-block;">',
+												html: '<img width="99" height="68" border="0" src="" title="logo" alt="logo" style="display: inline-block;">',
 												setup: function() {
 													this.getElement().$.src = NS.logotype;
 													this.getElement().getParent().setStyles({
@@ -2007,12 +2671,12 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 											},
 											{
 												type: 'button',
-												id: 'FinishChecking',
-												label: 'Finish Checking',
+												id: 'FinishChecking_button',
+												label: NS.LocalizationButton['FinishChecking_button'].text,
 												title: 'Finish Checking',
-												style: 'width: 121px; float: right; margin-top: 9px;',
+												style: 'width: 100%; float: right; margin-top: 9px;',
 												onLoad: function() {
-													this.getElement().setAttribute("title-cmd", this.id);
+													this.getElement().setAttribute("title-cmd", 'FinishChecking');
 												},
 												onClick: handlerButtons
 											}
@@ -2048,7 +2712,7 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 											{
 												type: 'html',
 												id: 'logo',
-												html: '<img width="99" height="68" border="0" src="" title="WebSpellChecker.net" alt="WebSpellChecker.net" style="display: inline-block;">',
+												html: '<img width="99" height="68" border="0" src="" title="logo" alt="logo" style="display: inline-block;">',
 												setup: function() {
 													this.getElement().$.src = NS.logotype;
 													this.getElement().getParent().setStyles({
@@ -2072,12 +2736,12 @@ CKEDITOR.dialog.add('checkspell', function(editor) {
 										children: [
 											{
 												type: 'button',
-												id: 'FinishChecking',
-												label: 'Finish Checking',
+												id: 'FinishChecking_button_block',
+												label: NS.LocalizationButton['FinishChecking_button_block'].text,
 												title: 'Finish Checking',
 												style: 'width: 100%;',
 												onLoad: function() {
-													this.getElement().setAttribute("title-cmd", this.id);
+													this.getElement().setAttribute("title-cmd", 'FinishChecking');
 												},
 												onClick: handlerButtons
 											}
@@ -2165,7 +2829,6 @@ CKEDITOR.dialog.add('options', function(editor) {
 		osp = osp.toString().replace(/,/g, "");
 
 		appTools.cookie.set('osp', osp);
-		appTools.cookie.set('udn', nameNode.getValue());
 
 		appTools.postMessage.send({
 			'id': 'options_checkbox_send'
@@ -2467,6 +3130,12 @@ CKEDITOR.dialog.on( 'resize', function( evt ) {
 		} else {
 			iframe && iframe.setSize( 'height', data.height - '220' );
 		}
+
+		// add flag that indicate whether dialog has been resized by user
+		if(dialog._.fromResizeEvent && !dialog._.resized) {
+			dialog._.resized = true;
+		}
+		dialog._.fromResizeEvent = true;
 	}
 });
 
