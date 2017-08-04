@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 CKEDITOR.plugins.setLang( 'scayt', 'ja', {
@@ -9,5 +9,5 @@ CKEDITOR.plugins.setLang( 'scayt', 'ja', {
 	btn_enable: 'SCAYT有効',
 	btn_langs:'言語',
 	btn_options: 'オプション',
-	text_title: ''
+	text_title:  'スペルチェック設定(SCAYT)'
 });

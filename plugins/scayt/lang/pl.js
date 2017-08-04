@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 CKEDITOR.plugins.setLang( 'scayt', 'pl', {
@@ -9,5 +9,5 @@ CKEDITOR.plugins.setLang( 'scayt', 'pl', {
 	btn_enable: 'Włącz SCAYT',
 	btn_langs:'Języki',
 	btn_options: 'Opcje',
-	text_title: ''
+	text_title:  'Sprawdź pisownię podczas pisania (SCAYT)'
 });
