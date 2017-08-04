@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 CKEDITOR.plugins.setLang( 'scayt', 'lv', {
@@ -9,5 +9,5 @@ CKEDITOR.plugins.setLang( 'scayt', 'lv', {
 	btn_enable: 'Ieslēgt SCAYT',
 	btn_langs:'Valodas',
 	btn_options: 'Uzstādījumi',
-	text_title: ''
+	text_title:  'Pārbaudīt gramatiku rakstot'
 });

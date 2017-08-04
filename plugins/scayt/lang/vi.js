@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 CKEDITOR.plugins.setLang( 'scayt', 'vi', {
@@ -9,5 +9,5 @@ CKEDITOR.plugins.setLang( 'scayt', 'vi', {
 	btn_enable: 'Bật SCAYT',
 	btn_langs:'Ngôn ngữ',
 	btn_options: 'Tùy chọn',
-	text_title: ''
+	text_title:  'Kiểm tra chính tả ngay khi gõ chữ (SCAYT)'
 });

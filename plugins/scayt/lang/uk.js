@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 CKEDITOR.plugins.setLang( 'scayt', 'uk', {
@@ -9,5 +9,5 @@ CKEDITOR.plugins.setLang( 'scayt', 'uk', {
 	btn_enable: 'Ввімкнути SCAYT',
 	btn_langs:'Мови',
 	btn_options: 'Опції',
-	text_title: ''
+	text_title:  'Перефірка орфографії по мірі набору'
 });

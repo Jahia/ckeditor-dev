@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 CKEDITOR.plugins.setLang( 'scayt', 'zh', {
@@ -9,5 +9,5 @@ CKEDITOR.plugins.setLang( 'scayt', 'zh', {
 	btn_enable: '啟用即時拼寫檢查',
 	btn_langs: '語言',
 	btn_options: '選項',
-	text_title: ''
+	text_title:  '即時拼寫檢查'
 });
