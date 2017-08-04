@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 CKEDITOR.plugins.setLang( 'scayt', 'cs', {
@@ -9,5 +9,5 @@ CKEDITOR.plugins.setLang( 'scayt', 'cs', {
 	btn_enable: 'Zapnout SCAYT',
 	btn_langs:'Jazyky',
 	btn_options: 'Nastavení',
-	text_title: ''
+	text_title:  'Kontrola pravopisu během psaní (SCAYT)'
 });

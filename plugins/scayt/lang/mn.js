@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 CKEDITOR.plugins.setLang( 'scayt', 'mn', {
@@ -9,5 +9,5 @@ CKEDITOR.plugins.setLang( 'scayt', 'mn', {
 	btn_enable: 'Enable SCAYT',
 	btn_langs:'Хэлүүд',
 	btn_options: 'Сонголт',
-	text_title: ''
+	text_title:  'Spell Check As You Type'
 });

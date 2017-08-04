@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 CKEDITOR.plugins.setLang( 'scayt', 'nl', {
@@ -9,5 +9,5 @@ CKEDITOR.plugins.setLang( 'scayt', 'nl', {
 	btn_enable: 'SCAYT inschakelen',
 	btn_langs:'Talen',
 	btn_options: 'Opties',
-	text_title: ''
+	text_title: 'Controleer de spelling tijdens het typen'
 });

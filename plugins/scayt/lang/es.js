@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 CKEDITOR.plugins.setLang( 'scayt', 'es', {
@@ -9,5 +9,5 @@ CKEDITOR.plugins.setLang( 'scayt', 'es', {
 	btn_enable: 'Activar Corrector',
 	btn_langs:'Idiomas',
 	btn_options: 'Opciones',
-	text_title: ''
+	text_title: 'Comprobar Ortografía Mientras Escribe'
 });
