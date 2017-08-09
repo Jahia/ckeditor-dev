@@ -1,9 +1,8 @@
 /* bender-tags: editor,unit */
+/* bender-ckeditor-remove-plugins: copyformatting,tableselection */
 
 ( function() {
 	'use strict';
-
-	var tools = bender.tools;
 
 	bender.test( {
 		'test default value': function() {

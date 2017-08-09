@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2017, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
@@ -21,7 +21,7 @@ For this skin, the following tasks are achieved in this file:
 	2. Register browser specific skin files.
 	3. Define the "Chameleon" feature.
 	4. Register the skin icons, to have them used on the development version of
-	  the skin.
+		the skin.
 */
 
 // 1. Register the skin
@@ -87,11 +87,13 @@ CKEDITOR.skin.chameleon = ( function() {
 	// where -1 is black, 1 is white and 0 is the original colour.
 	var colorBrightness = ( function() {
 		function channelBrightness( channel, ratio ) {
-			return ( '0' + ( ratio < 0 ?
+			var brighten = ratio < 0 ? (
 					0 | channel * ( 1 + ratio )
-				:
-					0 | channel + ( 255 - channel ) * ratio ).toString( 16 )
-				).slice( -2 );
+				) : (
+					0 | channel + ( 255 - channel ) * ratio
+				);
+
+			return ( '0' + brighten.toString( 16 ) ).slice( -2 );
 		}
 
 		return function( hexColor, ratio ) {
@@ -107,13 +109,8 @@ CKEDITOR.skin.chameleon = ( function() {
 	// Use this function just to avoid having to repeat all these rules on
 	// several places of our template.
 	verticalGradient = ( function() {
-		var template = new CKEDITOR.template( 'background:#{to};'+
-			'background-image:-webkit-gradient(linear,lefttop,leftbottom,from({from}),to({to}));'+
-			'background-image:-moz-linear-gradient(top,{from},{to});'+
-			'background-image:-webkit-linear-gradient(top,{from},{to});'+
-			'background-image:-o-linear-gradient(top,{from},{to});'+
-			'background-image:-ms-linear-gradient(top,{from},{to});'+
-			'background-image:linear-gradient(top,{from},{to});'+
+		var template = new CKEDITOR.template( 'background:#{to};' +
+			'background-image:linear-gradient(to bottom,{from},{to});' +
 			'filter:progid:DXImageTransform.Microsoft.gradient(gradientType=0,startColorstr=\'{from}\',endColorstr=\'{to}\');' );
 
 		return function( from, to ) {
@@ -279,9 +276,6 @@ CKEDITOR.skin.chameleon = ( function() {
 // ----------------------------------------------------------
 // (http://docs.cksource.com/CKEditor_4.x/Skin_SDK/Icons)
 //
-// Note: As "moono" is the default CKEditor skin, it provides no custom icons,
-// thus this code is commented out.
-//
 // This code is here just to make the skin work fully when using its "source"
 // version. Without this, the skin will still work, but its icons will not be
 // used (again, on source version only).
@@ -294,29 +288,29 @@ CKEDITOR.skin.chameleon = ( function() {
 // If a required icon is not available here, the plugin defined icon will be
 // used instead. This means that a skin is not required to provide all icons.
 // Actually, it is not required to provide icons at all.
-//
-// (function() {
-//		// The available icons. This list must match the file names (without
-//		// extension) available inside the "icons" folder.
-//		var icons = ( 'about,anchor-rtl,anchor,bgcolor,bidiltr,bidirtl,blockquote,' +
-//			'bold,bulletedlist-rtl,bulletedlist,button,checkbox,copy-rtl,copy,' +
-//			'creatediv,cut-rtl,cut,docprops-rtl,docprops,find-rtl,find,flash,form,' +
-//			'hiddenfield,horizontalrule,icons,iframe,image,imagebutton,indent-rtl,' +
-//			'indent,italic,justifyblock,justifycenter,justifyleft,justifyright,' +
-//			'link,maximize,newpage-rtl,newpage,numberedlist-rtl,numberedlist,' +
-//			'outdent-rtl,outdent,pagebreak-rtl,pagebreak,paste-rtl,paste,' +
-//			'pastefromword-rtl,pastefromword,pastetext-rtl,pastetext,preview-rtl,' +
-//			'preview,print,radio,redo-rtl,redo,removeformat,replace,save,scayt,' +
-//			'select-rtl,select,selectall,showblocks-rtl,showblocks,smiley,' +
-//			'source-rtl,source,specialchar,spellchecker,strike,subscript,' +
-//			'superscript,table,templates-rtl,templates,textarea-rtl,textarea,' +
-//			'textcolor,textfield-rtl,textfield,uicolor,underline,undo-rtl,undo,unlink' ).split( ',' );
-//
-//		var iconsFolder = CKEDITOR.getUrl( CKEDITOR.skin.path() + 'icons/' + ( CKEDITOR.env.hidpi ? 'hidpi/' : '' ) );
-//
-//		for ( var i = 0; i < icons.length; i++ ) {
-//			CKEDITOR.skin.addIcon( icons[ i ], iconsFolder + icons[ i ] + '.png' );
-//		}
-// })();
+
+( function() {
+	// The available icons. This list must match the file names (without
+	// extension) available inside the "icons" folder.
+	var icons = ( 'about,anchor-rtl,anchor,bgcolor,bidiltr,bidirtl,blockquote,' +
+		'bold,bulletedlist-rtl,bulletedlist,button,checkbox,copy-rtl,copy,copyformatting,' +
+		'creatediv,cut-rtl,cut,docprops-rtl,docprops,find-rtl,find,flash,form,' +
+		'hiddenfield,horizontalrule,icons,iframe,image,imagebutton,indent-rtl,' +
+		'indent,italic,justifyblock,justifycenter,justifyleft,justifyright,' +
+		'link,maximize,newpage-rtl,newpage,numberedlist-rtl,numberedlist,' +
+		'outdent-rtl,outdent,pagebreak-rtl,pagebreak,paste-rtl,paste,' +
+		'pastefromword-rtl,pastefromword,pastetext-rtl,pastetext,preview-rtl,' +
+		'preview,print,radio,redo-rtl,redo,removeformat,replace,save,scayt,' +
+		'select-rtl,select,selectall,showblocks-rtl,showblocks,smiley,' +
+		'source-rtl,source,specialchar,spellchecker,strike,subscript,' +
+		'superscript,table,templates-rtl,templates,textarea-rtl,textarea,' +
+		'textcolor,textfield-rtl,textfield,uicolor,underline,undo-rtl,undo,unlink' ).split( ',' );
+
+	var iconsFolder = CKEDITOR.getUrl( CKEDITOR.skin.path() + 'icons/' + ( CKEDITOR.env.hidpi ? 'hidpi/' : '' ) );
+
+	for ( var i = 0; i < icons.length; i++ ) {
+		CKEDITOR.skin.addIcon( icons[ i ], iconsFolder + icons[ i ] + '.png' );
+	}
+} )();
 
 // %REMOVE_END%

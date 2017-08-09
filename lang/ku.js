@@ -1,5 +1,5 @@
-﻿/**
- * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+/**
+ * @license Copyright (c) 2003-2017, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
@@ -18,8 +18,8 @@
  */
 CKEDITOR.lang[ 'ku' ] = {
 	// ARIA description.
-	editor: 'سەرنووسەی دەقی بە پیت',
-	editorPanel: 'Rich Text Editor panel', // MISSING
+	editor: 'سەرنووسەی دەقی تەواو',
+	editorPanel: 'بڕگەی سەرنووسەی دەقی تەواو',
 
 	// Common messages and labels.
 	common: {
@@ -55,7 +55,7 @@ CKEDITOR.lang[ 'ku' ] = {
 		advisoryTitle: 'ڕاوێژکاری سەردێڕ',
 		cssStyle: 'شێواز',
 		ok: 'باشە',
-		cancel: 'هەڵوەشاندن',
+		cancel: 'پاشگەزبوونەوە',
 		close: 'داخستن',
 		preview: 'پێشبینین',
 		resize: 'گۆڕینی ئەندازە',
@@ -84,8 +84,8 @@ CKEDITOR.lang[ 'ku' ] = {
 		alignTop: 'سەرەوە',
 		alignMiddle: 'ناوەند',
 		alignBottom: 'ژێرەوە',
-		alignNone: 'None', // MISSING
-		invalidValue	: 'نرخێکی نادرووست.',
+		alignNone: 'هیچ',
+		invalidValue: 'نرخێکی نادرووست.',
 		invalidHeight: 'درێژی دەبێت ژمارە بێت.',
 		invalidWidth: 'پانی دەبێت ژمارە بێت.',
 		invalidCssLength: 'ئەم نرخەی دراوە بۆ خانەی "%1" دەبێت ژمارەکی درووست بێت یان بێ ناونیشانی ئامرازی (px, %, in, cm, mm, em, ex, pt, یان pc).',
@@ -94,6 +94,23 @@ CKEDITOR.lang[ 'ku' ] = {
 		cssLengthTooltip: 'ژمارەیەك بنووسه‌ بۆ نرخی piksel یان ئامرازێکی درووستی CSS (px, %, in, cm, mm, em, ex, pt, یان pc).',
 
 		// Put the voice-only part of the label in the span.
-		unavailable: '%1<span class="cke_accessibility">, ئامادە نیە</span>'
+		unavailable: '%1<span class="cke_accessibility">, ئامادە نیە</span>',
+
+		// Keyboard keys translations used for creating shortcuts descriptions in tooltips, context menus and ARIA labels.
+		keyboard: {
+			8: 'Backspace',
+			13: 'Enter',
+			16: 'Shift',
+			17: 'Ctrl',
+			18: 'Alt',
+			32: 'Space',
+			35: 'End',
+			36: 'Home',
+			46: 'Delete',
+			224: 'فەرمان'
+		},
+
+		// Prepended to ARIA labels with shortcuts.
+		keyboardShortcut: 'کورتبڕی تەختەکلیل'
 	}
 };

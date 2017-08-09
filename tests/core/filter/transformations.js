@@ -42,7 +42,7 @@
 						[
 							{
 								check: 'img',
-								right: function( el, tools ) {
+								right: function( el ) {
 									el.attributes.foo = '1';
 								}
 							}
@@ -146,14 +146,22 @@
 						// Transformation 1.1.
 						{
 							element: 'b',
-							left: function( el ) { return !!el.attributes.foo; },
-							right: function( el ) { el.attributes.ok = '1'; }
+							left: function( el ) {
+								return !!el.attributes.foo;
+							},
+							right: function( el ) {
+								el.attributes.ok = '1';
+							}
 						},
 						// Transformation 1.2.
 						{
 							element: 'b',
-							left: function( el ) { return !!el.attributes.bar; },
-							right: function( el ) { el.attributes.ok = '2'; }
+							left: function( el ) {
+								return !!el.attributes.bar;
+							},
+							right: function( el ) {
+								el.attributes.ok = '2';
+							}
 						}
 					],
 					// Group 2.
@@ -161,7 +169,9 @@
 						// Transformation 2.1.
 						{
 							left: new CKEDITOR.style( { element: 'i', attributes: { bar: '2' } } ),
-							right: function( el ) { el.attributes.ok = '3'; }
+							right: function( el ) {
+								el.attributes.ok = '3';
+							}
 						}
 					],
 					// Group 3.
@@ -169,7 +179,9 @@
 						// Transformation 3.1.
 						{
 							left: new CKEDITOR.style( { element: 's', attributes: { 'class': 'xyz abc' } } ),
-							right: function( el ) { el.attributes.ok = '4'; }
+							right: function( el ) {
+								el.attributes.ok = '4';
+							}
 						}
 					]
 				] );
@@ -195,8 +207,7 @@
 			bender.editorBot.create( {
 				name: 'test_form_transformations'
 			}, function( bot ) {
-				var editor = bot.editor,
-					filter = editor.filter;
+				var editor = bot.editor;
 
 				editor.addFeature( {
 					allowedContent: 'strong[foo]',
@@ -283,8 +294,7 @@
 					allowedContent: 'p b em'
 				}
 			}, function( bot ) {
-				var editor = bot.editor,
-					filter = editor.filter;
+				var editor = bot.editor;
 
 				editor.addFeature( {
 					allowedContent: 'strong[foo]',
@@ -350,8 +360,7 @@
 					allowedContent: 'h1{float}; h2[align]; h3[align]{float}; h4[*]{*}'
 				}
 			}, function( bot ) {
-				var editor = bot.editor,
-					filter = editor.filter;
+				var editor = bot.editor;
 
 				editor.filter.addTransformations( [
 					[ 'h1{float}: alignmentToStyle', 'h1[align]: alignmentToAttribute' ],
@@ -391,6 +400,34 @@
 				assertToHtml( editor, '<h4 align="left">A</h4>',		'<h4 style="float:left">A</h4>',	'h4 2' );
 				assertToHtml( editor, '<h4 align="left" style="float:right">A</h4>',
 					'<h4 style="float:right">A</h4>',														'h4 3' );
+			} );
+		},
+
+		'test margin transformations': function() {
+			bender.editorBot.create( {
+				name: 'test_margin_transformations',
+				config: {
+					allowedContent: 'h1{margin-left,margin-top}'
+				}
+			}, function( bot ) {
+				var editor = bot.editor;
+
+				editor.filter.addTransformations( [
+					[ 'h1: splitMarginShorthand' ]
+				] );
+
+				assertToHtml( editor, '<h1 style="margin:10px">A</h1>',
+					'<h1 style="margin-left:10px; margin-top:10px">A</h1>',
+					'margin shortcut 1 member' );
+				assertToHtml( editor, '<h1 style="margin:20px 10px">A</h1>',
+					'<h1 style="margin-left:10px; margin-top:20px">A</h1>',
+					'margin shortcut 2 members' );
+				assertToHtml( editor, '<h1 style="margin:1px 2px 3px">A</h1>',
+					'<h1 style="margin-left:2px; margin-top:1px">A</h1>',
+					'margin shortcut 3 members' );
+				assertToHtml( editor, '<h1 style="margin:1px 2px 3px 4px">A</h1>',
+					'<h1 style="margin-left:4px; margin-top:1px">A</h1>',
+					'margin shortcut 4 members' );
 			} );
 		}
 	} );

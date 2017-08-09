@@ -1,29 +1,28 @@
 /* bender-tags: editor,unit,dialog,div */
 /* bender-ckeditor-plugins: dialog,toolbar,button,div,table,list */
 
-bender.editor = true;
-bender.test(
-	{
-		setUp : function() {
+( function() {
+	'use strict';
+
+	bender.editor = true;
+
+	bender.test( {
+		setUp: function() {
 			var processor = this.editor.dataProcessor;
 
 			// Avoid result impacted by padding block.
-			processor.toDataFormat = CKEDITOR.tools.override(
-			  processor.toDataFormat,
-			  function( org ) {
-				  return function() {
-					  var data = org.apply( this,
-											arguments );
-					  return data.replace( /<(p|div|address|h\d|center|pre)[^>]*>\s*(?:<br[^>]*>|&nbsp;|\u00A0|&#160;)?\s*(:?<\/\1>)?\s*(?=$|<\/body>)/gi,
-										   '' );
-				  };
-			  } );
+			processor.toDataFormat = CKEDITOR.tools.override( processor.toDataFormat, function( org ) {
+				return function() {
+					var data = org.apply( this, arguments );
+					return data.replace( /<(p|div|address|h\d|center|pre)[^>]*>\s*(?:<br[^>]*>|&nbsp;|\u00A0|&#160;)?\s*(:?<\/\1>)?\s*(?=$|<\/body>)/gi, '' );
+				};
+			} );
 
 			// Force result data un-formatted.
 			this.editor.dataProcessor.writer._.rules = {};
 		},
 
-		'test create div' : function() {
+		'test create div': function() {
 			var bot = this.editorBot;
 
 			bender.tools.testInputOut( 'create', function( source, output ) {
@@ -35,7 +34,35 @@ bender.test(
 			} );
 		},
 
-		'test edit div' : function() {
+		// http://dev.ckeditor.com/ticket/13585
+		'test create div from selection from 2 adjacent divs': function() {
+			var bot = this.editorBot;
+
+			bender.tools.testInputOut( 'create-divs', function( source, output ) {
+				bot.setHtmlWithSelection( source );
+
+				bot.dialog( 'creatediv', function( dialog ) {
+					dialog.getButton( 'ok' ).click();
+					assert.areEqual( bender.tools.compatHtml( output ), bot.getData( 1 ) );
+				} );
+			} );
+		},
+
+		// http://dev.ckeditor.com/ticket/13585
+		'test create nested divs from selection from 2 adjacent divs': function() {
+			var bot = this.editorBot;
+
+			bender.tools.testInputOut( 'create-divs-nested', function( source, output ) {
+				bot.setHtmlWithSelection( source );
+
+				bot.dialog( 'creatediv', function( dialog ) {
+					dialog.getButton( 'ok' ).click();
+					assert.areEqual( bender.tools.compatHtml( output ), bot.getData( 1 ) );
+				} );
+			} );
+		},
+
+		'test edit div': function() {
 			var bot = this.editorBot;
 
 			bender.tools.testInputOut( 'edit', function( source, output ) {
@@ -62,7 +89,5 @@ bender.test(
 				assert.areEqual( bender.tools.compatHtml( output ), bot.getData( 1 ) );
 			} );
 		}
-	}
-);
-
-//]]>
+	} );
+} )();

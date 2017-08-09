@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 CKEDITOR.plugins.setLang( 'scayt', 'fa', {
@@ -9,5 +9,5 @@ CKEDITOR.plugins.setLang( 'scayt', 'fa', {
 	btn_enable: 'فعالسازی SCAYT',
 	btn_langs:'زبانها',
 	btn_options: 'گزینهها',
-	text_title: ''
+	text_title:  'بررسی املای تایپ شما'
 });

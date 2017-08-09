@@ -1,5 +1,6 @@
-﻿/**
- * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+/* global ActiveXObject */
+/**
+ * @license Copyright (c) 2003-2017, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
@@ -23,10 +24,12 @@
 		function createXMLHttpRequest() {
 			// In IE, using the native XMLHttpRequest for local files may throw
 			// "Access is Denied" errors.
-			if ( !CKEDITOR.env.ie || location.protocol != 'file:' )
+			if ( !CKEDITOR.env.ie || location.protocol != 'file:' ) {
 				try {
-				return new XMLHttpRequest();
-			} catch ( e ) {}
+					return new XMLHttpRequest();
+				} catch ( e ) {
+				}
+			}
 
 			try {
 				return new ActiveXObject( 'Msxml2.XMLHTTP' );
@@ -97,7 +100,9 @@
 
 			xhr.onreadystatechange = function() {
 				if ( xhr.readyState == 4 ) {
-					callback( getResponseFn( xhr ) );
+					if ( callback ) {
+						callback( getResponseFn( xhr ) );
+					}
 					xhr = null;
 				}
 			};
@@ -148,7 +153,7 @@
 			 * @param {String} url The URL of the request.
 			 * @param {String/Object/Array} data Data passed to `XMLHttpRequest#send`.
 			 * @param {String} [contentType='application/x-www-form-urlencoded; charset=UTF-8'] The value of the `Content-type` header.
-			 * @param {Function} callback A callback executed asynchronously with `XMLHttpRequest#responseText` or `null` as an argument,
+			 * @param {Function} [callback] A callback executed asynchronously with `XMLHttpRequest#responseText` or `null` as an argument,
 			 * depending on the `status` of the request.
 			 */
 			post: function( url, data, contentType, callback ) {

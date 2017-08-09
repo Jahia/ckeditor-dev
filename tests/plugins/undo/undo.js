@@ -1,6 +1,10 @@
 /* bender-tags: editor,unit */
 /* bender-ckeditor-plugins: undo,enterkey,horizontalrule,image,iframe,flash,basicstyles,toolbar,sourcearea */
 
+var fillingCharSequence = CKEDITOR.dom.selection.FILLING_CHAR_SEQUENCE,
+	fillingCharSequenceLength = fillingCharSequence.length,
+	createFillingCharSequenceNode = CKEDITOR.dom.selection._createFillingCharSequenceNode;
+
 function isActive( command ) {
 	return command.state === CKEDITOR.TRISTATE_OFF;
 }
@@ -10,9 +14,8 @@ bender.editor = {
 	allowedForTests: 'p[id,dir]; div; em[id]'
 };
 
-bender.test(
-{
-	doUndoCommand : function( input, cmd ) {
+bender.test( {
+	doUndoCommand: function( input, cmd ) {
 		var bot = this.editorBot;
 		bot.setHtmlWithSelection( input );
 		bot.editor.resetUndo();
@@ -33,7 +36,7 @@ bender.test(
 		}, 0 );
 	},
 
-	doUndoDialog : function( input, dlgName, fn ) {
+	doUndoDialog: function( input, dlgName, fn ) {
 		var bot = this.editorBot;
 		bot.setHtmlWithSelection( input );
 		bot.editor.resetUndo();
@@ -124,7 +127,7 @@ bender.test(
 		} );
 	},
 
-	// #10249
+	// http://dev.ckeditor.com/ticket/10249
 	'check initial command states': function() {
 		var bot = this.editorBot,
 			undo = bot.editor.getCommand( 'undo' ),
@@ -152,7 +155,7 @@ bender.test(
 		wait();
 	},
 
-	// #10249
+	// http://dev.ckeditor.com/ticket/10249
 	'check command states on readOnly': function() {
 		var bot = this.editorBot,
 			undo = bot.editor.getCommand( 'undo' ),
@@ -179,17 +182,17 @@ bender.test(
 		wait();
 	},
 
-	// #7912
-	'test undo enter key' : function() {
+	// http://dev.ckeditor.com/ticket/7912
+	'test undo enter key': function() {
 		this.doUndoCommand( '<p>foo^bar</p>', 'enter' );
 	},
 
-	// #8299
-	'test undo hr insertion' : function() {
+	// http://dev.ckeditor.com/ticket/8299
+	'test undo hr insertion': function() {
 		this.doUndoCommand( '<p>foo^bar</p>', 'horizontalrule' );
 	},
 
-	'test lock/unlock undo manager' : function() {
+	'test lock/unlock undo manager': function() {
 		var ed = this.editor,
 			edt = ed.editable(),
 			undo = ed.getCommand( 'undo' ),
@@ -209,7 +212,7 @@ bender.test(
 		ed.fire( 'saveSnapshot' );
 
 		// Check undo manager is locked.
-		var msg = 'check locked undo manager (after save) - ';
+		msg = 'check locked undo manager (after save) - ';
 		assert.isFalse( isActive( undo ), msg + 'undoable' );
 		assert.isFalse( isActive( redo ), msg + 'redoable' );
 
@@ -226,7 +229,7 @@ bender.test(
 		assert.isTrue( isActive( undo ), msg );
 	},
 
-	// #10131
+	// http://dev.ckeditor.com/ticket/10131
 	// Scenario:
 	// * lock (+1)
 	// * lock (+2)
@@ -320,7 +323,7 @@ bender.test(
 		assert.areSame( '<p>foo</p>', editor.getData(), 'after unlockSnapshot - data' );
 	},
 
-	// #10315
+	// http://dev.ckeditor.com/ticket/10315
 	'test filling char is not recorded': function() {
 		var editor = this.editor,
 			editable = editor.editable(),
@@ -359,7 +362,7 @@ bender.test(
 		assert.isFalse( isActive( redo ), msg + 'redoable' );
 	},
 
-	// #10315 Two scenarios:
+	// http://dev.ckeditor.com/ticket/10315 Two scenarios:
 	//
 	// 1.
 	// * sellection with filling char
@@ -447,6 +450,63 @@ bender.test(
 		assert.isFalse( isActive( redo ), msg + 'redoable' );
 	},
 
+	// http://dev.ckeditor.com/ticket/13816
+	'test selection is restored despite filling char': function() {
+		// This TC fails on IE8 because it uses old IE selection implementation, which uses original (intrusive)
+		// bookmark implementation and it messes up the TC.
+		if ( CKEDITOR.env.ie && CKEDITOR.env.version <= 8 ) {
+			assert.ignore();
+		}
+
+		var editor = this.editor,
+			editable = editor.editable(),
+			undo = editor.getCommand( 'undo' ),
+			range;
+
+		editor.focus();
+
+		// Set testing content with selection.
+		editable.setHtml( '<p id="p1"><i class="fcs"></i><em>def</em></p>' );
+
+		var fillingChar = createFillingCharSequenceNode( editable );
+		fillingChar.setText( fillingChar.getText() + 'abc' );
+		fillingChar.replace( editable.findOne( '.fcs' ) );
+
+		// Selection: <p>FCSa[bc<em>de]f</em></p>
+		range = editor.createRange();
+		range.setStart( editor.document.getById( 'p1' ).getFirst(), fillingCharSequenceLength + 1 );
+		range.setEnd( editor.document.getById( 'p1' ).getLast().getFirst(), 2 );
+		range.select();
+
+		// Record testing content and the selection.
+		editor.resetUndo();
+
+		// Set some other content and record a snapshot.
+		editable.setHtml( '<p>foo</p>' );
+		editor.fire( 'saveSnapshot' );
+
+		// Check if undo is available.
+		assert.isTrue( isActive( undo ), 'Undo enabled.' );
+		assert.areSame( 2, editor.undoManager.snapshots.length, 'Number of snapshots recorded.' );
+		assert.isInnerHtmlMatching( '<p id="p1">abc<em>def</em>@</p>', editor.undoManager.snapshots[ 0 ].contents, 'Snapshot does not contain FCSeq.' );
+
+		// Go back to the testing content.
+		editor.execCommand( 'undo' );
+
+		// Check if testing content has been correctly restored.
+		assert.isInnerHtmlMatching( '<p id="p1">abc<em>def</em>@</p>', editable.getHtml(), 'Snapshot restored without FCSeq.' );
+
+		// Check if testing selection has been correctly reverted.
+		range = editor.getSelection().getRanges()[ 0 ];
+
+		assert.isTrue( range.startContainer.equals( editor.document.getById( 'p1' ).getFirst() ), 'Range starts in the right text node.' );
+		assert.isTrue( range.endContainer.equals( editor.document.getById( 'p1' ).findOne( 'em' ).getFirst() ), 'Range ends in the right text node.' );
+
+		// Selection remains as: <p>a[bc<em>de]f</em></p>
+		assert.areSame( 1, range.startOffset, 'Start offset does not include FCSeq.' );
+		assert.areSame( 2, range.endOffset, 'End offset does not include FCSeq.' );
+	},
+
 	'test lock&unlock after selection change': function() {
 		var editor = this.editor,
 			editable = editor.editable(),
@@ -526,6 +586,11 @@ bender.test(
 		var editor = this.editor,
 			editable = editor.editable();
 
+		// Focus the editor to insert the Filling Char Sequence during this test
+		// and make assertions more reliable. Otherwise, if ran separately, this test
+		// would not stress FCSeq system.
+		editor.focus();
+
 		editable.setHtml( '<p>foo</p>' );
 		editor.resetUndo();
 
@@ -555,6 +620,11 @@ bender.test(
 	'test lock with dontUpdate cannot be overriden by normal lock': function() {
 		var editor = this.editor,
 			editable = editor.editable();
+
+		// Focus the editor to insert the Filling Char Sequence during this test
+		// and make assertions more reliable. Otherwise, if ran separately, this test
+		// would not stress FCSeq system.
+		editor.focus();
 
 		editable.setHtml( '<p>foo</p>' );
 		editor.resetUndo();
@@ -637,8 +707,8 @@ bender.test(
 		wait();
 	},
 
-	// #9230
-	'test automatic DOM changes handling' : function() {
+	// http://dev.ckeditor.com/ticket/9230
+	'test automatic DOM changes handling': function() {
 		var bot = this.editorBot,
 			editor = bot.editor,
 			root = editor.editable(),
@@ -668,8 +738,7 @@ bender.test(
 		assert.areEqual( 'abc', root.getHtml(), 'Initial data is correct' );
 
 		// Manually fire selectionChange so autoParagraphing is executed.
-		editor.fire( 'selectionChange',
-			 { selection : sel, path : currentPath, element : firstElement } );
+		editor.fire( 'selectionChange', { selection: sel, path: currentPath, element: firstElement } );
 
 		assert.isMatching( /<p>abc(<br>)?<\/p>/i, root.getHtml(), 'Auto paragraphing executed correctly' );
 		assert.isFalse( isActive( undo ), 'Auto paragraphing hasn\'t created undo snapshot' );
@@ -692,7 +761,7 @@ bender.test(
 		}, 0 );
 	},
 
-	'test multiple undo/redo' : function() {
+	'test multiple undo/redo': function() {
 		var bot = this.editorBot;
 		bot.setHtmlWithSelection( '<p>fo[ob]ar</p>' );
 		bot.editor.resetUndo();
@@ -729,31 +798,47 @@ bender.test(
 		}, 0 );
 	},
 
-	// #8258
-	'test undo image insertion (dialog)' : function() {
+	// http://dev.ckeditor.com/ticket/8258
+	'test undo image insertion (dialog)': function() {
 		this.doUndoDialog( '<p>foo^bar</p>', 'image', function( dialog ) {
 			dialog.setValueOf( 'info', 'txtUrl', '../../_assets/logo.png' );
 			dialog.getButton( 'ok' ).click();
 		} ) ;
 	},
 
-	// #8258
-	'test undo iframe insertion (dialog)' : function() {
+	// http://dev.ckeditor.com/ticket/8258
+	'test undo iframe insertion (dialog)': function() {
 		this.doUndoDialog( '<p>foo^bar</p>', 'iframe', function( dialog ) {
 			dialog.setValueOf( 'info', 'src', 'about:blank' );
 			dialog.getButton( 'ok' ).click();
 		} ) ;
 	},
 
-	// #8258
-	'test undo flash insertion (dialog)' : function() {
+	// http://dev.ckeditor.com/ticket/8258
+	'test undo flash insertion (dialog)': function() {
 		this.doUndoDialog( '<p>foo^bar</p>', 'flash', function( dialog ) {
 			dialog.setValueOf( 'info', 'src', '../../_assets/sample.swf' );
 			dialog.getButton( 'ok' ).click();
 		} ) ;
 	},
 
-	'test undo with "control" type selection in IE' : function() {
+	// http://dev.ckeditor.com/ticket/12597
+	'test no beforeUndoImage event fire while composition': function() {
+		var bot = this.editorBot,
+			editor = bot.editor,
+			calls = 0;
+
+		bot.editor.on( 'beforeUndoImage', function() {
+			calls++;
+		} );
+
+		var evt = new CKEDITOR.dom.event( { keyCode: 229 } );
+		editor.editable().fire( 'keydown', evt );
+
+		assert.areSame( 0, calls, 'There should be no calls' );
+	},
+
+	'test undo with "control" type selection in IE': function() {
 		if ( !CKEDITOR.env.ie || ( document.documentMode || CKEDITOR.env.version ) > 8 )
 			assert.ignore();
 
@@ -802,7 +887,7 @@ bender.test(
 	},
 
 	'test CTRL+Z/Y/SHIFT+Z default actions are not blocked in source mode': function() {
-		var bot = this.editorBot
+		var bot = this.editorBot;
 
 		bot.editor.setMode( 'source', function() {
 			var prevented = 0,

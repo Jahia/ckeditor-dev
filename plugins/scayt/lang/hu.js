@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 CKEDITOR.plugins.setLang( 'scayt', 'hu', {
@@ -9,5 +9,5 @@ CKEDITOR.plugins.setLang( 'scayt', 'hu', {
 	btn_enable: 'SCAYT engedélyezése',
 	btn_langs:'Nyelvek',
 	btn_options: 'Beállítások',
-	text_title: ''
+	text_title:  'Helyesírás ellenőrzés gépelés közben'
 });

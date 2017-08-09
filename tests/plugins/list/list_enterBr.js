@@ -1,27 +1,27 @@
 /* bender-tags: editor,unit */
 /* bender-ckeditor-plugins: list,button,toolbar */
 
-bender.editor =
-{
-	config : { enterMode : CKEDITOR.ENTER_BR }
+bender.editor = {
+	config: {
+		enterMode: CKEDITOR.ENTER_BR
+	}
 };
 
-bender.test(
-{
-	supportForSelectFullList : function() {
+bender.test( {
+	supportForSelectFullList: function() {
 		// With full selection, it will break inline in old IEs.
 		return !( this.editor.elementMode == CKEDITOR.ELEMENT_MODE_INLINE &&
 			CKEDITOR.env.ie && CKEDITOR.env.version < 9 );
 	},
 
-	setUp : function() {
+	setUp: function() {
 		// Force result data un-formatted.
 		this.editor.dataProcessor.writer._.rules = {};
 		this.editor.focus();
 	},
 
 	// Test list creation.
-	'test apply list' : function() {
+	'test apply list': function() {
 		var bot = this.editorBot;
 
 		bot.setHtmlWithSelection( '[foo<br />bar]' );
@@ -32,7 +32,7 @@ bender.test(
 	},
 
 	// Test list removal.
-	'test remove list' : function() {
+	'test remove list': function() {
 		var bot = this.editorBot;
 
 		bot.setHtmlWithSelection( '<ol><li>^text</li></ol>' );
@@ -48,9 +48,9 @@ bender.test(
 	},
 
 	/**
-	 *  Test merge newlist with previous list. (#3820)
+	 *  Test merge newlist with previous list. (http://dev.ckeditor.com/ticket/3820)
 	 */
-	'test create list with merge' : function() {
+	'test create list with merge': function() {
 		var bot = this.editorBot;
 		bot.setHtmlWithSelection( '<ul><li>bullet line 1</li><li>bullet line 2</li></ul>^second line' );
 		bot.execCommand( 'bulletedlist' );
@@ -58,7 +58,7 @@ bender.test(
 	},
 
 	/**
-	 *  Test remove list first list item not merging with previous text node. (#3836)
+	 *  Test remove list first list item not merging with previous text node. (http://dev.ckeditor.com/ticket/3836)
 	 */
 	'test remove list without merge': function() {
 		var bot = this.editorBot;

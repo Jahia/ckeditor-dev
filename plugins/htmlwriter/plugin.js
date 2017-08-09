@@ -1,5 +1,5 @@
-﻿/**
- * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+/**
+ * @license Copyright (c) 2003-2017, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
@@ -69,7 +69,7 @@ CKEDITOR.htmlWriter = CKEDITOR.tools.createClass( {
 
 		this._.indent = 0;
 		this._.indentation = '';
-		// Indicate preformatted block context status. (#5789)
+		// Indicate preformatted block context status. (http://dev.ckeditor.com/ticket/5789)
 		this._.inPre = 0;
 		this._.rules = {};
 
@@ -114,7 +114,7 @@ CKEDITOR.htmlWriter = CKEDITOR.tools.createClass( {
 		 * @param {Object} attributes The attributes defined for this tag. The
 		 * attributes could be used to inspect the tag.
 		 */
-		openTag: function( tagName, attributes ) {
+		openTag: function( tagName ) {
 			var rules = this._.rules[ tagName ];
 
 			if ( this._.afterCloser && rules && rules.needsSpace && this._.needsSpace )
@@ -180,7 +180,7 @@ CKEDITOR.htmlWriter = CKEDITOR.tools.createClass( {
 
 			if ( typeof attValue == 'string' ) {
 				this.forceSimpleAmpersand && ( attValue = attValue.replace( /&amp;/g, '&' ) );
-				// Browsers don't always escape special character in attribute values. (#4683, #4719).
+				// Browsers don't always escape special character in attribute values. (http://dev.ckeditor.com/ticket/4683, http://dev.ckeditor.com/ticket/4719).
 				attValue = CKEDITOR.tools.htmlEncodeAttr( attValue );
 			}
 
@@ -289,6 +289,7 @@ CKEDITOR.htmlWriter = CKEDITOR.tools.createClass( {
 			this._.indentation = '';
 			this._.afterCloser = 0;
 			this._.inPre = 0;
+			this._.needsSpace = 0;
 		},
 
 		/**

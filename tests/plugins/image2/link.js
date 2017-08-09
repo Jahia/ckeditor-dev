@@ -1,5 +1,6 @@
 /* bender-tags: editor,unit,widget */
 /* bender-ckeditor-plugins: image2,link,toolbar */
+/* global widgetTestsTools, image2TestsTools */
 
 ( function() {
 	'use strict';
@@ -16,6 +17,20 @@
 		config: {
 			extraAllowedContent: 'img figure[id]',
 			language: 'en'
+		}
+	};
+
+	bender.editors = {
+		editor1: {
+			name: 'test_editor1',
+			config: {
+				image2_alignClasses: [ 'align-left', 'align-center', 'align-right' ],
+				image2_disableResizer: true,
+
+				stylesSet: [
+					{ name: 'Image 30%', type: 'widget', widget: 'image', attributes: { 'class': 'image30' } }
+				]
+			}
 		}
 	};
 
@@ -171,7 +186,7 @@
 					widget = getById( bot.editor, 'x' );
 					assert.isUndefined( widget.parts.link, 'Widget.parts.link is not registered' );
 					assert.isTrue( !!bot.editor.getSelection().isFake, 'Fake selection once unlinked' );
-					assert.areSame( bot.editor.widgets.focused, widget, 'Widget remains focused once unlinked' )
+					assert.areSame( bot.editor.widgets.focused, widget, 'Widget remains focused once unlinked' );
 					assertStructure( widget, afterStructure );
 					assertCommandStates( bot.editor, commandStates );
 					assert.areSame( fixHtml( expected ), fixHtml( bot.getData() ), 'Unlinked the widget' );
@@ -185,7 +200,7 @@
 		// 	-> asserts field values in link dialog (fields)
 		dialogFields: function( name, fields ) {
 			var bot = this.editorBot,
-				tab, t, f;
+				tab;
 
 			bot.setData( bender.tools.getValueAsHtml( name ), function() {
 				var widget = getById( bot.editor, 'x' );
@@ -195,10 +210,10 @@
 
 				bot.dialog( 'link', function( dialog ) {
 					try {
-						for ( t in fields ) {
+						for ( var t in fields ) {
 							tab = fields[ t ];
 
-							for ( f in tab )
+							for ( var f in tab )
 								assert.isMatching( tab[ f ], dialog.getValueOf( t, f ), 'Field ' + t + '.' + f + ': value must match.' );
 						}
 					} catch ( e ) {
@@ -393,7 +408,7 @@
 					},
 					advanced: {
 						advId: 'foo',
-						advLangDir: 'rtl',
+						advLangDir: 'rtl'
 					}
 				}
 			}, inlineStructureWithLink, [ 2, 2 ] );
@@ -576,8 +591,7 @@
 				editor = bot.editor;
 
 			bot.setData( '<p><a href="http://ping">x<img alt="x" id="x" src="_assets/foo.png" />x</a></p>', function() {
-				var widget = getById( bot.editor, 'x' ),
-					dialogs = [];
+				var widget = getById( bot.editor, 'x' );
 
 				widget.focus();
 
@@ -701,7 +715,7 @@
 			} );
 		},
 
-		// #11801
+		// http://dev.ckeditor.com/ticket/11801
 		'test load editor anchors into link dialog when linking for the first time': function() {
 			var bot = this.editorBot,
 				editor = bot.editor,
@@ -750,6 +764,79 @@
 						}
 					} );
 				} );
+			} );
+		},
+
+		// http://dev.ckeditor.com/ticket/13197
+		'test align classes transfered from nested image to widget wrapper': function() {
+			var bot = this.editorBots.editor1,
+				html = '<p>' +
+					'<a id="x" href="#foo">' +
+						'<img src="_assets/foo.png" alt="bag" class="image30 align-right" />' +
+					'</a>' +
+				'</p>';
+
+			bot.setData( html, function() {
+				var widget = getById( bot.editor, 'x' );
+
+				assert.isTrue( widget.wrapper.hasClass( 'align-right' ) );
+				assert.areSame( 'right', widget.data.align );
+				assert.isFalse( widget.parts.image.hasClass( 'align-right' ) );
+			} );
+		},
+
+		// http://dev.ckeditor.com/ticket/13885
+		'test custom link attributes getter': function() {
+			CKEDITOR.plugins.image2.getLinkAttributesGetter = function() {
+				return function() {
+					return {
+						set: {
+							'data-cke-saved-href': 'custom-href',
+							'data-custom': 'custom'
+						},
+						removed: [ 'target' ]
+					};
+				};
+			};
+
+			this.setWidgetData( 'custom-link-getter', {
+				link: {
+					type: 'url',
+					url: {
+						protocol: 'ftp://',
+						url: 'y'
+					},
+					target: {
+						type: null
+					},
+					advanced: {
+						advId: 'foo',
+						advLangDir: 'rtl'
+					}
+				}
+			}, inlineStructureWithLink, [ 2, 2 ] );
+		},
+
+		// http://dev.ckeditor.com/ticket/13885
+		'test custom link attributes parser': function() {
+			var bot = this.editorBot;
+
+			CKEDITOR.plugins.image2.getLinkAttributesParser = function() {
+				return function() {
+					return {
+						href: 'foo',
+						bar: 'baz'
+					};
+				};
+			};
+
+			bot.setData( '<p><a href="http://x"><img alt="x" id="x" src="_assets/foo.png" /></a></p>', function() {
+				var widget = getById( bot.editor, 'x' );
+
+				objectAssert.areEqual( {
+					href: 'foo',
+					bar: 'baz'
+				}, widget.data.link, 'Custom attributes parser output.' );
 			} );
 		}
 	} );

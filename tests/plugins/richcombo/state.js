@@ -2,7 +2,7 @@
 /* bender-ckeditor-plugins: richcombo,format,stylescombo,font,toolbar */
 
 bender.test( {
-	'test rich combos state when editor is readonly' : function() {
+	'test rich combos state when editor is readonly': function() {
 		bender.editorBot.create( {
 			name: 'readonly',
 			config: {
@@ -32,7 +32,7 @@ bender.test( {
 		} );
 	},
 
-	// #11793
+	// http://dev.ckeditor.com/ticket/11793
 	'test clicking while editor is blurred': function() {
 		bender.editorBot.create( {
 			name: 'blurred'

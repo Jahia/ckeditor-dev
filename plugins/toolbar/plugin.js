@@ -1,5 +1,5 @@
 ﻿/**
- * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2017, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
@@ -34,14 +34,15 @@
 				if ( editor.toolbox ) {
 					editor.toolbox.focusCommandExecuted = true;
 
-					// Make the first button focus accessible for IE. (#3417)
+					// Make the first button focus accessible for IE. (http://dev.ckeditor.com/ticket/3417)
 					// Adobe AIR instead need while of delay.
-					if ( CKEDITOR.env.ie || CKEDITOR.env.air )
+					if ( CKEDITOR.env.ie || CKEDITOR.env.air ) {
 						setTimeout( function() {
+							editor.toolbox.focus();
+						}, 100 );
+					} else {
 						editor.toolbox.focus();
-					}, 100 );
-					else
-						editor.toolbox.focus();
+					}
 				}
 			}
 		}
@@ -49,7 +50,9 @@
 
 	CKEDITOR.plugins.add( 'toolbar', {
 		requires: 'button',
-		lang: 'af,ar,bg,bn,bs,ca,cs,cy,da,de,el,en,en-au,en-ca,en-gb,eo,es,et,eu,fa,fi,fo,fr,fr-ca,gl,gu,he,hi,hr,hu,id,is,it,ja,ka,km,ko,ku,lt,lv,mk,mn,ms,nb,nl,no,pl,pt,pt-br,ro,ru,si,sk,sl,sq,sr,sr-latn,sv,th,tr,tt,ug,uk,vi,zh,zh-cn', // %REMOVE_LINE_CORE%
+		// jscs:disable maximumLineLength
+		lang: 'af,ar,az,bg,bn,bs,ca,cs,cy,da,de,de-ch,el,en,en-au,en-ca,en-gb,eo,es,es-mx,et,eu,fa,fi,fo,fr,fr-ca,gl,gu,he,hi,hr,hu,id,is,it,ja,ka,km,ko,ku,lt,lv,mk,mn,ms,nb,nl,no,oc,pl,pt,pt-br,ro,ru,si,sk,sl,sq,sr,sr-latn,sv,th,tr,tt,ug,uk,vi,zh,zh-cn', // %REMOVE_LINE_CORE%
+		// jscs:enable maximumLineLength
 
 		init: function( editor ) {
 			var endFlag;
@@ -70,7 +73,11 @@
 							// Cycle through the toolbars, starting from the one
 							// closest to the current item.
 							while ( !toolbar || !toolbar.items.length ) {
-								toolbar = keystroke == 9 ? ( ( toolbar ? toolbar.next : item.toolbar.next ) || editor.toolbox.toolbars[ 0 ] ) : ( ( toolbar ? toolbar.previous : item.toolbar.previous ) || editor.toolbox.toolbars[ editor.toolbox.toolbars.length - 1 ] );
+								if ( keystroke == 9 ) {
+									toolbar = ( ( toolbar ? toolbar.next : item.toolbar.next ) || editor.toolbox.toolbars[ 0 ] );
+								} else {
+									toolbar = ( ( toolbar ? toolbar.previous : item.toolbar.previous ) || editor.toolbox.toolbars[ editor.toolbox.toolbars.length - 1 ] );
+								}
 
 								// Look for the first item that accepts focus.
 								if ( toolbar.items.length ) {
@@ -111,10 +118,6 @@
 							return false;
 						case 40: // DOWN-ARROW
 							if ( item.button && item.button.hasArrow ) {
-								// Note: code is duplicated in plugins\richcombo\plugin.js in keyDownFn().
-								editor.once( 'panelShow', function( evt ) {
-									evt.data._.panel._.currentBlock.onKeyDown( 40 );
-								} );
 								item.execute();
 							} else {
 								// Send left arrow key.
@@ -171,7 +174,8 @@
 
 				var output = [
 					'<span id="', labelId, '" class="cke_voice_label">', editor.lang.toolbar.toolbars, '</span>',
-					'<span id="' + editor.ui.spaceId( 'toolbox' ) + '" class="cke_toolbox" role="group" aria-labelledby="', labelId, '" onmousedown="return false;">' ];
+					'<span id="' + editor.ui.spaceId( 'toolbox' ) + '" class="cke_toolbox" role="group" aria-labelledby="', labelId, '" onmousedown="return false;">'
+				];
 
 				var expanded = editor.config.toolbarStartupExpanded !== false,
 					groupStarted, pendingSeparator;
@@ -182,20 +186,22 @@
 					output.push( '<span class="cke_toolbox_main"' + ( expanded ? '>' : ' style="display:none">' ) );
 
 				var toolbars = editor.toolbox.toolbars,
-					toolbar = getToolbarConfig( editor );
+					toolbar = getToolbarConfig( editor ),
+					toolbarLength = toolbar.length;
 
-				for ( var r = 0; r < toolbar.length; r++ ) {
+				for ( var r = 0; r < toolbarLength; r++ ) {
 					var toolbarId,
 						toolbarObj = 0,
 						toolbarName,
 						row = toolbar[ r ],
+						lastToolbarInRow = row !== '/' && ( toolbar[ r + 1 ] === '/' || r == toolbarLength - 1 ),
 						items;
 
 					// It's better to check if the row object is really
 					// available because it's a common mistake to leave
 					// an extra comma in the toolbar definition
 					// settings, which leads on the editor not loading
-					// at all in IE. (#3983)
+					// at all in IE. (http://dev.ckeditor.com/ticket/3983)
 					if ( !row )
 						continue;
 
@@ -236,7 +242,8 @@
 								toolbarName = row.name && ( editor.lang.toolbar.toolbarGroups[ row.name ] || row.name );
 
 								// Output the toolbar opener.
-								output.push( '<span id="', toolbarId, '" class="cke_toolbar"', ( toolbarName ? ' aria-labelledby="' + toolbarId + '_label"' : '' ), ' role="toolbar">' );
+								output.push( '<span id="', toolbarId, '" class="cke_toolbar' + ( lastToolbarInRow ? ' cke_toolbar_last"' : '"' ),
+									( toolbarName ? ' aria-labelledby="' + toolbarId + '_label"' : '' ), ' role="toolbar">' );
 
 								// If a toolbar name is available, send the voice label.
 								toolbarName && output.push( '<span id="', toolbarId, '_label" class="cke_voice_label">', toolbarName, '</span>' );
@@ -264,7 +271,7 @@
 								groupStarted = 0;
 							}
 
-							function addItem( item ) {
+							function addItem( item ) { // jshint ignore:line
 								var itemObj = item.render( editor, output );
 								index = toolbarObj.items.push( itemObj ) - 1;
 
@@ -276,7 +283,7 @@
 								itemObj.toolbar = toolbarObj;
 								itemObj.onkey = itemKeystroke;
 
-								// Fix for #3052:
+								// Fix for http://dev.ckeditor.com/ticket/3052:
 								// Prevent JAWS from focusing the toolbar after document load.
 								itemObj.onfocus = function() {
 									if ( !editor.toolbox.focusCommandExecuted )
@@ -345,7 +352,11 @@
 							var dy = toolboxContainer.$.offsetHeight - previousHeight;
 							contents.setStyle( 'height', ( contentHeight - dy ) + 'px' );
 
-							editor.fire( 'resize' );
+							editor.fire( 'resize', {
+								outerHeight: editor.container.$.offsetHeight,
+								contentsHeight: contents.$.offsetHeight,
+								outerWidth: editor.container.$.offsetWidth
+							} );
 						},
 
 						modes: { wysiwyg: 1, source: 1 }
@@ -353,9 +364,9 @@
 
 					editor.setKeystroke( CKEDITOR.ALT + ( CKEDITOR.env.ie || CKEDITOR.env.webkit ? 189 : 109 ) /*-*/, 'toolbarCollapse' );
 
-					output.push( '<a title="' + ( expanded ? editor.lang.toolbar.toolbarCollapse : editor.lang.toolbar.toolbarExpand )
-						+ '" id="' + editor.ui.spaceId( 'toolbar_collapser' )
-						+ '" tabIndex="-1" class="cke_toolbox_collapser' );
+					output.push( '<a title="' + ( expanded ? editor.lang.toolbar.toolbarCollapse : editor.lang.toolbar.toolbarExpand ) +
+						'" id="' + editor.ui.spaceId( 'toolbar_collapser' ) +
+						'" tabIndex="-1" class="cke_toolbox_collapser' );
 
 					if ( !expanded )
 						output.push( ' cke_toolbox_collapser_min' );
@@ -369,9 +380,7 @@
 			} );
 
 			editor.on( 'destroy', function() {
-
-				if ( this.toolbox )
-				{
+				if ( this.toolbox ) {
 					var toolbars,
 						index = 0,
 						i, items, instance;
@@ -620,7 +629,7 @@
 
 	function getPrivateToolbarGroups( editor ) {
 		return editor._.toolbarGroups || ( editor._.toolbarGroups = [
-			{ name: 'document',	   groups: [ 'mode', 'document', 'doctools' ] },
+			{ name: 'document',    groups: [ 'mode', 'document', 'doctools' ] },
 			{ name: 'clipboard',   groups: [ 'clipboard', 'undo' ] },
 			{ name: 'editing',     groups: [ 'find', 'selection', 'spellchecker' ] },
 			{ name: 'forms' },
@@ -656,6 +665,9 @@ CKEDITOR.UI_SEPARATOR = 'separator';
  * (`iframe`-based) editor. In case of [inline](#!/guide/dev_inline) editor the toolbar
  * position is set dynamically depending on the position of the editable element on the screen.
  *
+ * Read more in the [documentation](#!/guide/dev_toolbarlocation)
+ * and see the [SDK sample](http://sdk.ckeditor.com/samples/toolbarlocation.html).
+ *
  *		config.toolbarLocation = 'bottom';
  *
  * @cfg
@@ -669,6 +681,9 @@ CKEDITOR.config.toolbarLocation = 'top';
  *
  * If set to `null`, the toolbar will be generated automatically using all available buttons
  * and {@link #toolbarGroups} as a toolbar groups layout.
+ *
+ * In CKEditor 4.5+ you can generate your toolbar customization code by using the [visual
+ * toolbar configurator](http://docs.ckeditor.com/#!/guide/dev_toolbar).
  *
  *		// Defines a toolbar with only one strip containing the "Source" button, a
  *		// separator, and the "Bold" and "Italic" buttons.

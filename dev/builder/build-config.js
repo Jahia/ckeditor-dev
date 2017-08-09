@@ -1,25 +1,36 @@
 /**
- * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2017, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
+
+/* exported CKBUILDER_CONFIG */
 
 var CKBUILDER_CONFIG = {
 	skin: 'moono',
 	ignore: [
-		'dev',
-		'README.md',
-		'.gitignore',
-		'.gitattributes',
-		'.idea',
-		'.mailmap',
-		'.DS_Store',
-		'tests',
-		'package.json',
 		'bender.js',
+		'bender.ci.js',
 		'.bender',
 		'bender-err.log',
 		'bender-out.log',
-		'node_modules'
+		'.travis.yml',
+		'dev',
+		'docs',
+		'.DS_Store',
+		'.editorconfig',
+		'.gitignore',
+		'.gitattributes',
+		'gruntfile.js',
+		'.idea',
+		'.jscsrc',
+		'.jshintignore',
+		'.jshintrc',
+		'less',
+		'.mailmap',
+		'node_modules',
+		'package.json',
+		'README.md',
+		'tests'
 	],
 	plugins: {
 		a11yhelp: 1,
@@ -31,6 +42,7 @@ var CKBUILDER_CONFIG = {
 		clipboard: 1,
 		colorbutton: 1,
 		colordialog: 1,
+		copyformatting: 1,
 		contextmenu: 1,
 		dialogadvtab: 1,
 		div: 1,
@@ -51,6 +63,7 @@ var CKBUILDER_CONFIG = {
 		indentlist: 1,
 		indentblock: 1,
 		justify: 1,
+		language: 1,
 		link: 1,
 		list: 1,
 		liststyle: 1,
@@ -76,6 +89,7 @@ var CKBUILDER_CONFIG = {
 		stylescombo: 1,
 		tab: 1,
 		table: 1,
+		tableselection: 1,
 		tabletools: 1,
 		templates: 1,
 		toolbar: 1,

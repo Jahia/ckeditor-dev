@@ -4,26 +4,18 @@
 ( function() {
 	'use strict';
 
-	bender.test( {
-		'async:init': function() {
-			var that = this;
-
-			bender.tools.setUpEditors( {
-				editor: {
-					name: 'editor1'
-				},
-				inline: {
-					name: 'editor2',
-					creator: 'inline'
-				}
-			}, function( editors, bots ) {
-				that.editorBots = bots;
-				that.editors = editors;
-				that.callback();
-			} );
+	bender.editors = {
+		editor: {
+			name: 'editor1'
 		},
+		inline: {
+			name: 'editor2',
+			creator: 'inline'
+		}
+	};
 
-		'test create table' : function() {
+	bender.test( {
+		'test create table': function() {
 			var bot = this.editorBots.editor;
 
 			bot.dialog( 'tableProperties', function( dialog ) {
@@ -36,7 +28,7 @@
 				dialog.hide();
 
 				wait( function() {
-					// #8337: check cursor position after hand.
+					// http://dev.ckeditor.com/ticket/8337: check cursor position after hand.
 					var output = bender.tools.getHtmlWithSelection( bot.editor );
 					output = bender.tools.fixHtml( bender.tools.compatHtml( output ) );
 					var expected = bender.tools.compatHtml( bender.tools.getValueAsHtml( 'create-table' ) );
@@ -59,10 +51,8 @@
 					dialog.fire( 'ok' );
 					dialog.hide();
 
-					assert.areSame( bender.tools.compatHtml(
-						bender.tools.fixHtml( expected ) ),
-									bot.getData( true ) );
-					} );
+					assert.areSame( bender.tools.compatHtml( bender.tools.fixHtml( expected ) ), bot.getData( true ) );
+				} );
 			} );
 		},
 
@@ -96,14 +86,14 @@
 
 		'test delete table wrapped in div': function() {
 			var bot = this.editorBots.editor;
-			bender.tools.testInputOut( 'del-table', function( source, expected ) {
+			bender.tools.testInputOut( 'del-table', function( source ) {
 				bot.setHtmlWithSelection( source );
 				bot.execCommand( 'tableDelete' );
-				assert.isInnerHtmlMatching( '<p>@</p>', bot.editor.editable().getHtml(), 'div was removed too' );
+				assert.isInnerHtmlMatching( '<p>@@</p>', bot.editor.editable().getHtml(), 'div was removed too' );
 			} );
 		},
 
-		// #12110.
+		// http://dev.ckeditor.com/ticket/12110.
 		'test delete table directly in inline editor': function() {
 			var bot = this.editorBots.inline,
 				editable = bot.editor.editable();

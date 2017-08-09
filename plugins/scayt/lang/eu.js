@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 CKEDITOR.plugins.setLang( 'scayt', 'eu', {
@@ -9,5 +9,5 @@ CKEDITOR.plugins.setLang( 'scayt', 'eu', {
 	btn_enable: 'Gaitu SCAYT',
 	btn_langs:'Hizkuntzak',
 	btn_options: 'Aukerak',
-	text_title: ''
+	text_title:  'Ortografia Zuzenketa Idatzi Ahala (SCAYT)'
 });

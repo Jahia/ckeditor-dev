@@ -2,9 +2,7 @@
 
 'use strict';
 
-var getInnerHtml = bender.tools.getInnerHtml,
-	fixHtml = bender.tools.fixHtml,
-	doc = CKEDITOR.document,
+var doc = CKEDITOR.document,
 	playground;
 
 bender.test( {
@@ -16,7 +14,7 @@ bender.test( {
 		var element = CKEDITOR.dom.element.createFromHtml( '<b>Test</b>', doc );
 		playground.append( element );
 
-		var style = new CKEDITOR.style( { element : 'b' } );
+		var style = new CKEDITOR.style( { element: 'b' } );
 
 		assert.isTrue( style.checkElementRemovable( element ) );
 	},
@@ -25,7 +23,7 @@ bender.test( {
 		var element = CKEDITOR.dom.element.createFromHtml( '<b>Test</b>', doc );
 		playground.append( element );
 
-		var style = new CKEDITOR.style( { element : 'i' } );
+		var style = new CKEDITOR.style( { element: 'i' } );
 
 		assert.isFalse( style.checkElementRemovable( element ) );
 	},
@@ -34,7 +32,7 @@ bender.test( {
 		var element = CKEDITOR.dom.element.createFromHtml( '<b>Test</b>', doc );
 		playground.append( element );
 
-		var style = new CKEDITOR.style( { element : 'b', attributes : { lang : 'pt' } } );
+		var style = new CKEDITOR.style( { element: 'b', attributes: { lang: 'pt' } } );
 
 		assert.isTrue( style.checkElementRemovable( element ) );
 	},
@@ -43,7 +41,7 @@ bender.test( {
 		var element = CKEDITOR.dom.element.createFromHtml( '<b>Test</b>', doc );
 		playground.append( element );
 
-		var style = new CKEDITOR.style( { element : 'b', attributes : { lang : 'pt' } } );
+		var style = new CKEDITOR.style( { element: 'b', attributes: { lang: 'pt' } } );
 
 		assert.isFalse( style.checkElementRemovable( element, true ) );
 	},
@@ -52,7 +50,7 @@ bender.test( {
 		var element = CKEDITOR.dom.element.createFromHtml( '<span lang="pt" style="color : #fff">Test</span>', doc );
 		playground.append( element );
 
-		var style = new CKEDITOR.style( { element : 'span', attributes : { lang : 'pt' }, style : { color : '#ffffff' } } );
+		var style = new CKEDITOR.style( { element: 'span', attributes: { lang: 'pt' }, style: { color: '#ffffff' } } );
 
 		assert.isTrue( style.checkElementRemovable( element, true ) );
 	},
@@ -61,7 +59,7 @@ bender.test( {
 		var element = CKEDITOR.dom.element.createFromHtml( '<span lang="pt" style="color : #fff">Test</span>', doc );
 		playground.append( element );
 
-		var style = new CKEDITOR.style( { element : 'span', attributes : { lang : 'pt' }, style : { color : '#fffff0' } } );
+		var style = new CKEDITOR.style( { element: 'span', attributes: { lang: 'pt' }, style: { color: '#fffff0' } } );
 
 		assert.isTrue( style.checkElementRemovable( element, true ) );
 	},
@@ -70,7 +68,7 @@ bender.test( {
 		var element = CKEDITOR.dom.element.createFromHtml( '<span lang="pt" style="color : #fff">Test</span>', doc );
 		playground.append( element );
 
-		var style = new CKEDITOR.style( { element : 'span', attributes : { lang : 'fr' }, style : { color : '#ffffff' } } );
+		var style = new CKEDITOR.style( { element: 'span', attributes: { lang: 'fr' }, style: { color: '#ffffff' } } );
 
 		assert.isFalse( style.checkElementRemovable( element, true ) );
 	},
@@ -79,13 +77,13 @@ bender.test( {
 		var element = CKEDITOR.dom.element.createFromHtml( '<span lang="pt" style="font-size: 10px">Test</span>', doc );
 		playground.append( element );
 
-		var style = new CKEDITOR.style( { element : 'span', attributes : { lang : 'pt' , style : 'font-size:10px;' } } );
+		var style = new CKEDITOR.style( { element: 'span', attributes: { lang: 'pt' , style: 'font-size:10px;' } } );
 
 		assert.isTrue( style.checkElementRemovable( element, true ) );
 	},
 
 	test_checkElementRemovable_fontFamily: function() {
-		var element = CKEDITOR.dom.element.createFromHtml( '<span style="font-family: georgia,  serif">Test Font</span>', doc );
+		var element = CKEDITOR.dom.element.createFromHtml( '<span style="font-family: Georgia,  serif">Test Font</span>', doc );
 		playground.append( element );
 
 		var style = new CKEDITOR.style( { element: 'span', styles: { 'font-family': '#(family)' } }, { family: 'Georgia, serif;' } );

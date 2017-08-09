@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 CKEDITOR.plugins.setLang( 'scayt', 'ka', {
@@ -9,5 +9,5 @@ CKEDITOR.plugins.setLang( 'scayt', 'ka', {
 	btn_enable: 'SCAYT-ის ჩართვა',
 	btn_langs:'ენები',
 	btn_options: 'პარამეტრები',
-	text_title: ''
+	text_title:  'მართლწერის შემოწმება კრეფისას'
 });

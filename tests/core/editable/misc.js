@@ -2,26 +2,25 @@
 
 'use strict';
 
-bender.test( {
-	'async:init': function() {
-		var that = this;
-
-		bender.tools.setUpEditors( {
-			editor: {
-				name: 'editor1',
-				creator: 'inline',
-				config: {
-					allowedContent: true
-				}
-			},
-		}, function( editors, bots ) {
-			that.editorBots = bots;
-			that.editors = editors;
-			that.callback();
-		} );
+bender.editors = {
+	editor: {
+		name: 'editor1',
+		creator: 'inline',
+		config: {
+			allowedContent: true
+		}
 	},
+	scrollable: {
+		name: 'editor2',
+		creator: 'replace',
+		config: {
+			height: 300
+		}
+	}
+};
 
-	// #3448.
+bender.test( {
+	// http://dev.ckeditor.com/ticket/3448.
 	'test click on image selects it': function() {
 		// This is Gecko/Webkit/Blink fix.
 		if ( CKEDITOR.env.ie )
@@ -45,7 +44,7 @@ bender.test( {
 		} );
 	},
 
-	// #3448. This is a different case than image, because we make input readonly by setting
+	// http://dev.ckeditor.com/ticket/3448. This is a different case than image, because we make input readonly by setting
 	// contenteditable=false in the data processor.
 	'test click on a input selects it': function() {
 		// This is Gecko/Webkit/Blink fix.
@@ -70,7 +69,7 @@ bender.test( {
 		} );
 	},
 
-	// #11727.
+	// http://dev.ckeditor.com/ticket/11727.
 	'test click on a non-editable image does not select it': function() {
 		var bot = this.editorBots.editor;
 
@@ -88,7 +87,7 @@ bender.test( {
 		} );
 	},
 
-	// #11727.
+	// http://dev.ckeditor.com/ticket/11727.
 	'test click on deeply nested non-editable image does not select it': function() {
 		var bot = this.editorBots.editor;
 
@@ -103,6 +102,28 @@ bender.test( {
 			} ) );
 
 			assert.areSame( 'foo', editor.getSelection().getSelectedText(), 'Selection has not been changed' );
+		} );
+	},
+
+	'test scroll editable and focus': function() {
+		if ( !CKEDITOR.env.chrome ) {
+			assert.ignore();
+		}
+
+		var bot = this.editorBots.scrollable,
+			editable = this.editors.scrollable.editable();
+
+		bot.setData( '<p>Test</p><p>Test</p><p>Test</p><p>Test</p>' +
+			'<p>Test</p><p>Test</p><p>Test</p><p>Test</p>' +
+			'<p>Test</p><p>Test</p><p>Test</p><p>Test</p>' +
+			'<p>Test</p><p>Test</p><p>Test</p><p>Test</p>' +
+			'<p>Test</p><p>Test</p><p>Test</p><p>Test</p>', function() {
+			var scrollPos = 100;
+
+			editable.$.scrollTop = scrollPos;
+			editable.focus();
+
+			assert.areSame( scrollPos, editable.$.scrollTop );
 		} );
 	}
 } );

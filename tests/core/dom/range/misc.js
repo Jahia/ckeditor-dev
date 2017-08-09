@@ -3,17 +3,17 @@
 ( function() {
 	'use strict';
 
-	var getInnerHtml = bender.tools.getInnerHtml,
-		doc = CKEDITOR.document;
+	var doc = CKEDITOR.document,
+		html1 = document.getElementById( 'playground' ).innerHTML,
+		html2 = document.getElementById( 'playground2' ).innerHTML;
 
-	var tests =
-	{
+	var tests = {
 		setUp: function() {
-			 document.getElementById( 'playground' ).innerHTML = html1;
-			 document.getElementById( 'playground2' ).innerHTML = html2;
+			document.getElementById( 'playground' ).innerHTML = html1;
+			document.getElementById( 'playground2' ).innerHTML = html2;
 		},
 
-		test__constructor : function() {
+		test__constructor: function() {
 			var range = new CKEDITOR.dom.range( doc );
 
 			assert.isNotNull( range, 'range must not be null' );
@@ -32,14 +32,14 @@
 			assert.areSame( container.$, range.root.$, 'range boundary element must match.' );
 		},
 
-		test_collapsed : function() {
+		test_collapsed: function() {
 			var range = new CKEDITOR.dom.range( doc );
 			range.setStartAt( doc.getById( '_P' ), CKEDITOR.POSITION_AFTER_START );
 
 			assert.isTrue( range.collapsed );
 		},
 
-		test_collapse : function() {
+		test_collapse: function() {
 			var range = new CKEDITOR.dom.range( doc );
 			range.setStartAt( doc.getById( '_Para' ), CKEDITOR.POSITION_AFTER_START );
 			range.setEndAt( doc.getById( '_Span' ), CKEDITOR.POSITION_BEFORE_END );
@@ -55,7 +55,7 @@
 			assert.isTrue( range.collapsed, 'collapsed' );
 		},
 
-		test_selectNodeContents_Element : function() {
+		test_selectNodeContents_Element: function() {
 			var range = new CKEDITOR.dom.range( doc );
 
 			// Test with an Element node.
@@ -68,7 +68,7 @@
 			assert.isFalse( range.collapsed, 'range.collapsed' );
 		},
 
-		test_selectNodeContents_Text : function() {
+		test_selectNodeContents_Text: function() {
 			var range = new CKEDITOR.dom.range( doc );
 
 			// Test with a Text node.
@@ -81,7 +81,7 @@
 			assert.isFalse( range.collapsed, 'range.collapsed' );
 		},
 
-		test_collapse_ToStart : function() {
+		test_collapse_ToStart: function() {
 			var range = new CKEDITOR.dom.range( doc );
 
 			range.selectNodeContents( doc.getById( '_P' ) );
@@ -94,7 +94,7 @@
 			assert.isTrue( range.collapsed, 'range.collapsed' );
 		},
 
-		test_collapse_ToEnd : function() {
+		test_collapse_ToEnd: function() {
 			var range = new CKEDITOR.dom.range( doc );
 
 			range.selectNodeContents( doc.getById( '_Para' ) );
@@ -110,7 +110,7 @@
 		/**
 		 *  Test trim with text range.
 		 */
-		test_trim : function() {
+		test_trim: function() {
 			var text = doc.getById( '_trim_ct' ).getFirst();
 			var range = new CKEDITOR.dom.range( doc );
 			range.setStart( text, 2 );
@@ -127,11 +127,10 @@
 		/**
 		 * Trim range which collapsed at text node boundary.
 		 */
-		test_trim_3790 : function() {
+		test_trim_3790: function() {
 
 			var ct = doc.getById( '_trim_ct' );
 			ct.setHtml( '<span id="_SPAN1">text</span>' );
-			var text = doc.getById( '_trim_ct' ).getFirst();
 
 			// <span id="_SPAN1">text^</span>
 			var range = new CKEDITOR.dom.range( doc );
@@ -148,11 +147,10 @@
 		/**
 		 * Trim range which collapsed inside text node.
 		 */
-		test_trim_3790_2 : function() {
+		test_trim_3790_2: function() {
 
 			var ct = doc.getById( '_trim_ct' );
 			ct.setHtml( '<span id="_SPAN1">text</span>' );
-			var text = doc.getById( '_trim_ct' ).getFirst();
 
 			// <span id="_SPAN1">te^xt</span>
 			var range = new CKEDITOR.dom.range( doc );
@@ -167,7 +165,7 @@
 		},
 
 		// Test enclosed node doesn't exist.
-		test_enclosed_node : function() {
+		test_enclosed_node: function() {
 			var range = new CKEDITOR.dom.range( doc );
 			range.setStart( doc.getById( '_enclosed' ), 1 );
 			range.setEnd( doc.getById( '_enclosed_i' ), 1 );
@@ -177,7 +175,7 @@
 		},
 
 		// Test enclosed node doesn't exist.
-		test_enclosed_node2 : function() {
+		test_enclosed_node2: function() {
 			var range = new CKEDITOR.dom.range( doc );
 			range.setStart( doc.getById( '_enclosed' ).getLast(), 1 );
 			range.setEnd( doc.getById( '_enclosed' ).getLast(), 5 );
@@ -187,7 +185,7 @@
 		},
 
 		// Test enclosed node exist.
-		test_enclosed_node3 : function() {
+		test_enclosed_node3: function() {
 			var range = new CKEDITOR.dom.range( doc );
 			range.setStart( doc.getById( '_enclosed' ).getFirst(), 6 );
 			range.setEnd( doc.getById( '_enclosed' ).getLast(), 0 );
@@ -196,7 +194,7 @@
 			assert.isTrue( doc.getById( '_enclosed_i' ).equals( range.getEnclosedNode() ) );
 		},
 
-		/* Start of #6735 */
+		/* Start of http://dev.ckeditor.com/ticket/6735 */
 
 		'test checkReadOnly when both range boundaries are inside of read-only element': function() {
 			var source = 'some <strong contenteditable="false"> sample [text</strong> and a <a href="javascript:void(0)" contenteditable="false">link]</a>',
@@ -222,7 +220,7 @@
 			assert.isFalse( range.checkReadOnly() );
 		},
 
-		/* End of #6735 */
+		/* End of http://dev.ckeditor.com/ticket/6735 */
 
 		'test checkReadOnly when entire range is enclosed in an editable element which is contained by another read-only element': function() {
 			var source = 'some <strong contenteditable="false"> sample text and <a href="javascript:void(0)" contenteditable="true">a [link].</a></strong>',
@@ -230,7 +228,7 @@
 			assert.isFalse( range.checkReadOnly() );
 		},
 
-		'test removeEmptyBlocksAtEnd - at the beginning' : function() {
+		'test removeEmptyBlocksAtEnd - at the beginning': function() {
 			var source = '<div><div><p>[</p></div>te]xt</div>',
 				playground = doc.getById( 'editable_playground' ),
 				range = bender.tools.setHtmlWithRange( playground, source )[ 0 ];
@@ -239,7 +237,7 @@
 			assert.areEqual( '<div>[te]xt</div>', bender.tools.getHtmlWithRanges( playground, new CKEDITOR.dom.rangeList( [ range ] ) ) );
 		},
 
-		'test removeEmptyBlocksAtEnd - at the end' : function() {
+		'test removeEmptyBlocksAtEnd - at the end': function() {
 			var source = '<div>te[xt<div><p>]</p></div></div>',
 				playground = doc.getById( 'editable_playground' ),
 				range = bender.tools.setHtmlWithRange( playground, source )[ 0 ];
@@ -255,15 +253,157 @@
 			range.removeEmptyBlocksAtEnd( true );
 
 			assert.areEqual( '<div>te[xt<div>]x</div></div>', bender.tools.getHtmlWithRanges( playground, new CKEDITOR.dom.rangeList( [ range ] ) ) );
+		},
+
+		'test clone': function() {
+			var range = new CKEDITOR.dom.range( doc );
+
+			range.selectNodeContents( doc.getBody() );
+
+			var range2 = range.clone();
+
+			assert.areSame( range.root, range2.root, 'root' );
+			assert.areSame( range.startContainer, range2.startContainer, 'startContainer' );
+			assert.areSame( range.endContainer, range2.endContainer, 'endContainer' );
+			assert.areSame( range.startOffset, range2.startOffset, 'startOffset' );
+			assert.areSame( range.endOffset, range2.endOffset, 'endOffset' );
+			assert.areSame( range.collapsed, range2.collapsed, 'collapsed' );
+		},
+
+		'test _setStartContainer': function() {
+			var range = new CKEDITOR.dom.range( doc ),
+				start = new CKEDITOR.dom.element( 'a', doc );
+
+			doc.getBody().append( start );
+
+			range._setStartContainer( start );
+			assert.areSame( start, range.startContainer );
+		},
+
+		'test _setEndContainer': function() {
+			var range = new CKEDITOR.dom.range( doc ),
+				end = new CKEDITOR.dom.element( 'a', doc );
+
+			doc.getBody().append( end );
+
+			range._setEndContainer( end );
+			assert.areSame( end, range.endContainer );
+		},
+
+		'test _getTableElement': function() {
+			var range = new CKEDITOR.dom.range( doc );
+
+			// Collapsed range inside td.
+			range.setStart( doc.getById( '_td1' ).getFirst(), 1 );
+			range.collapse();
+
+			assert.isTrue( range._getTableElement().equals( doc.getById( '_td1' ) ), 'collapsed td' );
+
+			// Collapsed range inside th.
+			range = new CKEDITOR.dom.range( doc );
+			range.setStart( doc.getById( '_th1' ).getFirst(), 1 );
+			range.collapse();
+
+			assert.isTrue( range._getTableElement().equals( doc.getById( '_th1' ) ), 'collapsed th' );
+
+			// Normal range inside td.
+			range = new CKEDITOR.dom.range( doc );
+			range.selectNodeContents( doc.getById( '_td1' ).getFirst() );
+
+			assert.isTrue( range._getTableElement().equals( doc.getById( '_td1' ) ), 'inside td' );
+
+			// Partial range inside td.
+			range = new CKEDITOR.dom.range( doc );
+			range.setStart( doc.getById( '_td1' ).getFirst(), 1 );
+			range.setEnd( doc.getById( '_td1' ).getFirst(), 3 );
+
+			assert.isTrue( range._getTableElement().equals( doc.getById( '_td1' ) ), 'partial inside td' );
+
+			// Selected cell.
+			range = new CKEDITOR.dom.range( doc );
+			range.setStartBefore( doc.getById( '_td1' ) );
+			range.setEndAfter( doc.getById( '_td1' ) );
+
+			assert.isTrue( range._getTableElement().equals( doc.getById( '_td1' ) ), 'selected td' );
+
+			// Selected heading.
+			range = new CKEDITOR.dom.range( doc );
+			range.setStartBefore( doc.getById( '_th1' ) );
+			range.setEndAfter( doc.getById( '_th1' ) );
+
+			assert.isTrue( range._getTableElement().equals( doc.getById( '_th1' ) ), 'selected th' );
+
+			// Selected thead.
+			range = new CKEDITOR.dom.range( doc );
+			range.setStartBefore( doc.getById( '_thead' ) );
+			range.setEndAfter( doc.getById( '_thead' ) );
+
+			assert.isTrue( range._getTableElement().equals( doc.getById( '_thead' ) ), 'selected thead' );
+
+			// Selected tbody.
+			range = new CKEDITOR.dom.range( doc );
+			range.setStartBefore( doc.getById( '_tbody' ) );
+			range.setEndAfter( doc.getById( '_tbody' ) );
+
+			assert.isTrue( range._getTableElement().equals( doc.getById( '_tbody' ) ), 'selected tbody' );
+
+			// Selected tfoot.
+			range = new CKEDITOR.dom.range( doc );
+			range.setStartBefore( doc.getById( '_tfoot' ) );
+			range.setEndAfter( doc.getById( '_tfoot' ) );
+
+			assert.isTrue( range._getTableElement().equals( doc.getById( '_tfoot' ) ), 'selected tfoot' );
+
+			// Selected table.
+			range = new CKEDITOR.dom.range( doc );
+			range.setStartBefore( doc.getById( '_table1' ) );
+			range.setEndAfter( doc.getById( '_table1' ) );
+
+			assert.isTrue( range._getTableElement().equals( doc.getById( '_table1' ) ), 'selected table1' );
+
+			// Selected two cells.
+			range = new CKEDITOR.dom.range( doc );
+			range.setStartBefore( doc.getById( '_td1' ) );
+			range.setEndAfter( doc.getById( '_td2' ) );
+
+			assert.isTrue( range._getTableElement().equals( doc.getById( '_tr2' ) ), 'selected 2 tds' );
+
+			// Selected two cells from different tables.
+			range = new CKEDITOR.dom.range( doc );
+			range.setStartBefore( doc.getById( '_td2' ) );
+			range.setEndAfter( doc.getById( '_td3' ) );
+
+			assert.isNull( range._getTableElement(), 'selected 2 tds from different tables' );
+
+			// Selected two tables.
+			range = new CKEDITOR.dom.range( doc );
+			range.setStartBefore( doc.getById( '_table1' ) );
+			range.setEndAfter( doc.getById( '_table2' ) );
+
+			assert.isNull( range._getTableElement(), 'selected 2 tables' );
+
+			// Selected paragraph.
+			range = new CKEDITOR.dom.range( doc );
+			range.setStartBefore( doc.getById( '_P' ) );
+			range.setEndAfter( doc.getById( '_P' ) );
+
+			assert.isNull( range._getTableElement(), 'selected paragraph' );
+
+			// Special case in Safari: selecting cell inside one-cell table.
+			range = new CKEDITOR.dom.range( doc );
+			range.setStartBefore( doc.getById( '_td3' ) );
+			range.setEndAfter( doc.getById( '_td3' ) );
+
+			assert.isTrue( range._getTableElement().equals( doc.getById( '_td3' ) ), 'selected td in one-cell table' );
+
+			// Filtering returned elements.
+			range = new CKEDITOR.dom.range( doc );
+			range.setStartBefore( doc.getById( '_td1' ) );
+			range.setEndAfter( doc.getById( '_td1' ) );
+
+			assert.isTrue( range._getTableElement( 'tbody' ).equals( doc.getById( '_tbody' ) ), 'filtering elements' );
 		}
 	};
 
 	bender.test( tests );
 } )();
-
-	//<![CDATA[
-
-html1 = document.getElementById( 'playground' ).innerHTML;
-html2 = document.getElementById( 'playground2' ).innerHTML;
-
-	//]]>

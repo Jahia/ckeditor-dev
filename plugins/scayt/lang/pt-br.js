@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 CKEDITOR.plugins.setLang( 'scayt', 'pt-br', {
@@ -9,5 +9,5 @@ CKEDITOR.plugins.setLang( 'scayt', 'pt-br', {
 	btn_enable: 'Habilitar correção ortográfica durante a digitação',
 	btn_langs:'Idiomas',
 	btn_options: 'Opções',
-	text_title: ''
+	text_title: 'Correção ortográfica durante a digitação'
 });

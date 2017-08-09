@@ -1,10 +1,11 @@
+/* exported widgetTestsTools */
+
 var widgetTestsTools = ( function() {
 	'use strict';
 
 	//
 	// @param config
 	// @param config.name
-	// @param config.startupData
 	// @param config.widgetName
 	// @param [config.editorConfig]
 	// @param [config.extraPlugins]
@@ -16,7 +17,7 @@ var widgetTestsTools = ( function() {
 	// @param [config.assertWidgets]
 	//
 	// @param config.newData
-	// @param config.createdWidgetPattern
+	// @param config.newWidgetPattern
 	function addTests( tcs, config ) {
 		var editor,
 			editorBot,
@@ -121,6 +122,8 @@ var widgetTestsTools = ( function() {
 					} );
 				} );
 
+				// We lose focus somewhere in the previous tests. Regain it, so command's state is refreshed.
+				editor.focus();
 				editor.execCommand( widgetDef.name );
 				wait();
 			} );
@@ -154,7 +157,7 @@ var widgetTestsTools = ( function() {
 
 	function fixHtml( html, ignoreStyle ) {
 		// Because IE modify style attribute we should fix it or totally ignore style attribute.
-		var html = html.replace( /style="([^"]*)"/g, function( styleStr ) {
+		html = html.replace( /style="([^"]*)"/g, function( styleStr ) {
 			// If there are too many problems with styles just ignore them.
 			if ( ignoreStyle )
 				return '';
@@ -178,8 +181,15 @@ var widgetTestsTools = ( function() {
 		return JSON.parse( decodeURIComponent( widget.element.data( 'cke-widget-data' ) ) );
 	}
 
-	function getWidgetById( editor, id ) {
-		return editor.widgets.getByElement( editor.document.getById( id ) );
+	// @param {Boolean} [byElement] If true, the passed id has to be widget element's id.
+	// Important for nested widgets, so parent widget is not mistakenly found.
+	function getWidgetById( editor, id, byElement ) {
+		var widget = editor.widgets.getByElement( editor.document.getById( id ) );
+
+		if ( widget && byElement )
+			return widget.element.$.id == id ? widget : null;
+
+		return widget;
 	}
 
 	// Retrives widget by its offset among parsed widgets.
@@ -217,7 +227,7 @@ var widgetTestsTools = ( function() {
 			assert.areEqual( fixHtml( data ), fixHtml( editorBot.getData() ), 'Editor html after performing downcast is not matching.' );
 
 			if ( expectedWidgetName ) {
-				for ( var i = instancesArray.length-1; i >= 0; i-- )
+				for ( var i = instancesArray.length - 1; i >= 0; i-- )
 					assert.areEqual( expectedWidgetName, instancesArray[ i ].name, 'Widget at index ' + i + ' has widget invalid definition name.' );
 			}
 		} );
@@ -363,16 +373,18 @@ var widgetTestsTools = ( function() {
 		assertWidget: assertWidget,
 
 		widgetInitedWrapperAttributes:
-			'class="cke_widget_wrapper cke_widget_(?:inline|block)" ' +
+			'aria-label="[a-z]+ widget" ' +
+			'class="cke_widget_wrapper cke_widget_(?:inline|block) cke_widget_test(?:_upcasted_pasting|inline|block)" ' +
 			'contenteditable="false" ' +
 			'(?:data-cke-display-name="[a-z0-9]+" )?' +
 			'(?:data-cke-expando="[0-9]+" )?' +
 			'data-cke-filter="off" ' +
 			'data-cke-widget-id="[0-9]+" ' +
 			'data-cke-widget-wrapper="1" ' +
+			'role="region" ' +
 			'tabindex="-1"',
 		widgetWrapperAttributes:
-			'class="cke_widget_wrapper cke_widget_new cke_widget_(?:inline|block)" ' +
+			'class="cke_widget_wrapper cke_widget_new cke_widget_(?:inline|block) cke_widget_test(?:1|2|inline|block)?" ' +
 			'contenteditable="false" ' +
 			'(?:data-cke-display-name="[a-z0-9]+" )?' +
 			'(?:data-cke-expando="[0-9]+" )?' +
@@ -386,6 +398,7 @@ var widgetTestsTools = ( function() {
 					'data-cke-widget-drag-handler="1" ' +
 					'(?:draggable="true" )?' +
 					'height="\\d+" ' +
+					'role="presentation" ' +
 					'src="[^"]+" ' +
 					'title="[^"]+" ' +
 					'width="\\d+" ' +
