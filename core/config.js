@@ -90,7 +90,7 @@ CKEDITOR.config = {
 		var p = (typeof contextJsParameters != 'undefined') ? contextJsParameters : {};
 		cfg.contextPath = p.contextPath || '';
 		cfg.language = p.uilang || 'en';
-		cfg.contentlanguage = p.lang || 'en';
+		cfg.contentlanguage = p.engineLang || p.lang || 'en';
 		cfg.siteUuid = p.siteUuid || '';
 		cfg.customConfig = cfg.customConfig || (p.ckeCfg || '');
 		up = cfg.contextPath + '/engines/contentpicker.jsp?';
