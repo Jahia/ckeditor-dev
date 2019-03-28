@@ -101,7 +101,7 @@ CKEDITOR.dtd = ( function() {
 	X( F, FO, P, DFO );
 
 	var dtd = {
-		a: Y( P, { a: 1, button: 1 } ), // Treat as normal inline element (not a transparent one).
+		a: X( { div: 1}, Y( P, { a: 1, button: 1 } )), // Treat as normal inline element (not a transparent one).
 		abbr: P,
 		address: F,
 		area: E,
