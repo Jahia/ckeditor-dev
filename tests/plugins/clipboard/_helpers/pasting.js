@@ -15,18 +15,8 @@ function assertPasteEvent( editor, eventData, expected, message, async, skipCanc
 		delete expected.priority;
 	}
 
-	// Type doesn't have to be specified.
-	if ( !eventData.type )
-		eventData.type = 'auto';
-
-	eventData.method = 'paste';
-	// Allow passing a dataTransfer mock.
-	if ( !eventData.dataTransfer ) {
-		eventData.dataTransfer = new CKEDITOR.plugins.clipboard.dataTransfer();
-	}
-
 	editor.once( 'paste', onPaste, null, null, priority );
-	editor.fire( 'paste', eventData );
+	paste( editor, eventData );
 
 	if ( async )
 		wait();
@@ -62,17 +52,32 @@ function assertPasteEvent( editor, eventData, expected, message, async, skipCanc
 	}
 }
 
-function pasteFiles( editor, files, dataValue ) {
+function paste( editor, eventData ) {
+	// Type doesn't have to be specified.
+	if ( !eventData.type ) {
+		eventData.type = 'auto';
+	}
+
+	eventData.method = 'paste';
+	// Allow passing a dataTransfer mock.
+	if ( !eventData.dataTransfer ) {
+		eventData.dataTransfer = new CKEDITOR.plugins.clipboard.dataTransfer();
+	}
+
+	editor.fire( 'paste', eventData );
+}
+
+function pasteFiles( editor, files, dataValue, pasteData ) {
 	var	nativeData = bender.tools.mockNativeDataTransfer();
 
 	nativeData.files = files;
 
 	var dataTransfer = new CKEDITOR.plugins.clipboard.dataTransfer( nativeData );
 
-	editor.fire( 'paste', {
+	editor.fire( 'paste', CKEDITOR.tools.extend( {
 		dataTransfer: dataTransfer,
 		dataValue: dataValue ? dataValue : ''
-	} );
+	}, pasteData || {} ) );
 }
 
 function mockGetClipboardData( editor, pasteData ) {

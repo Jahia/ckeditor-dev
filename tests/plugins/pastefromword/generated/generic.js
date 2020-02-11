@@ -3,7 +3,7 @@
 /* bender-ckeditor-plugins: pastefromword,ajax,basicstyles,bidi,font,link,toolbar,colorbutton,image */
 /* bender-ckeditor-plugins: list,liststyle,sourcearea,format,justify,table,tableresize,tabletools,indent,indentblock,div,dialog */
 /* jshint ignore:end */
-/* bender-include: _lib/q.js,_helpers/promisePasteEvent.js,_helpers/assertWordFilter.js,_helpers/createTestCase.js */
+/* bender-include: _helpers/promisePasteEvent.js,_helpers/assertWordFilter.js,_helpers/createTestCase.js */
 /* bender-include: _helpers/createTestSuite.js,_helpers/pfwTools.js */
 /* global pfwTools,createTestSuite */
 
@@ -46,13 +46,16 @@
 			'Text_alignment': true,
 			'Underline': true,
 			'Unordered_list': true,
+			'Unordered_list_special_char_bullet': true,
 			'Table_alignment': true,
 			'Table_vertical_alignment': true
 		},
 		testData: {
 			_should: {
 				ignore: {
-					'test Object word2013 datatransfer': CKEDITOR.env.edge
+					'test Object word2013 datatransfer': CKEDITOR.env.edge,
+					'test Unordered_list_special_char_bullet word2013 chrome': CKEDITOR.env.edge,
+					'test Unordered_list_special_char_bullet word2013 firefox': CKEDITOR.env.edge
 				}
 			}
 		},
@@ -60,6 +63,6 @@
 			pfwTools.filters.style,
 			pfwTools.filters.span
 		],
-		ignoreAll: CKEDITOR.env.ie && CKEDITOR.env.version <= 11
+		ignoreAll: ( CKEDITOR.env.ie && CKEDITOR.env.version <= 11 ) || bender.tools.env.mobile
 	} ) );
 } )();

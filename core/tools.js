@@ -1,6 +1,6 @@
 /**
- * @license Copyright (c) 2003-2017, CKSource - Frederico Knabben. All rights reserved.
- * For licensing, see LICENSE.md or http://ckeditor.com/license
+ * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+ * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
 /**
@@ -90,7 +90,7 @@
 		 *			return el >= 3;
 		 *		} ); // 2
 		 *
-		 * @since 4.5
+		 * @since 4.5.0
 		 * @param {Array} array Array to search in.
 		 * @param {Function} compareFunction Compare function.
 		 * @returns {Number} The index of the first matching element or `-1` if none matches.
@@ -209,17 +209,19 @@
 				propertiesList = arguments[ argsLength - 1 ];
 				argsLength -= 2;
 			}
+
 			for ( var i = 1; i < argsLength; i++ ) {
-				var source = arguments[ i ];
-				for ( var propertyName in source ) {
+				var source = arguments[ i ] || {};
+
+				CKEDITOR.tools.array.forEach( CKEDITOR.tools.object.keys( source ), function( propertyName ) {
 					// Only copy existed fields if in overwrite mode.
 					if ( overwrite === true || target[ propertyName ] == null ) {
-						// Only copy  specified fields if list is provided.
+						// Only copy specified fields if list is provided.
 						if ( !propertiesList || ( propertyName in propertiesList ) )
 							target[ propertyName ] = source[ propertyName ];
-
 					}
-				}
+
+				} );
 			}
 
 			return target;
@@ -246,7 +248,7 @@
 		 * This method is faster than {@link #clone} which does
 		 * a deep copy of an object (including arrays).
 		 *
-		 * @since 4.1
+		 * @since 4.1.0
 		 * @param {Object} source The object to be copied.
 		 * @returns {Object} Copy of `source`.
 		 */
@@ -383,17 +385,17 @@
 		 *
 		 *		alert( CKEDITOR.tools.htmlDecode( '&lt;a &amp; b &gt;' ) ); // '<a & b >'
 		 *
-		 * Read more about chosen entities in the [research](http://dev.ckeditor.com/ticket/13105#comment:8).
+		 * Read more about chosen entities in the [research](https://dev.ckeditor.com/ticket/13105#comment:8).
 		 *
 		 * @param {String} The string to be decoded.
 		 * @returns {String} The decoded string.
 		 */
 		htmlDecode: function( text ) {
 			// See:
-			// * http://dev.ckeditor.com/ticket/13105#comment:8 and comment:9,
+			// * https://dev.ckeditor.com/ticket/13105#comment:8 and comment:9,
 			// * http://jsperf.com/wth-is-going-on-with-jsperf JSPerf has some serious problems, but you can observe
 			// that combined regexp tends to be quicker (except on V8). It will also not be prone to fail on '&amp;lt;'
-			// (see http://dev.ckeditor.com/ticket/13105#DXWTF:CKEDITOR.tools.htmlEnDecodeAttr).
+			// (see https://dev.ckeditor.com/ticket/13105#DXWTF:CKEDITOR.tools.htmlEnDecodeAttr).
 			return text.replace( allEscRegex, allEscDecode );
 		},
 
@@ -414,7 +416,7 @@
 		 *
 		 *		alert( CKEDITOR.tools.htmlDecodeAttr( '&lt;a &quot; b&gt;' ) ); // '<a " b>'
 		 *
-		 * Since CKEditor 4.5 this method simply executes {@link #htmlDecode} which covers
+		 * Since CKEditor 4.5.0 this method simply executes {@link #htmlDecode} which covers
 		 * all necessary entities.
 		 *
 		 * @param {String} text The text to be decoded.
@@ -427,7 +429,7 @@
 		/**
 		 * Transforms text to valid HTML: creates paragraphs, replaces tabs with non-breaking spaces etc.
 		 *
-		 * @since 4.5
+		 * @since 4.5.0
 		 * @param {String} text Text to transform.
 		 * @param {Number} enterMode Editor {@link CKEDITOR.config#enterMode Enter mode}.
 		 * @returns {String} HTML generated from the text.
@@ -580,6 +582,19 @@
 		},
 
 		/**
+		 * Creates a {@link CKEDITOR.tools.buffers.throttle throttle buffer} instance.
+		 *
+		 * See the {@link CKEDITOR.tools.buffers.throttle#method-input input method's} documentation for example listings.
+		 *
+		 * @since 4.10.0
+		 * @inheritdoc CKEDITOR.tools.buffers.throttle#method-constructor
+		 * @returns {CKEDITOR.tools.buffers.throttle}
+		 */
+		throttle: function( minInterval, output, contextObj ) {
+			return new this.buffers.throttle( minInterval, output, contextObj );
+		},
+
+		/**
 		 * Removes spaces from the start and the end of a string. The following
 		 * characters are removed: space, tab, line break, line feed.
 		 *
@@ -691,28 +706,45 @@
 		 * Creates a function that will always execute in the context of a
 		 * specified object.
 		 *
-		 *		var obj = { text: 'My Object' };
+		 * ```js
+		 * var obj = { text: 'My Object' };
 		 *
-		 *		function alertText() {
-		 *			alert( this.text );
-		 *		}
+		 * function alertText() {
+		 * 	alert( this.text );
+		 * }
 		 *
-		 *		var newFunc = CKEDITOR.tools.bind( alertText, obj );
-		 *		newFunc(); // Alerts 'My Object'.
+		 * var newFunc = CKEDITOR.tools.bind( alertText, obj );
+		 * newFunc(); // Alerts 'My Object'.
+		 * ```
+		 *
+		 * Since 4.13.0 additional arguments can be bound to a function.
+		 *
+		 * ```js
+		 * function logData( text, number1, number2 ) {
+		 * 	console.log( text, number1, number2 );
+		 * }
+		 *
+		 * var newFunc = CKEDITOR.tools.bind( logData, null, 'Foo', 1 );
+		 * newFunc(); // Logs: 'Foo', 1, undefined.
+		 * newFunc( 2 ); // Logs: 'Foo', 1, 2.
+		 *
+		 * ```
 		 *
 		 * @param {Function} func The function to be executed.
 		 * @param {Object} obj The object to which the execution context will be bound.
+		 * @param {*} [args] Arguments provided to the bound function when invoking the target function. Available since 4.13.0.
 		 * @returns {Function} The function that can be used to execute the
-		 * `func` function in the context of `obj`.
+		 * `func` function in the context of the specified `obj` object.
 		 */
 		bind: function( func, obj ) {
+			var args = Array.prototype.slice.call( arguments, 2 );
 			return function() {
-				return func.apply( obj, arguments );
+				return func.apply( obj, args.concat( Array.prototype.slice.call( arguments ) ) );
 			};
 		},
 
 		/**
-		 * Class creation based on prototype inheritance which supports of the
+		 * Class creation based on prototype inheritance which supports the
 		 * following features:
 		 *
 		 * * Static fields
@@ -760,10 +792,10 @@
 				$.base = baseClass;
 				$.baseProto = baseClass.prototype;
 				// Super constructor.
-				$.prototype.base = function() {
+				$.prototype.base = function baseClassConstructor() {
 					this.base = baseClass.prototype.base;
 					baseClass.apply( this, arguments );
-					this.base = arguments.callee;
+					this.base = baseClassConstructor;
 				};
 			}
 
@@ -856,10 +888,13 @@
 		/**
 		 * Converts the specified CSS length value to the calculated pixel length inside this page.
 		 *
+		 * Since 4.11.0 it also returns negative values.
+		 *
 		 * **Note:** Percentage-based value is left intact.
 		 *
 		 * @method
 		 * @param {String} cssLength CSS length value.
+		 * @returns {Number/String} A number representing the length in pixels or a string with a percentage value.
 		 */
 		convertToPx: ( function() {
 			var calculator;
@@ -873,8 +908,20 @@
 				}
 
 				if ( !( /%$/ ).test( cssLength ) ) {
+					var isNegative = parseFloat( cssLength ) < 0,
+						ret;
+
+					if ( isNegative ) {
+						cssLength = cssLength.replace( '-', '' );
+					}
+
 					calculator.setStyle( 'width', cssLength );
-					return calculator.$.clientWidth;
+					ret = calculator.$.clientWidth;
+
+					if ( isNegative ) {
+						return -ret;
+					}
+					return ret;
 				}
 
 				return cssLength;
@@ -1021,7 +1068,7 @@
 				styleText = CKEDITOR.tools.normalizeHex( CKEDITOR.tools.convertRgbToHex( styleText ) );
 			}
 
-			// IE will leave a single semicolon when failed to parse the style text. (http://dev.ckeditor.com/ticket/3891)
+			// IE will leave a single semicolon when failed to parse the style text. (https://dev.ckeditor.com/ticket/3891)
 			if ( !styleText || styleText == ';' )
 				return retval;
 
@@ -1047,7 +1094,7 @@
 		 *		CKEDITOR.tools.writeCssText( styleObj ); // -> 'color:red; border:none'
 		 *		CKEDITOR.tools.writeCssText( styleObj, true ); // -> 'border:none; color:red'
 		 *
-		 * @since 4.1
+		 * @since 4.1.0
 		 * @param {Object} styles The object contaning style properties.
 		 * @param {Boolean} [sort] Whether to sort CSS properties.
 		 * @returns {String} The serialized style text.
@@ -1070,7 +1117,7 @@
 		 *
 		 * **Note:** This method performs shallow, non-strict comparison.
 		 *
-		 * @since 4.1
+		 * @since 4.1.0
 		 * @param {Object} left
 		 * @param {Object} right
 		 * @param {Boolean} [onlyLeft] Check only the properties that are present in the `left` object.
@@ -1101,21 +1148,12 @@
 		},
 
 		/**
-		 * Returns an array of passed object's keys.
-		 *
-		 *		console.log( CKEDITOR.tools.objectKeys( { foo: 1, bar: false } );
-		 *		// -> [ 'foo', 'bar' ]
-		 *
-		 * @since 4.1
-		 * @param {Object} obj
-		 * @returns {Array} Object's keys.
+		 * @inheritdoc CKEDITOR.tools.object#keys
+		 * @since 4.1.0
+		 * @deprecated 4.12.0 Use {@link CKEDITOR.tools.object#keys} instead.
 		 */
 		objectKeys: function( obj ) {
-			var keys = [];
-			for ( var i in obj )
-				keys.push( i );
-
-			return keys;
+			return CKEDITOR.tools.object.keys( obj );
 		},
 
 		/**
@@ -1128,7 +1166,7 @@
 		 *		console.log( CKEDITOR.tools.convertArrayToObject( arr, 1 ) );
 		 *		// -> { foo: 1, bar: 1 }
 		 *
-		 * @since 4.1
+		 * @since 4.1.0
 		 * @param {Array} arr The array to be converted to an object.
 		 * @param [fillWith=true] Set each property of an object to `fillWith` value.
 		 */
@@ -1186,75 +1224,16 @@
 		},
 
 		/**
-		 * Buffers `input` events (or any `input` calls)
-		 * and triggers `output` not more often than once per `minInterval`.
+		 * Creates an {@link CKEDITOR.tools.buffers.event events buffer} instance.
 		 *
-		 *		var buffer = CKEDITOR.tools.eventsBuffer( 200, function() {
-		 *			console.log( 'foo!' );
-		 *		} );
-		 *
-		 *		buffer.input();
-		 *		// 'foo!' logged immediately.
-		 *		buffer.input();
-		 *		// Nothing logged.
-		 *		buffer.input();
-		 *		// Nothing logged.
-		 *		// ... after 200ms a single 'foo!' will be logged.
-		 *
-		 * Can be easily used with events:
-		 *
-		 *		var buffer = CKEDITOR.tools.eventsBuffer( 200, function() {
-		 *			console.log( 'foo!' );
-		 *		} );
-		 *
-		 *		editor.on( 'key', buffer.input );
-		 *		// Note: There is no need to bind buffer as a context.
+		 * See the {@link CKEDITOR.tools.buffers.event#method-input input method's} documentation for example code listings.
 		 *
 		 * @since 4.2.1
-		 * @param {Number} minInterval Minimum interval between `output` calls in milliseconds.
-		 * @param {Function} output Function that will be executed as `output`.
-		 * @param {Object} [scopeObj] The object used to scope the listener call (the `this` object).
-		 * @returns {Object}
-		 * @returns {Function} return.input Buffer's input method.
-		 * @returns {Function} return.reset Resets buffered events &mdash; `output` will not be executed
-		 * until next `input` is triggered.
+		 * @inheritdoc CKEDITOR.tools.buffers.event#method-constructor
+		 * @returns {CKEDITOR.tools.buffers.event}
 		 */
-		eventsBuffer: function( minInterval, output, scopeObj ) {
-			var scheduled,
-				lastOutput = 0;
-
-			function triggerOutput() {
-				lastOutput = ( new Date() ).getTime();
-				scheduled = false;
-				if ( scopeObj ) {
-					output.call( scopeObj );
-				} else {
-					output();
-				}
-			}
-
-			return {
-				input: function() {
-					if ( scheduled )
-						return;
-
-					var diff = ( new Date() ).getTime() - lastOutput;
-
-					// If less than minInterval passed after last check,
-					// schedule next for minInterval after previous one.
-					if ( diff < minInterval )
-						scheduled = setTimeout( triggerOutput, minInterval - diff );
-					else
-						triggerOutput();
-				},
-
-				reset: function() {
-					if ( scheduled )
-						clearTimeout( scheduled );
-
-					scheduled = lastOutput = 0;
-				}
-			};
+		eventsBuffer: function( minInterval, output, contextObj ) {
+			return new this.buffers.event( minInterval, output, contextObj );
 		},
 
 		/**
@@ -1264,7 +1243,7 @@
 		 *
 		 * **Note:** This method has to be used in the `<head>` section of the document.
 		 *
-		 * @since 4.3
+		 * @since 4.3.0
 		 * @param {Object} doc Native `Document` or `DocumentFragment` in which the elements will be enabled.
 		 * @param {Boolean} [withAppend] Whether to append created elements to the `doc`.
 		 */
@@ -1286,7 +1265,7 @@
 		 * @param {Array} arr The array whose items will be checked.
 		 * @param {RegExp} regexp The regular expression.
 		 * @returns {Boolean} Returns `true` for the first occurrence of the search pattern.
-		 * @since 4.4
+		 * @since 4.4.0
 		 */
 		checkIfAnyArrayItemMatches: function( arr, regexp ) {
 			for ( var i = 0, l = arr.length; i < l; ++i ) {
@@ -1302,7 +1281,7 @@
 		 * @param obj The object whose properties will be checked.
 		 * @param {RegExp} regexp The regular expression.
 		 * @returns {Boolean} Returns `true` for the first occurrence of the search pattern.
-		 * @since 4.4
+		 * @since 4.4.0
 		 */
 		checkIfAnyObjectPropertyMatches: function( obj, regexp ) {
 			for ( var i in obj ) {
@@ -1313,24 +1292,53 @@
 		},
 
 		/**
-		 * Converts a keystroke to its string representation. Returns an object with two fields:
+		 * Converts a keystroke to its string representation. Returns exactly the same
+		 * members as {@link #keystrokeToArray}, but the returned object contains strings of
+		 * keys joined with "+" rather than an array of keystrokes.
 		 *
-		 * * `display` &ndash; A string that should be used for visible labels.
-		 * For Mac devices it uses `⌥` for `ALT`, `⇧` for `SHIFT` and `⌘` for `COMMAND`.
-		 * * `aria` &ndash; A string that should be used for ARIA descriptions.
-		 * It does not use special characters such as `⌥`, `⇧` or `⌘`.
-		 *
-		 * 		var lang = editor.lang.common.keyboard;
-		 * 		var shortcut = CKEDITOR.tools.keystrokeToString( lang, CKEDITOR.CTRL + 88 );
-		 * 		console.log( shortcut.display ); // 'CTRL + X', on Mac '⌘ + X'.
-		 * 		console.log( shortcut.aria ); // 'CTRL + X', on Mac 'COMMAND + X'.
+		 * ```javascript
+		 * var lang = editor.lang.common.keyboard;
+		 * var shortcut = CKEDITOR.tools.keystrokeToString( lang, CKEDITOR.CTRL + 88 );
+		 * console.log( shortcut.display ); // 'Ctrl + X', on Mac '⌘ + X'.
+		 * console.log( shortcut.aria ); // 'Ctrl + X', on Mac 'Cmd + X'.
+		 * ```
 		 *
 		 * @since 4.6.0
 		 * @param {Object} lang A language object with the key name translation.
 		 * @param {Number} keystroke The keystroke to convert.
-		 * @returns {{display: String, aria: String}}
+		 * @returns {Object} See {@link #keystrokeToArray}.
+		 * @returns {String} return.display
+		 * @returns {String} return.aria
 		 */
 		keystrokeToString: function( lang, keystroke ) {
+			var ret = this.keystrokeToArray( lang, keystroke );
+
+			ret.display = ret.display.join( '+' );
+			ret.aria = ret.aria.join( '+' );
+
+			return ret;
+		},
+
+		/**
+		 * Converts a keystroke to its string representation.
+		 *
+		 * ```javascript
+		 * var lang = editor.lang.common.keyboard;
+		 * var shortcut = CKEDITOR.tools.keystrokeToArray( lang, CKEDITOR.CTRL + 88 );
+		 * console.log( shortcut.display ); // [ 'CTRL', 'X' ], on Mac [ '⌘', 'X' ].
+		 * console.log( shortcut.aria ); // [ 'CTRL', 'X' ], on Mac [ 'COMMAND', 'X' ].
+		 * ```
+		 *
+		 * @since 4.8.0
+		 * @param {Object} lang A language object with the key name translation.
+		 * @param {Number} keystroke The keystroke to convert.
+		 * @returns {Object}
+		 * @returns {String[]} return.display An array of strings that should be used for visible labels.
+		 * For Mac devices it uses `⌥` for <kbd>Alt</kbd>, `⇧` for <kbd>Shift</kbd> and `⌘` for <kbd>Command</kbd>.
+		 * @returns {String[]} return.aria An array of strings that should be used for ARIA descriptions.
+		 * It does not use special characters such as `⌥`, `⇧` or `⌘`.
+		 */
+		keystrokeToArray: function( lang, keystroke ) {
 			var special = keystroke & 0xFF0000,
 				key = keystroke & 0x00FFFF,
 				isMac = CKEDITOR.env.mac,
@@ -1368,15 +1376,15 @@
 			}
 
 			return {
-				display: display.join( '+' ),
-				aria: aria.join( '+' )
+				display: display,
+				aria: aria
 			};
 		},
 
 		/**
 		 * The data URI of a transparent image. May be used e.g. in HTML as an image source or in CSS in `url()`.
 		 *
-		 * @since 4.4
+		 * @since 4.4.0
 		 * @readonly
 		 */
 		transparentImageData: 'data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==',
@@ -1460,6 +1468,173 @@
 			}
 
 			return selector;
+		},
+
+		/**
+		 * Detects which mouse button generated a given DOM event.
+		 *
+		 * @since 4.7.3
+		 * @param {CKEDITOR.dom.event/Event} evt DOM event. Since 4.11.3 a native `MouseEvent` instance can be passed.
+		 * @returns {Number|Boolean} Returns a number indicating the mouse button or `false`
+		 * if the mouse button cannot be determined.
+		 */
+		getMouseButton: function( evt ) {
+			var domEvent = evt && evt.data ? evt.data.$ : evt;
+
+			if ( !domEvent ) {
+				return false;
+			}
+
+			return CKEDITOR.tools.normalizeMouseButton( domEvent.button );
+		},
+
+		/**
+		 * Normalizes mouse buttons across browsers.
+		 *
+		 * Only Internet Explorer 8 and Internet Explorer 9 in Quirks Mode or Compatibility View
+		 * have different button mappings than other browsers:
+		 *
+		 * ```
+		 * +--------------+--------------------------+----------------+
+		 * | Mouse button | IE 8 / IE 9 CM / IE 9 QM | Other browsers |
+		 * +--------------+--------------------------+----------------+
+		 * | Left         |             1            |        0       |
+		 * +--------------+--------------------------+----------------+
+		 * | Middle       |             4            |        1       |
+		 * +--------------+--------------------------+----------------+
+		 * | Right        |             2            |        2       |
+		 * +--------------+--------------------------+----------------+
+		 * ```
+		 *
+		 * The normalization is conducted only in browsers that use non-standard button mappings,
+		 * returning the passed parameter in every other browser. Therefore values for IE < 9 are mapped
+		 * to values used in the rest of the browsers. For example, the code below will return the following results in IE8:
+		 *
+		 * ```js
+		 * console.log( CKEDITOR.tools.normalizeMouseButton( 1 ) ); // 0
+		 * console.log( CKEDITOR.tools.normalizeMouseButton( 4 ) ); // 1
+		 * console.log( CKEDITOR.tools.normalizeMouseButton( 2 ) ); // 2
+		 * ```
+		 *
+		 * In other browsers it will simply return the passed values.
+		 *
+		 * With the `reversed` parameter set to `true`, values from the rest of the browsers
+		 * are mapped to IE < 9 values in IE < 9 browsers. This means that IE8 will return the following results:
+		 *
+		 * ```js
+		 * console.log( CKEDITOR.tools.normalizeMouseButton( 0, true ) ); // 1
+		 * console.log( CKEDITOR.tools.normalizeMouseButton( 1, true ) ); // 4
+		 * console.log( CKEDITOR.tools.normalizeMouseButton( 2, true ) ); // 2
+		 * ```
+		 *
+		 * In other browsers it will simply return the passed values.
+		 *
+		 * @since 4.13.0
+		 * @param {Number} button Mouse button identifier.
+		 * @param {Boolean} [reverse=false] If set to `true`, the conversion is reversed: values
+		 * returned by other browsers are converted to IE8 values.
+		 * @returns {Number} Normalized mouse button identifier.
+		 */
+		normalizeMouseButton: function( button, reverse ) {
+			if ( !CKEDITOR.env.ie || ( CKEDITOR.env.version >= 9 && !CKEDITOR.env.ie6Compat ) ) {
+				return button;
+			}
+
+			var mappings = [
+				[ CKEDITOR.MOUSE_BUTTON_LEFT, 1 ],
+				[ CKEDITOR.MOUSE_BUTTON_MIDDLE, 4 ],
+				[ CKEDITOR.MOUSE_BUTTON_RIGHT, 2 ]
+			];
+
+			for ( var i = 0; i < mappings.length; i++ ) {
+				var mapping = mappings[ i ];
+
+				if ( mapping[ 0 ] === button && reverse ) {
+					return mapping[ 1 ];
+				}
+
+				if ( !reverse && mapping[ 1 ] === button ) {
+					return mapping[ 0 ];
+				}
+			}
+		},
+
+		/**
+		 * Converts a hex string to an array containing 1 byte in each cell. Bytes are represented as Integer numbers.
+		 *
+		 * @since 4.8.0
+		 * @param {String} hexString Contains an input string which represents bytes, e.g. `"08A11D8ADA2B"`.
+		 * @returns {Number[]} Bytes stored in a form of Integer numbers, e.g. `[ 8, 161, 29, 138, 218, 43 ]`.
+		 */
+		convertHexStringToBytes: function( hexString ) {
+			var bytesArray = [],
+				bytesArrayLength = hexString.length / 2,
+				i;
+
+			for ( i = 0; i < bytesArrayLength; i++ ) {
+				bytesArray.push( parseInt( hexString.substr( i * 2, 2 ), 16 ) );
+			}
+			return bytesArray;
+		},
+
+		/**
+		 * Converts a bytes array into a a Base64-encoded string.
+		 *
+		 * @since 4.8.0
+		 * @param {Number[]} bytesArray An array that stores 1 byte in each cell as an Integer number.
+		 * @returns {String} Base64-encoded string that represents input bytes.
+		 */
+		convertBytesToBase64: function( bytesArray ) {
+			// Bytes are `8bit` numbers, where base64 use `6bit` to store data. That's why we process 3 Bytes into 4 characters representing base64.
+			//
+			// Algorithm:
+			// 1. Take `3 * 8bit`.
+			// 2. If there is less than 3 bytes, fill empty bits with zeros.
+			// 3. Transform `3 * 8bit` into `4 * 6bit` numbers.
+			// 4. Translate those numbers to proper characters related to base64.
+			// 5. If extra zero bytes were added fill them with `=` sign.
+			//
+			// Example:
+			// 1. Bytes Array: [ 8, 161, 29, 138, 218, 43 ] -> binary: `0000 1000 1010 0001 0001 1101 1000 1010 1101 1010 0010 1011`.
+			// 2. Binary: `0000 10|00 1010| 0001 00|01 1101| 1000 10|10 1101| 1010 00|10 1011` ← `|` (pipe) shows where base64 will cut bits during transformation.
+			// 3. Now we have 6bit numbers (written in decimal values), which are translated to indexes in `base64characters` array.
+			//    Decimal: `2 10 4 29 34 45 40 43` → base64: `CKEditor`.
+			var base64characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
+				base64string = '',
+				bytesArrayLength = bytesArray.length,
+				i;
+
+			for ( i = 0; i < bytesArrayLength; i += 3 ) {
+				var array3 = bytesArray.slice( i, i + 3 ),
+					array3length = array3.length,
+					array4 = [],
+					j;
+
+				if ( array3length < 3 ) {
+					for ( j = array3length; j < 3; j++ ) {
+						array3[ j ] = 0;
+					}
+				}
+
+				// 0xFC -> 11111100 || 0x03 -> 00000011 || 0x0F -> 00001111 || 0xC0 -> 11000000 || 0x3F -> 00111111
+				array4[ 0 ] = ( array3[ 0 ] & 0xFC ) >> 2;
+				array4[ 1 ] = ( ( array3[ 0 ] & 0x03 ) << 4 ) | ( array3[ 1 ] >> 4 );
+				array4[ 2 ] = ( ( array3[ 1 ] & 0x0F ) << 2 ) | ( ( array3[ 2 ] & 0xC0 ) >> 6 );
+				array4[ 3 ] = array3[ 2 ] & 0x3F;
+
+				for ( j = 0; j < 4; j++ ) {
+					// Example: if array3length == 1, then we need to add 2 equal signs at the end of base64.
+					// array3[ 0 ] is used to calculate array4[ 0 ] and array4[ 1 ], so there will be regular values,
+					// next two ones have to be replaced with `=`, because array3[ 1 ] and array3[ 2 ] wasn't present in the input string.
+					if ( j <= array3length ) {
+						base64string += base64characters.charAt( array4[ j ] );
+					} else {
+						base64string += '=';
+					}
+				}
+
+			}
+			return base64string;
 		},
 
 		/**
@@ -1620,12 +1795,28 @@
 					tomato: '#FF6347',
 					turquoise: '#40E0D0',
 					violet: '#EE82EE',
+					windowtext: 'windowtext',
 					wheat: '#F5DEB3',
 					white: '#FFFFFF',
 					whitesmoke: '#F5F5F5',
 					yellow: '#FFFF00',
 					yellowgreen: '#9ACD32'
 				},
+
+				_borderStyle: [
+					'none',
+					'hidden',
+					'dotted',
+					'dashed',
+					'solid',
+					'double',
+					'groove',
+					'ridge',
+					'inset',
+					'outset'
+				],
+
+				_widthRegExp: /^(thin|medium|thick|[\+-]?\d+(\.\d+)?[a-z%]+|[\+-]?0+(\.0+)?|\.\d+[a-z%]+)$/,
 
 				_rgbaRegExp: /rgba?\(\s*\d+%?\s*,\s*\d+%?\s*,\s*\d+%?\s*(?:,\s*[0-9.]+\s*)?\)/gi,
 
@@ -1671,23 +1862,60 @@
 				/**
 				 * Parses the `margin` CSS property shorthand format.
 				 *
-				 *		console.log( CKEDITOR.tools.parse.margin( '3px 0 2' ) );
-				 *		// Logs: { top: "3px", right: "0", bottom: "2", left: "0" }
+				 * ```javascript
+				 *	console.log( CKEDITOR.tools.parse.margin( '3px 0 2' ) );
+				 *	// Logs: { top: "3px", right: "0", bottom: "2", left: "0" }
+				 * ```
 				 *
 				 * @param {String} value The `margin` property value.
-				 * @returns {Object}
-				 * @returns {Number} return.top Top margin.
-				 * @returns {Number} return.right Right margin.
-				 * @returns {Number} return.bottom Bottom margin.
-				 * @returns {Number} return.left Left margin.
+				 * @returns {Object.<String, String>}
+				 * @returns {String} return.top Top margin.
+				 * @returns {String} return.right Right margin.
+				 * @returns {String} return.bottom Bottom margin.
+				 * @returns {String} return.left Left margin.
 				 * @member CKEDITOR.tools.style.parse
 				 */
 				margin: function( value ) {
-					var ret = {};
+					return CKEDITOR.tools.style.parse.sideShorthand( value, function( width ) {
+						return width.match( /(?:\-?[\.\d]+(?:%|\w*)|auto|inherit|initial|unset|revert)/g ) || [ '0px' ];
+					} );
+				},
 
-					var widths = value.match( /(?:\-?[\.\d]+(?:%|\w*)|auto|inherit|initial|unset)/g ) || [ '0px' ];
+				/**
+				 * Parses the CSS property shorthand format of all `top`, `right`, `bottom`, `left` sides.
+				 *
+				 * ```javascript
+				 *	console.log( CKEDITOR.tools.style.parse.sideShorthand( 'solid dotted' ) );
+				 *	// Logs: { top: 'solid', right: 'dotted', bottom: 'solid', left: 'dotted' }
+				 *
+				 * console.log( CKEDITOR.tools.style.parse.sideShorthand( 'foo baz', split ) );
+				 * // Logs: { top: 'foo', right: 'baz', bottom: 'foo', left: 'baz' }
+				 *
+				 * console.log( CKEDITOR.tools.style.parse.sideShorthand( 'something else', split ) );
+				 * // Logs: { top: 'bar', right: 'quix', bottom: 'bar', left: 'quix' }
+				 *
+				 * function split( value ) {
+				 *  	return value.match( /(foo|baz)/g ) || [ 'bar', 'quix' ];
+				 * }
+				 * ```
+				 *
+				 * @since 4.12.0
+				 * @param {String} value The shorthand property value.
+				 * @param {Function} [split] The function used to split the CSS property shorthand.
+				 * It should return an array of side shorthand parts (see the `split` function in the code listing).
+				 * If not set, the property value will be split by spaces.
+				 * @returns {Object.<String, String>}
+				 * @returns {String} return.top Top value.
+				 * @returns {String} return.right Right value.
+				 * @returns {String} return.bottom Bottom value.
+				 * @returns {String} return.left Left value.
+				 * @member CKEDITOR.tools.style.parse
+				 */
+				sideShorthand: function( value, split ) {
+					var ret = {},
+						parts = split ? split( value ) : value.split( /\s+/ );
 
-					switch ( widths.length ) {
+					switch ( parts.length ) {
 						case 1:
 							mapStyles( [ 0, 0, 0, 0 ] );
 							break;
@@ -1703,13 +1931,23 @@
 					}
 
 					function mapStyles( map ) {
-						ret.top = widths[ map[ 0 ] ];
-						ret.right = widths[ map[ 1 ] ];
-						ret.bottom = widths[ map[ 2 ] ];
-						ret.left = widths[ map[ 3 ] ];
+						ret.top = parts[ map[ 0 ] ];
+						ret.right = parts[ map[ 1 ] ];
+						ret.bottom = parts[ map[ 2 ] ];
+						ret.left = parts[ map[ 3 ] ];
 					}
 
 					return ret;
+				},
+
+				/**
+				 * @param {String} value The `border` property value.
+				 * @returns {CKEDITOR.tools.style.border} Border style.
+				 * @deprecated 4.12.0 Use {@link CKEDITOR.tools.style.border#fromCssRule} instead.
+				 * @member CKEDITOR.tools.style.parse
+				 */
+				border: function( value ) {
+					return CKEDITOR.tools.style.border.fromCssRule( value );
 				},
 
 				/**
@@ -1787,6 +2025,41 @@
 			},
 
 			/**
+			 * Returns the first element in the array for which the given callback `fn` returns `true`.
+			 *
+			 * ```js
+			 * var array = [ 1, 2, 3, 4 ];
+			 *
+			 * CKEDITOR.tools.array.find( array, function( item ) {
+			 *     return item > 2;
+			 * } ); // returns 3.
+			 * ```
+			 *
+			 * @param {Array} array An array to be iterated over.
+			 * @param {Function} fn A function called for every `array` element until it returns `true`.
+			 * @param {Mixed} fn.value The currently iterated array value.
+			 * @param {Number} fn.index The index of the currently iterated value in an array.
+			 * @param {Array} fn.array The original array passed as an `array` variable.
+			 * @param {Mixed} [thisArg=undefined] The context object for `fn`.
+			 * @returns {*} The first matched value or `undefined` otherwise.
+			 * @member CKEDITOR.tools.array
+			 * @since 4.12.0
+			 */
+			find: function( array, fn, thisArg ) {
+				var length = array.length,
+					i = 0;
+
+				while ( i < length ) {
+					if ( fn.call( thisArg, array[ i ], i, array ) ) {
+						return array[ i ];
+					}
+					i++;
+				}
+
+				return undefined;
+			},
+
+			/**
 			 * Iterates over every element in the `array`.
 			 *
 			 * @param {Array} array An array to be iterated over.
@@ -1843,6 +2116,71 @@
 					acc = fn.call( thisArg, acc, array[ i ], i, array );
 				}
 				return acc;
+			},
+
+			/**
+			 * Tests whether all elements in an array pass the test implemented by the provided function.
+			 * Returns `true` if the provided array is empty.
+			 *
+			 * ```js
+			 * var every = CKEDITOR.tools.array.every( [ 11, 22, 33, 44 ], function( value ) {
+			 * 	return value > 10;
+			 * } );
+			 * console.log( every );
+			 * // Logs: true
+			 *```
+			 *
+			 * @param {Array} array
+			 * @param {Function} fn A function that gets called with each `array` item.
+			 * @param {Mixed} fn.value The currently iterated array value.
+			 * @param {Number} fn.index The index of the currently iterated array value.
+			 * @param {Array} fn.array The original array passed as the `array` variable.
+			 * @param {Mixed} [thisArg=undefined] A context object for `fn`.
+			 * @returns {Boolean} Information whether all elements pass the test.
+			 * @member CKEDITOR.tools.array
+			 * @since 4.8.0
+			 */
+			every: function( array, fn, thisArg ) {
+				// Empty arrays always return true.
+				if ( !array.length ) {
+					return true;
+				}
+
+				var ret = this.filter( array, fn, thisArg );
+
+				return array.length === ret.length;
+			},
+
+			/**
+			 * Tests whether any element in an array passes the test implemented by the provided function.
+			 * Returns `false` if the provided array is empty.
+			 *
+			 * ```js
+			 * var some = CKEDITOR.tools.array.some( [ 11, 2, 3, 4 ], function( value ) {
+			 * 	return value > 10;
+			 * } );
+			 * console.log( some );
+			 * // Logs: true
+			 * ```
+			 *
+			 * @param {Array} array
+			 * @param {Function} fn A function that gets called with each `array` item.
+			 * @param {Mixed} fn.value The currently iterated array value.
+			 * @param {Number} fn.index The index of the currently iterated array value.
+			 * @param {Array} fn.array The original array passed as the `array` variable.
+			 * @param {Mixed} [thisArg=undefined] A context object for `fn`.
+			 * @returns {Boolean} Information whether any element passes the test.
+			 * @member CKEDITOR.tools.array
+			 * @since 4.13.0
+			 */
+			some: function( array, fn, thisArg ) {
+				for ( var i = 0; i < array.length; i++ ) {
+					if ( fn.call( thisArg, array[ i ], i, array ) ) {
+						return true;
+					}
+				}
+
+				return false;
 			}
 		},
 
@@ -1853,6 +2191,121 @@
 		 * @member CKEDITOR.tools
 		 */
 		object: {
+
+			/**
+			 * List of ECMA3 object properties with obsolete
+			 * [DontEnum](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Properties)
+			 * attribute.
+			 *
+			 * @member CKEDITOR.tools.object
+			 * @private
+			 * @since 4.12.0
+			 */
+			DONT_ENUMS: [
+				'toString',
+				'toLocaleString',
+				'valueOf',
+				'hasOwnProperty',
+				'isPrototypeOf',
+				'propertyIsEnumerable',
+				'constructor'
+			],
+
+			/**
+			 * Returns an array of key-value pairs using enumerable string-keyed
+			 * object properties.
+			 *
+			 * ```javascript
+			 *	console.log( CKEDITOR.tools.object.entries( { foo: 1, bar: false } );
+			 *	// -> [ [ 'foo', 1 ], [ 'bar', false ] ]
+			 * ```
+			 *
+			 * @since 4.12.0
+			 * @member CKEDITOR.tools.object
+			 * @param {Object} obj
+			 * @returns {Array} Object's key-value pairs.
+			 */
+			entries: function( obj ) {
+				return CKEDITOR.tools.array.map( CKEDITOR.tools.object.keys( obj ), function( key ) {
+					return [ key, obj[ key ] ];
+				} );
+			},
+
+			/**
+			 * Returns an array of passed object enumerable values.
+			 *
+			 * ```javascript
+			 *	console.log( CKEDITOR.tools.object.values( { foo: 1, bar: false } );
+			 *	// -> [ 1, false ]
+			 * ```
+			 *
+			 * @since 4.12.0
+			 * @member CKEDITOR.tools.object
+			 * @param {Object} obj
+			 * @returns {Array} Object's values.
+			 */
+			values: function( obj ) {
+				return CKEDITOR.tools.array.map( CKEDITOR.tools.object.keys( obj ), function( key ) {
+					return obj[ key ];
+				} );
+			},
+
+			/**
+			 * Returns an array of passed object keys.
+			 *
+			 * ```javascript
+			 *	console.log( CKEDITOR.tools.object.keys( { foo: 1, bar: false } );
+			 *	// -> [ 'foo', 'bar' ]
+			 * ```
+			 *
+			 * @since 4.12.0
+			 * @member CKEDITOR.tools.object
+			 * @param {Object} obj
+			 * @returns {Array} Object's keys.
+			 */
+			keys: function( obj ) {
+				var hasOwnProperty = Object.prototype.hasOwnProperty,
+					keys = [],
+					dontEnums = CKEDITOR.tools.object.DONT_ENUMS,
+					isNotObject = !obj || typeof obj !== 'object';
+
+				// We must handle non-object types differently in IE 8,
+				// due to the fact that it uses ES5 behaviour, not ES2015+ as other browsers (#3381).
+				if ( CKEDITOR.env.ie && CKEDITOR.env.version < 9 && isNotObject ) {
+					return createNonObjectKeys( obj );
+				}
+
+				for ( var prop in obj ) {
+					keys.push( prop );
+				}
+
+				// Fix don't enum bug for IE < 9 browsers (#3120).
+				if ( CKEDITOR.env.ie && CKEDITOR.env.version < 9 ) {
+					for ( var i = 0; i < dontEnums.length; i++ ) {
+						if ( hasOwnProperty.call( obj, dontEnums[ i ] ) ) {
+							keys.push( dontEnums[ i ] );
+						}
+					}
+				}
+
+				return keys;
+
+				function createNonObjectKeys( value ) {
+					var keys = [],
+						i;
+
+					if ( typeof value !== 'string' ) {
+						return keys;
+					}
+
+					for ( i = 0; i < value.length; i++ ) {
+						keys.push( String( i ) );
+					}
+
+					return keys;
+				}
+			},
+
 			/**
 			 * Returns the first key from `obj` which has a given `value`.
 			 *
@@ -1876,6 +2329,107 @@
 				}
 
 				return null;
+			},
+
+			/**
+			 * Merges two objects and returns the new one.
+			 *
+			 *		var obj1 = {
+			 *				a: 1,
+			 *				conflicted: 10,
+			 *				obj: {
+			 *					c: 1
+			 *				}
+			 *			},
+			 *			obj2 = {
+			 *				b: 2,
+			 *				conflicted: 20,
+			 *				obj: {
+			 *					d: 2
+			 *				}
+			 *			};
+			 *
+			 *		CKEDITOR.tools.object.merge( obj1, obj2 );
+			 *
+			 * This code produces the following object:
+			 *
+			 *		{
+			 *			a: 1,
+			 *			b: 2,
+			 *			conflicted: 20,
+			 *			obj: {
+			 *				c: 1,
+			 *				d: 2
+			 *			}
+			 *		}
+			 *
+			 * @param {Object} obj1 The source object which will be used to create a new base object.
+			 * @param {Object} obj2 An object whose properties will be merged into the base one.
+			 * @returns {Object} The merged object.
+			 * @member CKEDITOR.tools.object
+			 */
+			merge: function( obj1, obj2 ) {
+				var tools = CKEDITOR.tools,
+					copy1 = tools.clone( obj1 ),
+					copy2 = tools.clone( obj2 );
+
+				tools.array.forEach( tools.object.keys( copy2 ), function( key ) {
+					if ( typeof copy2[ key ] === 'object' && typeof copy1[ key ] === 'object' ) {
+						copy1[ key ] = tools.object.merge( copy1[ key ], copy2[ key ] );
+					} else {
+						copy1[ key ] = copy2[ key ];
+					}
+				} );
+
+				return copy1;
+			}
+		},
+
+		/**
+		 * Converts relative positions inside a DOM rectangle into absolute ones using the given window as context.
+		 * "Absolute" here means in relation to the upper-left corner of the topmost viewport.
+		 *
+		 * @since 4.10.0
+		 * @param { CKEDITOR.dom.window } window The window containing an element for which the rectangle is passed.
+		 * @param { CKEDITOR.dom.rect } rect A rectangle with a relative position.
+		 * @returns { CKEDITOR.dom.rect } A rectangle with an absolute position.
+		 */
+		getAbsoluteRectPosition: function( window, rect ) {
+			var newRect = CKEDITOR.tools.copy( rect );
+			appendParentFramePosition( window.getFrame() );
+
+			var winGlobalScroll = CKEDITOR.document.getWindow().getScrollPosition();
+
+			newRect.top += winGlobalScroll.y;
+			newRect.left += winGlobalScroll.x;
+
+			// If there is no x or y, e.g. Microsoft browsers, don't return them, otherwise we will have rect.x = NaN.
+			if ( ( 'x' in newRect ) && ( 'y' in newRect ) ) {
+				newRect.y += winGlobalScroll.y;
+				newRect.x += winGlobalScroll.x;
+			}
+
+			newRect.right = newRect.left + newRect.width;
+			newRect.bottom = newRect.top + newRect.height;
+
+			return newRect;
+
+			function appendParentFramePosition( frame ) {
+				if ( !frame ) {
+					return;
+				}
+
+				var frameRect = frame.getClientRect();
+
+				newRect.top += frameRect.top;
+				newRect.left += frameRect.left;
+
+				if ( ( 'x' in newRect ) && ( 'y' in newRect ) ) {
+					newRect.x += frameRect.x;
+					newRect.y += frameRect.y;
+				}
+
+				appendParentFramePosition( frame.getWindow().getFrame() );
 			}
 		}
 	};
@@ -1907,6 +2461,469 @@
 	}
 
 	/**
+	 * Buffers `input` events (or any `input` calls) and triggers `output` not more often than once per `minInterval`.
+	 *
+	 * @since 4.11.0
+	 * @class CKEDITOR.tools.buffers.event
+	 * @member CKEDITOR.tools.buffers
+	 * @constructor Creates a new instance of the buffer.
+	 * @param {Number} minInterval The minimum interval between `output` calls in milliseconds.
+	 * @param {Function} output The function that will be executed as `output`.
+	 * @param {Object} [contextObj] The object used as context to the listener call (the `this` object).
+	 */
+	function EventsBuffer( minInterval, output, context ) {
+		/**
+		 * The minimal interval (in milliseconds) between the calls.
+		 *
+		 * @private
+		 * @readonly
+		 * @property {Number}
+		 */
+		this._minInterval = minInterval;
+
+		/**
+		 * The variable to be used as a context for the output calls.
+		 *
+		 * @private
+		 * @readonly
+		 * @property {Mixed}
+		 */
+		this._context = context;
+
+		/**
+		 * The ID of a delayed function call that will be called after the current interval frame.
+		 *
+		 * @private
+		 */
+		this._scheduledTimer = 0;
+
+		this._lastOutput = 0;
+
+		this._output = CKEDITOR.tools.bind( output, context || {} );
+
+		var that = this;
+
+		/**
+		 * Acts as a proxy to the `output` function given in the consturctor, providing function throttling.
+		 *
+		 * Guarantees that the `output` function does not get called more often than
+		 * indicated by the {@link #_minInterval}.
+		 *
+		 * The first `input` call is always executed asynchronously which means that the `output`
+		 * call will be executed immediately.
+		 *
+		 * ```javascript
+		 *	var buffer = new CKEDITOR.tools.buffers.event( 200, function() {
+		 *		console.log( 'foo!' );
+		 *	} );
+		 *
+		 *	buffer.input();
+		 *	// 'foo!' logged immediately.
+		 *	buffer.input();
+		 *	// Nothing logged.
+		 *	buffer.input();
+		 *	// Nothing logged.
+		 *	// … after 200ms a single 'foo!' will be logged.
+		 * ```
+		 *
+		 * Can be easily used with events:
+		 *
+		 * ```javascript
+		 *	var buffer = new CKEDITOR.tools.buffers.event( 200, function() {
+		 *		console.log( 'foo!' );
+		 *	} );
+		 *
+		 *	editor.on( 'key', buffer.input );
+		 *	// Note: There is no need to bind the buffer as a context.
+		 * ```
+		 *
+		 * @method
+		 * @param {Mixed[]} [args]
+		 */
+		this.input = function() {
+			// NOTE: This function needs to be created for each instance,
+			// as there's a common practice to pass `buffer.input`
+			// directly to a listener, and overwrite context object.
+			if ( that._scheduledTimer && that._reschedule() === false ) {
+				return;
+			}
+
+			var diff = ( new Date() ).getTime() - that._lastOutput;
+
+			// If less than minInterval passed after last check,
+			// schedule next for minInterval after previous one.
+			if ( diff < that._minInterval ) {
+				that._scheduledTimer = setTimeout( triggerOutput, that._minInterval - diff );
+			} else {
+				triggerOutput();
+			}
+
+			function triggerOutput() {
+				that._lastOutput = ( new Date() ).getTime();
+				that._scheduledTimer = 0;
+
+				that._call();
+			}
+		};
+	}
+
+	EventsBuffer.prototype = {
+		/**
+		 * Resets the buffer state and cancels any pending calls.
+		 */
+		reset: function() {
+			this._lastOutput = 0;
+			this._clearTimer();
+		},
+		/**
+		 * Called when the function call should be rescheduled.
+		 *
+		 * @private
+		 * @returns {Boolean/undefined} If it returns `false`, the the parent call will be stopped.
+		 */
+		_reschedule: function() {
+			return false;
+		},
+		/**
+		 * Performs an actual call.
+		 *
+		 * @private
+		 */
+		_call: function() {
+			this._output();
+		},
+		/**
+		 * Cancels the deferred timeout.
+		 *
+		 * @private
+		 */
+		_clearTimer: function() {
+			if ( this._scheduledTimer ) {
+				clearTimeout( this._scheduledTimer );
+			}
+
+			this._scheduledTimer = 0;
+		}
+	};
+
+	/**
+	 * Throttles `input` events (or any `input` calls) and triggers `output` not more often than once per `minInterval`.
+	 *
+	 * Unlike {@link CKEDITOR.tools.buffers.event} this class allows passing custom parameters into the {@link #input}
+	 * function. For more information see the
+	 * [Throttling function issue](https://github.com/ckeditor/ckeditor4/issues/1993).
+	 *
+	 * @since 4.11.0
+	 * @class CKEDITOR.tools.buffers.throttle
+	 * @extends CKEDITOR.tools.buffers.event
+	 */
+	function ThrottleBuffer( minInterval, output, context ) {
+		EventsBuffer.call( this, minInterval, output, context );
+
+		/**
+		 * Arguments for the last scheduled call.
+		 *
+		 * @property {Mixed[]}
+		 * @private
+		 */
+		this._args = [];
+
+		var that = this;
+
+		/**
+		 * Acts as a proxy to the `output` function given in the constructor, providing function throttling.
+		 *
+		 * Guarantees that the `output` function does not get called more often than
+		 * indicated by the {@link #_minInterval}.
+		 *
+		 * If multiple calls occur within a single `minInterval` time,
+		 * the most recent `input` call with its arguments will be used to schedule
+		 * the next `output` call, and the previous throttled calls will be discarded.
+		 *
+		 * The first `input` call is always executed asynchronously which means that the `output`
+		 * call will be executed immediately.
+		 *
+		 * ```javascript
+		 *	var buffer = new CKEDITOR.tools.buffers.throttle( 200, function( message ) {
+		 *		console.log( message );
+		 *	} );
+		 *
+		 *	buffer.input( 'foo!' );
+		 *	// 'foo!' logged immediately.
+		 *	buffer.input( 'bar!' );
+		 *	// Nothing logged.
+		 *	buffer.input( 'baz!' );
+		 *	// Nothing logged.
+		 *	// … after 200ms a single 'baz!' will be logged.
+		 * ```
+		 *
+		 * It can be easily used with events:
+		 *
+		 * ```javascript
+		 *	var buffer = new CKEDITOR.tools.buffers.throttle( 200, function( evt ) {
+		 *		console.log( evt.data.text );
+		 *	} );
+		 *
+		 *	editor.on( 'key', buffer.input );
+		 *	// Note: There is no need to bind the buffer as a context.
+		 * ```
+		 * @method
+		 * @param {Mixed[]} [args]
+		 */
+		this.input = CKEDITOR.tools.override( this.input, function( originalInput ) {
+			return function() {
+				that._args = Array.prototype.slice.call( arguments );
+
+				originalInput.call( this );
+			};
+		} );
+	}
+
+	ThrottleBuffer.prototype = CKEDITOR.tools.prototypedCopy( EventsBuffer.prototype );
+
+	ThrottleBuffer.prototype._reschedule = function() {
+		if ( this._scheduledTimer ) {
+			this._clearTimer();
+		}
+	};
+
+	ThrottleBuffer.prototype._call = function() {
+		this._output.apply( this._context, this._args );
+	};
+
+	CKEDITOR.tools.buffers = {};
+	CKEDITOR.tools.buffers.event = EventsBuffer;
+	CKEDITOR.tools.buffers.throttle = ThrottleBuffer;
+
+	/**
+	 * Represents the CSS border style.
+	 *
+	 * @since 4.12.0
+	 * @class CKEDITOR.tools.style.border
+	 */
+	CKEDITOR.tools.style.border = CKEDITOR.tools.createClass( {
+
+		/**
+		 * Creates a new instance of the border style.
+		 * @constructor
+		 * @param {Object} [props] Style-related properties.
+		 * @param {String} [props.color] Border color.
+		 * @param {String} [props.style] Border style.
+		 * @param {String} [props.width] Border width.
+		 */
+		$: function( props ) {
+			props = props || {};
+
+			/**
+			 * Represents the value of the CSS `width` property.
+			 *
+			 * @property {String} [width]
+			 */
+			this.width = props.width;
+
+			/**
+			 * Represents the value of the CSS `style` property.
+			 *
+			 * @property {String} [style]
+			 */
+			this.style = props.style;
+
+			/**
+			 * Represents the value of the CSS `color` property.
+			 *
+			 * @property {String} [color]
+			 */
+			this.color = props.color;
+
+			this._.normalize();
+		},
+
+		_: {
+			normalizeMap: {
+				color: [
+					[ /windowtext/g, 'black' ]
+				]
+			},
+
+			normalize: function() {
+				for ( var propName in this._.normalizeMap ) {
+					var val = this[ propName ];
+
+					if ( val ) {
+						this[propName] = CKEDITOR.tools.array.reduce( this._.normalizeMap[ propName ], function( cur, rule ) {
+							return cur.replace( rule[ 0 ], rule[ 1 ] );
+						}, val );
+					}
+				}
+			}
+		},
+
+		proto: {
+			toString: function() {
+				return CKEDITOR.tools.array.filter( [ this.width, this.style, this.color ], function( item ) {
+					return !!item;
+				} ).join( ' ' );
+			}
+		},
+
+		statics: {
+			/**
+			 * Parses the CSS `border` property shorthand format.
+			 * This CSS property [does not support inheritance](https://www.w3.org/TR/css3-background/#the-border-shorthands).
+			 *
+			 * ```javascript
+			 *	console.log( CKEDITOR.tools.style.border.fromCssRule( '3px solid #ffeedd' ) );
+			 *	// Logs: Border { width: '3px', style: 'solid', color: '#ffeedd' }
+			 * ```
+			 *
+			 * @static
+			 * @param {String} value The `border` property value.
+			 * @returns {CKEDITOR.tools.style.border} Border style.
+			 * @member CKEDITOR.tools.style.border
+			 */
+			fromCssRule: function( value ) {
+				var props = {},
+					input = value.split( /\s+/g ),
+					parseColor = CKEDITOR.tools.style.parse._findColor( value );
+
+				if ( parseColor.length ) {
+					props.color = parseColor[ 0 ];
+				}
+
+				CKEDITOR.tools.array.forEach( input, function( val ) {
+					if ( !props.style ) {
+						if ( CKEDITOR.tools.indexOf( CKEDITOR.tools.style.parse._borderStyle, val ) !== -1 ) {
+							props.style = val;
+							return;
+						}
+					}
+
+					if ( !props.width ) {
+						if ( CKEDITOR.tools.style.parse._widthRegExp.test( val ) ) {
+							props.width = val;
+							return;
+						}
+					}
+
+				} );
+
+				return new CKEDITOR.tools.style.border( props );
+			},
+
+			/**
+			 * Parses the `style`, `width` and `color` shorthand styles into
+			 * border side shorthand styles.
+			 *
+			 * ```javascript
+			 * var styles = {
+			 *		'border-color': 'red blue',
+			 *		'border-style': 'solid dotted solid',
+			 *		'border-width': '1px 2px 3px 4px'
+			 * };
+			 *
+			 * console.log( CKEDITOR.tools.style.border.splitCssValues( styles ) );
+			 * // Logs:
+			 * // {
+			 * // 	'border-top': Border { width: '1px', style: 'solid', color: 'red' },
+			 * // 	'border-right': Border { width: '2px', style: 'dotted', color: 'blue'},
+			 * // 	'border-bottom': Border { width: '3px', style: 'solid', color: 'red' },
+			 * // 	'border-left': Border { width: '4px', style: 'dotted', color: 'blue' }
+			 * // }
+			 *
+			 * // Use fallback to fill up missing style:
+			 * var partialStyles = {
+			 * 		'border-style': 'solid',
+			 * 		'border-width': '2px'
+			 * 	},
+			 * 	fallback = { color: 'red' };
+			 *
+			 * console.log( CKEDITOR.tools.style.border.splitCssValues( partialStyles, fallback ) );
+			 * // Logs:
+			 * // {
+			 * // 	'border-top': Border { width: '2px', style: 'solid', color: 'red' },
+			 * // 	'border-right': Border { width: '2px', style: 'solid', color: 'red' },
+			 * // 	'border-bottom': Border { width: '2px', style: 'solid', color: 'red' },
+			 * // 	'border-left': Border { width: '2px', style: 'solid', color: 'red' }
+			 * // }
+			 * ```
+			 *
+			 * Border side shorthands with greater style property specificity are preferred
+			 * over more general shorthands.
+			 *
+			 * ```
+			 * var styles = {
+			 * 		'border-style': 'solid',
+			 * 		'border-width': '2px',
+			 * 		'border-color': 'red',
+			 * 		'border-left-color': 'blue',
+			 * 		'border-right-width': '10px',
+			 * 		'border-top-style': 'dotted',
+			 * 		'border-top-color': 'green'
+			 * };
+			 *
+			 * console.log( CKEDITOR.tools.style.border.splitCssValues( styles ) );
+			 * // Logs:
+			 * // {
+			 * // 	'border-top': Border { width: '2px', style: 'dotted', color: 'green' },
+			 * // 	'border-right': Border { width: '10px', style: 'solid', color: 'red'},
+			 * // 	'border-bottom': Border { width: '2px', style: 'solid', color: 'red' },
+			 * // 	'border-left': Border { width: '2px', style: 'solid', color: 'blue' }
+			 * // }
+			 * ```
+			 *
+			 * @static
+			 * @param {Object} styles Border styles shorthand object.
+			 * @param {Object} [styles.border-color] Border color shorthand.
+			 * @param {Object} [styles.border-style] Border style shorthand.
+			 * @param {Object} [styles.border-width] Border width shorthand.
+			 * @param {Object} [fallback] Fallback object used to fill up missing style.
+			 * @param {Object} [fallback.color] Color CSS style used in absence of the `border-color` style.
+			 * @param {Object} [fallback.style] Style CSS style used in absence of the `border-style` style.
+			 * @param {Object} [fallback.width] Width CSS style used in absence of the `border-width` style.
+			 * @returns {Object.<String, CKEDITOR.tools.style.border>}
+			 * @returns {CKEDITOR.tools.style.border} return.border-top Border top style.
+			 * @returns {CKEDITOR.tools.style.border} return.border-right Border right style.
+			 * @returns {CKEDITOR.tools.style.border} return.border-bottom Border bottom style.
+			 * @returns {CKEDITOR.tools.style.border} return.border-left Border left style.
+			 * @member CKEDITOR.tools.style.border
+			 */
+			splitCssValues: function( styles, fallback ) {
+				var types = [ 'width', 'style', 'color' ],
+					sides = [ 'top', 'right', 'bottom', 'left' ];
+
+				fallback = fallback || {};
+
+				var stylesMap = CKEDITOR.tools.array.reduce( types, function( cur, type ) {
+					var style = styles[ 'border-' + type ] || fallback[ type ];
+
+					cur[ type ] = style ? CKEDITOR.tools.style.parse.sideShorthand( style ) : null;
+
+					return cur;
+				}, {} );
+
+				return CKEDITOR.tools.array.reduce( sides, function( cur, side ) {
+					var map = {};
+
+					for ( var style in stylesMap ) {
+						// Prefer property with greater specificity e.g
+						// `border-top-color` over `border-color`.
+						var sideProperty = styles[ 'border-' + side + '-' + style ];
+						if ( sideProperty ) {
+							map[ style ] = sideProperty;
+						} else {
+							map[ style ] = stylesMap[ style ] && stylesMap[ style ][ side ];
+						}
+					}
+
+					cur[ 'border-' + side ] = new CKEDITOR.tools.style.border( map );
+
+					return cur;
+				}, {} );
+			}
+		}
+	} );
+
+	/**
 	 * @member CKEDITOR.tools.array
 	 * @method indexOf
 	 * @inheritdoc CKEDITOR.tools#indexOf
@@ -1920,7 +2937,35 @@
 	 */
 	CKEDITOR.tools.array.isArray = CKEDITOR.tools.isArray;
 
+	/**
+	 * Left mouse button.
+	 *
+	 * @since 4.7.3
+	 * @readonly
+	 * @property {Number} [=0]
+	 * @member CKEDITOR
+	 */
+	CKEDITOR.MOUSE_BUTTON_LEFT = 0;
 
+	/**
+	 * Middle mouse button.
+	 *
+	 * @since 4.7.3
+	 * @readonly
+	 * @property {Number} [=1]
+	 * @member CKEDITOR
+	 */
+	CKEDITOR.MOUSE_BUTTON_MIDDLE = 1;
+
+	/**
+	 * Right mouse button.
+	 *
+	 * @since 4.7.3
+	 * @readonly
+	 * @property {Number} [=2]
+	 * @member CKEDITOR
+	 */
+	CKEDITOR.MOUSE_BUTTON_RIGHT = 2;
 
 	/**
 	 * The namespace containing functions to work on CSS properties.

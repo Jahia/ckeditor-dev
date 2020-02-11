@@ -1,4 +1,4 @@
-/* bender-tags: editor,unit,clipboard */
+/* bender-tags: editor,clipboard */
 /* bender-ckeditor-plugins: link,clipboard,pastetext,pastefromword */
 /* bender-include: _helpers/pasting.js */
 /* global createFixtures, getDefaultNotification, assertPasteCommand, assertPasteNotification, testResetScenario */
@@ -178,7 +178,7 @@
 			}
 		};
 
-	tests = bender.tools.createTestsForEditors( CKEDITOR.tools.objectKeys( bender.editors ), tests );
+	tests = bender.tools.createTestsForEditors( CKEDITOR.tools.object.keys( bender.editors ), tests );
 
 	bender.test( tests );
 } )();

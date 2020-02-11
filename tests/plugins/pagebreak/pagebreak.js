@@ -1,4 +1,4 @@
-/* bender-tags: editor,unit */
+/* bender-tags: editor */
 /* bender-ckeditor-plugins: pagebreak,toolbar,clipboard */
 
 ( function() {
@@ -7,7 +7,8 @@
 	bender.editor = {
 		creator: 'inline', // Speeeeeed...
 		config: {
-			pasteFilter: null
+			pasteFilter: null,
+			language: 'en'
 		}
 	};
 
@@ -30,6 +31,22 @@
 			} );
 		},
 
+		// (#2598)
+		'test createElement': function() {
+			var expected = '<div ' +
+					'aria-label="Page Break" ' +
+					'class="cke_pagebreak" ' +
+					'contenteditable="false" ' +
+					'data-cke-display-name="pagebreak" ' +
+					'data-cke-pagebreak="1" ' +
+					'style="page-break-after: always" ' +
+					'title="Page Break">' +
+				'</div>',
+				element = CKEDITOR.plugins.pagebreak.createElement( this.editor );
+
+			assert.beautified.html( expected, element.getOuterHtml(), { fixStyles: true } );
+		},
+
 		'test paste': function() {
 			var bot = this.editorBot,
 				editor = this.editor,
@@ -44,7 +61,7 @@
 
 				var element = elements.getItem( 0 );
 
-				// http://dev.ckeditor.com/ticket/14605, #tp2314
+				// https://dev.ckeditor.com/ticket/14605, #tp2314
 				if ( CKEDITOR.env.webkit ) {
 					assert.areSame( 'page', element.getStyle( 'break-after' ), prefix + 'Pagebreak holds page-break-after style' );
 				} else {
@@ -73,7 +90,7 @@
 			wait();
 		},
 
-		// http://dev.ckeditor.com/ticket/12411
+		// https://dev.ckeditor.com/ticket/12411
 		'test span as a direct child no break': function() {
 			bender.editorBot.create( {
 				name: 'editor2',

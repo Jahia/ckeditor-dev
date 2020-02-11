@@ -3,7 +3,7 @@
 /* bender-ckeditor-plugins: pastefromword,ajax,basicstyles,bidi,font,link,toolbar,colorbutton,image */
 /* bender-ckeditor-plugins: list,liststyle,sourcearea,format,justify,table,tableresize,tabletools,indent,indentblock,div,dialog */
 /* jshint ignore:end */
-/* bender-include: _lib/q.js,_helpers/promisePasteEvent.js,_helpers/assertWordFilter.js,_helpers/createTestCase.js */
+/* bender-include: _helpers/promisePasteEvent.js,_helpers/assertWordFilter.js,_helpers/createTestCase.js */
 /* bender-include: _helpers/createTestSuite.js,_helpers/pfwTools.js */
 /* global createTestSuite,pfwTools */
 
@@ -38,8 +38,9 @@
 		testData: {
 			_should: {
 				ignore: {
-					'test Table_text_attributes/Mixed excel2013 ie8': !( CKEDITOR.env.ie && CKEDITOR.env.version == 8 ),
-					'test Table_text_attributes/Cell_text excel2013 ie8': !( CKEDITOR.env.ie && CKEDITOR.env.version == 8 ),
+					// Ignore two IE8 tests, until #831 is not resolved.
+					'test Table_text_attributes/Mixed excel2013 ie8': true,
+					'test Table_text_attributes/Cell_text excel2013 ie8': true,
 					'test Table_text_attributes/Mixed excel2016 ie11': !( CKEDITOR.env.ie && CKEDITOR.env.version == 11 ),
 					'test Table_text_attributes/Cell_text excel2016 ie11': !( CKEDITOR.env.ie && CKEDITOR.env.version == 11 ),
 
@@ -54,7 +55,7 @@
 				}
 			}
 		},
-		ignoreAll: CKEDITOR.env.edge,
+		ignoreAll: CKEDITOR.env.edge || bender.tools.env.mobile,
 		customFilters: [ pfwTools.filters.style ]
 	} ) );
 } )();

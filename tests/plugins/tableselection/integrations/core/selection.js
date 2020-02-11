@@ -1,7 +1,6 @@
 /* bender-tags: tableselection, selection */
 /* bender-ckeditor-plugins: basicstyles,undo,tableselection,sourcearea,toolbar */
 /* bender-include: ../../_helpers/tableselection.js */
-/* global tableSelectionHelpers */
 
 ( function() {
 	'use strict';
@@ -41,7 +40,7 @@
 		return start.getAscendant( tableElements, true );
 	}
 
-	function getRangesForCells( editor, table, indexes ) {
+	function getRangesForCells( editor, table, indexes, skipClass ) {
 		var ranges = [],
 			range,
 			cell,
@@ -51,7 +50,9 @@
 			cell = table.find( 'td' ).getItem( indexes[ i ] );
 			range = editor.createRange();
 
-			cell.addClass( selectedClass );
+			if ( !skipClass ) {
+				cell.addClass( selectedClass );
+			}
 
 			range.setStartBefore( cell );
 			range.setEndAfter( cell );
@@ -91,6 +92,9 @@
 	}
 
 	var tests =  {
+		setUp: function() {
+			bender.tools.ignoreUnsupportedEnvironment( 'tableselection' );
+		},
 		tearDown: function() {
 			if ( this._oldVerbosity !== undefined ) {
 				// Some tests might override verbosity, restore it if requested.
@@ -99,7 +103,7 @@
 			}
 		},
 
-		'Check if selection is in table': function() {
+		'test check if selection is in table': function() {
 			var editor = this.editor,
 				editable = editor.editable(),
 				selection = editor.getSelection(),
@@ -194,12 +198,18 @@
 			assert.isTrue( selection.isInTable(), 'Only cell in the table.' );
 		},
 
-		'Make fake table selection': function() {
+		'test make fake table selection': function() {
+			// Ignores for Edge (#1944).
+			if ( CKEDITOR.env.edge ) {
+				assert.ignore();
+			}
+
 			var editor = this.editor,
 				selection = editor.getSelection(),
 				initialRev = selection.rev,
 				realSelection,
-				ranges;
+				ranges,
+				i;
 
 			bender.tools.setHtmlWithSelection( editor, CKEDITOR.document.getById( 'simpleTable' ).getHtml() );
 
@@ -218,6 +228,10 @@
 			assert.isTrue( _getTableElementFromRange( ranges[ 0 ] ).equals( selection.getSelectedElement() ),
 				'Selected element equals to the first selected cell' );
 
+			for ( i = 0; i < ranges.length; i++ ) {
+				assert.isFalse( ranges[ i ].collapsed, 'Range #' + i + ' is not collapsed' );
+			}
+
 			realSelection = editor.getSelection( 1 );
 
 			assert.areSame( 1, realSelection.getRanges().length, 'Real selection has only one range' );
@@ -230,7 +244,12 @@
 			clearTableSelection( editor.editable() );
 		},
 
-		'Reset fake-selection': function() {
+		'test reset fake-selection': function() {
+			// Ignores for Edge (#1944).
+			if ( CKEDITOR.env.edge ) {
+				assert.ignore();
+			}
+
 			var editor = this.editor,
 				selection = editor.getSelection(),
 				ranges;
@@ -256,7 +275,7 @@
 			clearTableSelection( editor.editable() );
 		},
 
-		'Fire selectionchange event': function() {
+		'test fire selectionchange event': function() {
 			var editor = this.editor,
 				selectionChange = 0,
 				selection = editor.getSelection(),
@@ -284,7 +303,7 @@
 			}, 50 );
 		},
 
-		'isInTable allowPartially test (collapsed range)': function() {
+		'test isInTable allowPartially test (collapsed range)': function() {
 			var editor = this.editor;
 
 			bender.tools.setHtmlWithSelection( editor, CKEDITOR.document.getById( 'allowPartiallyIssue' ).getHtml() );
@@ -294,7 +313,46 @@
 			clearTableSelection( editor.editable() );
 		},
 
-		'Change selection': function() {
+		// (#2945)
+		'test selecting ignored element': function() {
+			var editor = this.editor,
+				selection = editor.getSelection();
+
+			bender.tools.setHtmlWithSelection( editor, CKEDITOR.document.getById( 'simpleTable' ).getHtml() );
+
+			var table = editor.editable().findOne( 'table' );
+
+			table.data( 'cke-tableselection-ignored', 1 );
+
+			selection.selectElement( table.findOne( 'td' ) );
+
+			assert.areEqual( 0, selection.isFake, 'Selection is not fake' );
+			assert.isTrue( selection.isInTable(), 'isInTable is true' );
+			assert.isNotNull( selection.getNative(), 'getNative() should be available' );
+			assert.isNotNull( selection.getSelectedText(), 'getSelectedText() should not be null' );
+		},
+
+		// (#2945)
+		'test selecting ignored element (ranges)': function() {
+			var editor = this.editor,
+				selection = editor.getSelection();
+
+			bender.tools.setHtmlWithSelection( editor, CKEDITOR.document.getById( 'simpleTable' ).getHtml() );
+
+			var table = editor.editable().findOne( 'table' ),
+				ranges = getRangesForCells( editor, table, [ 0, 1 ], true );
+
+			table.data( 'cke-tableselection-ignored', 1 );
+
+			selection.selectRanges( ranges );
+
+			assert.areEqual( 0, selection.isFake, 'Selection is not fake' );
+			assert.isTrue( selection.isInTable(), 'isInTable is true' );
+			assert.isNotNull( selection.getNative(), 'getNative() should be available' );
+			assert.isNotNull( selection.getSelectedText(), 'getSelectedText() should not be null' );
+		},
+
+		'test change selection': function() {
 			var editor = this.editor,
 				ranges;
 
@@ -331,7 +389,7 @@
 			}, 50 );
 		},
 
-		'Fake-selection bookmark': function() {
+		'test fake-selection bookmark': function() {
 			var editor = this.editor,
 				selection = editor.getSelection(),
 				ranges,
@@ -365,7 +423,7 @@
 			clearTableSelection( editor.editable() );
 		},
 
-		'Fake-selection bookmark (serializable)': function() {
+		'test fake-selection bookmark (serializable)': function() {
 			var editor = this.editor,
 				selection = editor.getSelection(),
 				ranges,
@@ -402,7 +460,7 @@
 			clearTableSelection( editor.editable() );
 		},
 
-		'Fake-selection bookmark 2': function() {
+		'test fake-selection bookmark 2': function() {
 			var editor = this.editor,
 				selection = editor.getSelection(),
 				ranges,
@@ -433,7 +491,7 @@
 			clearTableSelection( editor.editable() );
 		},
 
-		'Fake-selection bookmark 2 (normalized)': function() {
+		'test fake-selection bookmark 2 (normalized)': function() {
 			var editor = this.editor,
 				selection = editor.getSelection(),
 				ranges,
@@ -467,7 +525,7 @@
 			clearTableSelection( editor.editable() );
 		},
 
-		'Get text from fake table selection': function() {
+		'test get text from fake table selection': function() {
 			var editor = this.editor,
 				selection = editor.getSelection(),
 				ranges;
@@ -484,7 +542,7 @@
 			clearTableSelection( editor.editable() );
 		},
 
-		'Table fake selection does not create undo snapshots': function() {
+		'test table fake selection does not create undo snapshots': function() {
 			var editor = this.editor,
 				selection = editor.getSelection(),
 				ranges;
@@ -508,7 +566,7 @@
 			clearTableSelection( editor.editable() );
 		},
 
-		'Table fake selection undo': function() {
+		'test table fake selection undo': function() {
 			var editor = this.editor,
 				selection = editor.getSelection(),
 				ranges;
@@ -543,7 +601,7 @@
 			clearTableSelection( editor.editable() );
 		},
 
-		'Navigating left inside table fake selection': function() {
+		'test navigating left inside table fake selection': function() {
 			var editor = this.editor,
 				selection = editor.getSelection(),
 				prevented = false,
@@ -578,7 +636,7 @@
 			clearTableSelection( editor.editable() );
 		},
 
-		'Navigating up inside table fake selection': function() {
+		'test navigating up inside table fake selection': function() {
 			var editor = this.editor,
 				selection = editor.getSelection(),
 				prevented = false,
@@ -613,7 +671,7 @@
 			clearTableSelection( editor.editable() );
 		},
 
-		'Navigating right inside table fake selection': function() {
+		'test navigating right inside table fake selection': function() {
 			var editor = this.editor,
 				selection = editor.getSelection(),
 				prevented = false,
@@ -648,7 +706,7 @@
 			clearTableSelection( editor.editable() );
 		},
 
-		'Navigating down inside table fake selection': function() {
+		'test navigating down inside table fake selection': function() {
 			var editor = this.editor,
 				selection = editor.getSelection(),
 				prevented = false,
@@ -683,7 +741,7 @@
 			clearTableSelection( editor.editable() );
 		},
 
-		'Overwriting content in table fake selection via keypress': function() {
+		'test overwriting content in table fake selection via keypress': function() {
 			var editor = this.editor,
 				selection = editor.getSelection(),
 				prevented = false,
@@ -712,7 +770,7 @@
 			clearTableSelection( editor.editable() );
 		},
 
-		'Not overwriting content in table fake selection via keypress when no character is produced': function() {
+		'test not overwriting content in table fake selection via keypress when no character is produced': function() {
 			var editor = this.editor,
 				selection = editor.getSelection(),
 				prevented = false,
@@ -746,7 +804,7 @@
 			clearTableSelection( editor.editable() );
 		},
 
-		'Not overwriting content in table fake selection via keypress when Ctrl is pressed': function() {
+		'test not overwriting content in table fake selection via keypress when Ctrl is pressed': function() {
 			var editor = this.editor,
 				selection = editor.getSelection(),
 				prevented = false,
@@ -780,7 +838,7 @@
 			clearTableSelection( editor.editable() );
 		},
 
-		'Simulating opening context menu in the same table': function() {
+		'test simulating opening context menu in the same table': function() {
 			var editor = this.editor,
 				selection = editor.getSelection(),
 				realSelection,
@@ -822,7 +880,7 @@
 			wait();
 		},
 
-		'Simulating opening context menu in the nested table': function() {
+		'test simulating opening context menu in the nested table': function() {
 			var editor = this.editor,
 				selection = editor.getSelection(),
 				realSelection,
@@ -865,7 +923,7 @@
 			wait();
 		},
 
-		'Simulating opening context menu in the different table': function() {
+		'test simulating opening context menu in the different table': function() {
 			var editor = this.editor,
 				selection = editor.getSelection(),
 				realSelection,
@@ -905,7 +963,7 @@
 			wait();
 		},
 
-		'Simulating opening context menu in the paragraph': function() {
+		'test simulating opening context menu in the paragraph': function() {
 			var editor = this.editor,
 				selection = editor.getSelection(),
 				realSelection,
@@ -943,7 +1001,7 @@
 			wait();
 		},
 
-		'Simulating opening context menu in the same table (WebKit, macOS)': function() {
+		'test simulating opening context menu in the same table (WebKit, macOS)': function() {
 			// Webkits on macOS contrary to other browsers will collapse the selection and anchor it in a text node.
 			if ( !CKEDITOR.env.webkit ) {
 				assert.ignore();
@@ -995,7 +1053,7 @@
 			wait();
 		},
 
-		'Simulating opening context menu in the nested table (WebKit, macOS)': function() {
+		'test simulating opening context menu in the nested table (WebKit, macOS)': function() {
 			// Webkits on macOS contrary to other browsers will collapse the selection and anchor it in a text node.
 			if ( !CKEDITOR.env.webkit ) {
 				assert.ignore();
@@ -1046,7 +1104,7 @@
 			wait();
 		},
 
-		'Simulating opening context menu in the different table (WebKit, macOS)': function() {
+		'test simulating opening context menu in the different table (WebKit, macOS)': function() {
 			// Webkits on macOS contrary to other browsers will collapse the selection and anchor it in a text node.
 			if ( !CKEDITOR.env.webkit ) {
 				assert.ignore();
@@ -1098,8 +1156,6 @@
 			CKEDITOR.verbosity = newVerbosity;
 		}
 	};
-
-	tableSelectionHelpers.ignoreUnsupportedEnvironment( tests );
 
 	bender.test( tests );
 }() );

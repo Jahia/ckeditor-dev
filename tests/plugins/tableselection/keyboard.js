@@ -16,6 +16,9 @@
 	var getRangesForCells = tableSelectionHelpers.getRangesForCells;
 
 	var tests = {
+		setUp: function() {
+			bender.tools.ignoreUnsupportedEnvironment( 'tableselection' );
+		},
 		'test backspace in the middle': function( editor, bot ) {
 			bender.tools.testInputOut( 'emptyTable', function( source, expected ) {
 				bender.tools.setHtmlWithSelection( editor, source );
@@ -185,12 +188,25 @@
 
 				bender.assert.beautified.html( expected, bot.htmlWithSelection() );
 			} );
+		},
+
+		// #867
+		'test typing inside selected table': function( editor, bot ) {
+			bender.tools.testInputOut( 'typingTable', function( source, expected ) {
+				bender.tools.setHtmlWithSelection( editor, source );
+
+				editor.getSelection().selectElement( editor.editable().findOne( 'table' ) );
+
+				editor.editable().fire( 'keypress', new CKEDITOR.dom.event( { charCode: 65 } ) );
+
+				// This test checks only if table is correctly removed as artificial
+				// keypress event can't actually type anything into the editor.
+				bender.assert.beautified.html( expected, bot.htmlWithSelection() );
+			} );
 		}
 	};
 
-	tests = bender.tools.createTestsForEditors( CKEDITOR.tools.objectKeys( bender.editors ), tests );
-
-	tableSelectionHelpers.ignoreUnsupportedEnvironment( tests );
+	tests = bender.tools.createTestsForEditors( CKEDITOR.tools.object.keys( bender.editors ), tests );
 
 	bender.test( tests );
 } )();

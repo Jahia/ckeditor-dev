@@ -5,9 +5,9 @@
 ## Does your PR contain necessary tests?
 
 All patches which change the editor code must include tests. You can always read more
-on [PR testing](http://docs.ckeditor.com/#!/guide/dev_contributing_code-section-tests),
-[how to set the testing environment](http://docs.ckeditor.com/#!/guide/dev_tests) and
-[how to create tests](http://docs.ckeditor.com/#!/guide/dev_tests-section-creating-your-own-test)
+on [PR testing](https://ckeditor.com/docs/ckeditor4/latest/guide/dev_contributing_code.html#tests),
+[how to set the testing environment](https://ckeditor.com/docs/ckeditor4/latest/guide/dev_tests.html) and
+[how to create tests](https://ckeditor.com/docs/ckeditor4/latest/guide/dev_tests.html#creating-your-own-test)
 in the official CKEditor documentation.
 
 ### This PR contains
@@ -15,6 +15,17 @@ in the official CKEditor documentation.
 - [ ] Unit tests
 - [ ] Manual tests
 
+## What is the proposed changelog entry for this pull request?
+
+```
+*[#<ISSUE_NUMBER>](https://github.com/ckeditor/ckeditor4/issues/<ISSUE_NUMBER>): Describe the purpose of the pull request in a few simple sentences.
+```
+
 ## What changes did you make?
 
 *Give an overview…*
+
+## Which issues your PR resolves?
+
+Closes #<ISSUE_NUMBER>.
+<!-- Closes #<ANOTHER_ISSUE_NUMBER>. -->

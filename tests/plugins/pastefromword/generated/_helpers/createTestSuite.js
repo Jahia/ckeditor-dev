@@ -14,6 +14,7 @@
  * @param {Boolean} [options.compareRawData=false] If `true` test case will assert against raw paste's `data.dataValue` rather than
  * what will appear in the editor after all transformations and filtering.
  * @param {Boolean} [options.ignoreAll=false] Whenever to ignore all tests.
+ * @param {Boolean} [options.includeRTF=false] Whether RTF clipboard should be loaded in test case.
  * @returns {Object} Test data object which should be passed to `bender.test` function.
  */
 function createTestSuite( options ) {
@@ -24,11 +25,12 @@ function createTestSuite( options ) {
 		testData: { _should: { ignore: {} } },
 		ignoreAll: false,
 		compareRawData: false,
-		customFilters: null
+		customFilters: null,
+		includeRTF: false
 	} );
 
 	var testData = options.testData,
-		testsKeys = CKEDITOR.tools.objectKeys( options.tests ),
+		testsKeys = CKEDITOR.tools.object.keys( options.tests ),
 		wordVersion, testKey, testName, i, j, k;
 
 	if ( testsKeys.length ) {
@@ -52,7 +54,8 @@ function createTestSuite( options ) {
 							wordVersion: wordVersion,
 							browser: options.browsers[ j ],
 							compareRawData: options.compareRawData,
-							customFilters: options.customFilters
+							customFilters: options.customFilters,
+							includeRTF: options.includeRTF
 						} );
 					}
 				}

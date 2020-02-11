@@ -20,6 +20,9 @@
 	};
 
 	var tests = {
+		setUp: function() {
+			bender.tools.ignoreUnsupportedEnvironment( 'tableselection' );
+		},
 		'test insert row before': function( editor, bot ) {
 			doCommandTest( bot, 'rowInsertBefore', { 'case': 'add-row-before', cells: [ 0 ] } );
 			doCommandTest( bot, 'rowInsertBefore', { 'case': 'add-row-before-2', cells: [ 1 ] } );
@@ -41,6 +44,9 @@
 			doCommandTest( bot, 'columnInsertBefore', { 'case': 'add-col-before-4', cells: [ 1 ] } );
 			doCommandTest( bot, 'columnInsertBefore', { 'case': 'add-col-before-multi', cells: [ 0, 1 ] } );
 			doCommandTest( bot, 'columnInsertBefore', { 'case': 'add-col-before-multi2', cells: [ 1 ] } );
+
+			// (#591)
+			doCommandTest( bot, 'columnInsertBefore', { 'case': 'add-col-before-vertical-split', cells: [ 3 ] } );
 		},
 
 		'test insert col after': function( editor, bot ) {
@@ -93,8 +99,8 @@
 			doCommandTest( bot, 'cellDelete', { 'case': 'delete-nested-cells-3', cells: [ 1, 2, 3, 4 ], skipCheckingSelection: true } );
 		},
 
-		// (http://dev.ckeditor.com/ticket/10308, http://dev.ckeditor.com/ticket/11058)
-		// To reproduce http://dev.ckeditor.com/ticket/11058 we need 4 rows in the table.
+		// To reproduce https://dev.ckeditor.com/ticket/11058 we need 4 rows
+		// in the table (https://dev.ckeditor.com/ticket/10308, https://dev.ckeditor.com/ticket/11058).
 		'test remove row from middle row': function( editor, bot ) {
 			doCommandTest( bot, 'rowDelete', { 'case': 'delete-row-from-middle', cells: [ 1 ], skipCheckingSelection: true } );
 		},
@@ -107,12 +113,12 @@
 			doCommandTest( bot, 'rowDelete', { 'case': 'delete-all-cells', cells: [ 0, 2 ], skipCheckingSelection: true } );
 		},
 
-		// (http://dev.ckeditor.com/ticket/10308)
+		// (https://dev.ckeditor.com/ticket/10308)
 		'test remove trailing column': function( editor, bot ) {
 			doCommandTest( bot, 'columnDelete', { 'case': 'delete-column-trailing', cells: [ 3 ], skipCheckingSelection: true } );
 		},
 
-		// (http://dev.ckeditor.com/ticket/10308)
+		// (https://dev.ckeditor.com/ticket/10308)
 		'test remove trailing cell': function( editor, bot ) {
 			doCommandTest( bot, 'cellDelete', { 'case': 'delete-cell-trailing', cells: [ 3 ], skipCheckingSelection: true } );
 		},
@@ -139,7 +145,7 @@
 			assert.isTrue( expectedCells.getItem( 1 ).equals( selectedCells[ 1 ] ) );
 		},
 
-		// #tp-2217
+		// (#tp-2217)
 		'test getSelectedCells for nested table header cell': function( editor, bot ) {
 			var editable = editor.editable(),
 				table,
@@ -161,14 +167,33 @@
 			assert.isTrue( expectedCell.equals( selectedCells[ 0 ] ), 'Correct table cell is selected.' );
 		},
 
+		'test getSelectedCells API': function() {
+			arrayAssert.itemsAreEqual( [], CKEDITOR.plugins.tabletools.getSelectedCells( null ), 'Return for null' );
+
+			var emptySelectionMock = { getRanges: sinon.stub().returns( [ ] ) };
+
+			arrayAssert.itemsAreEqual( [], CKEDITOR.plugins.tabletools.getSelectedCells( emptySelectionMock ), 'Ret for empty range list' );
+		},
+
 		'test delete all cells': function( editor, bot ) {
 			doCommandTest( bot, 'cellDelete', { 'case': 'delete-all-cells', cells: [ 0, 1, 2, 3 ], skipCheckingSelection: true } );
 		}
 	};
 
-	tests = bender.tools.createTestsForEditors( CKEDITOR.tools.objectKeys( bender.editors ), tests );
+	tests = bender.tools.createTestsForEditors( CKEDITOR.tools.object.keys( bender.editors ), tests );
 
-	tableSelectionHelpers.ignoreUnsupportedEnvironment( tests );
+	// Ignores for Edge (#1944).
+	var shouldIgnore = CKEDITOR.env.edge;
+	tests._should = tests._should || {};
+	tests._should.ignore = tests._should.ignore || {};
+	tests._should.ignore[ 'test merge cells (classic)' ] = shouldIgnore;
+	tests._should.ignore[ 'test merge cells (inline)' ] = shouldIgnore;
+	tests._should.ignore[ 'test merge one cell (classic)' ] = shouldIgnore;
+	tests._should.ignore[ 'test merge one cell (inline)' ] = shouldIgnore;
+	tests._should.ignore[ 'test merge one cell (collapsed selection) (classic)' ] = shouldIgnore;
+	tests._should.ignore[ 'test merge one cell (collapsed selection) (inline)' ] = shouldIgnore;
+	tests._should.ignore[ 'test delete nested cells (classic)' ] = shouldIgnore;
+	tests._should.ignore[ 'test delete nested cells (inline)' ] = shouldIgnore;
 
 	bender.test( tests );
 } )();

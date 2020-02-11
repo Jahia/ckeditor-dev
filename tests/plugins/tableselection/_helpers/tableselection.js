@@ -36,30 +36,7 @@
 			for ( i = 0; i < ranges.length; i++ ) {
 				ranges[ i ]._getTableElement().addClass( addSelected ? 'selected' : 'cke_marked' );
 			}
-		},
-
-		/*
-		 * Modifies testSuite by adding entries in `_should.ignore` object for each method/property, if
-		 * the current environment is not supported.
-		 *
-		 * @param {Object} testSuite
-		 * @param {Boolean} [check] Custom check to be considered in addition to the default one.
-		 */
-		ignoreUnsupportedEnvironment: function( testSuite, check ) {
-			testSuite._should = testSuite._should || {};
-			testSuite._should.ignore = testSuite._should.ignore || {};
-
-			for ( var key in testSuite ) {
-				if ( ( typeof check !== 'undefined' && !check ) || !this.isSupportedEnvironment ) {
-					testSuite._should.ignore[ key ] = true;
-				}
-			}
-		},
-
-		/*
-		 * @property {Boolean} isSupportedEnvironment Whether table selection supports current environment.
-		 */
-		isSupportedEnvironment: !( CKEDITOR.env.ie && CKEDITOR.env.version < 11 )
+		}
 	};
 
 	function shrinkSelections( editor ) {
@@ -79,16 +56,17 @@
 	window.createPasteTestCase = function( fixtureId, pasteFixtureId ) {
 		return function( editor, bot ) {
 			bender.tools.testInputOut( fixtureId, function( source, expected ) {
-				editor.once( 'paste', function() {
+				editor.once( 'afterPaste', function() {
 					resume( function() {
 						shrinkSelections( editor );
 						bender.assert.beautified.html( expected, bender.tools.getHtmlWithSelection( editor ) );
 					} );
-				}, null, null, 1 );
+				}, null, null, 999 );
 
 				bot.setHtmlWithSelection( source );
 
-				bender.tools.emulatePaste( editor, CKEDITOR.document.getById( pasteFixtureId ).getOuterHtml() );
+				// Use clone, so that pasted table does not have an ID.
+				bender.tools.emulatePaste( editor, CKEDITOR.document.getById( pasteFixtureId ).clone( true ).getOuterHtml() );
 
 				wait();
 			} );

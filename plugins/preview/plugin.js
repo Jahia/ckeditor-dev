@@ -1,6 +1,6 @@
 ﻿/**
- * @license Copyright (c) 2003-2017, CKSource - Frederico Knabben. All rights reserved.
- * For licensing, see LICENSE.md or http://ckeditor.com/license
+ * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+ * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
 /**
@@ -56,7 +56,7 @@
 				iLeft = Math.round( screen.width * 0.1 );
 			} catch ( e ) {}
 
-			// (http://dev.ckeditor.com/ticket/9907) Allow data manipulation before preview is displayed.
+			// (https://dev.ckeditor.com/ticket/9907) Allow data manipulation before preview is displayed.
 			// Also don't open the preview window when event cancelled.
 			if ( editor.fire( 'contentPreview', eventData = { dataValue: sHTML } ) === false )
 				return false;
@@ -75,12 +75,12 @@
 					'document.close();' +
 					'window.opener._cke_htmlToLoad = null;' +
 				'})() )';
-				// For IE we should use window.location rather than setting url in window.open. (http://dev.ckeditor.com/ticket/11146)
+				// For IE we should use window.location rather than setting url in window.open. (https://dev.ckeditor.com/ticket/11146)
 				sOpenUrl = '';
 			}
 
 			// With Firefox only, we need to open a special preview page, so
-			// anchors will work properly on it. (http://dev.ckeditor.com/ticket/9047)
+			// anchors will work properly on it. (https://dev.ckeditor.com/ticket/9047)
 			if ( CKEDITOR.env.gecko ) {
 				window._cke_htmlToLoad = eventData.dataValue;
 				sOpenUrl = CKEDITOR.getUrl( pluginPath + 'preview.html' );
@@ -90,7 +90,7 @@
 				iWidth + ',height=' + iHeight + ',left=' + iLeft );
 
 			// For IE we want to assign whole js stored in ieLocation, but in case of
-			// popup blocker activation oWindow variable will be null. (http://dev.ckeditor.com/ticket/11597)
+			// popup blocker activation oWindow variable will be null. (https://dev.ckeditor.com/ticket/11597)
 			if ( CKEDITOR.env.ie && oWindow )
 				oWindow.location = ieLocation;
 
@@ -136,6 +136,10 @@
  * Event fired when executing `preview` command, which allows additional data manipulation.
  * With this event, the raw HTML content of the preview window to be displayed can be altered
  * or modified.
+ *
+ * **Note** This event **should** also be used to sanitize HTML to mitigate possible XSS attacks. Refer to the
+ * {@glink guide/dev_best_practices#validate-preview-content Validate preview content} section of the Best Practices
+ * article to learn more.
  *
  * @event contentPreview
  * @member CKEDITOR

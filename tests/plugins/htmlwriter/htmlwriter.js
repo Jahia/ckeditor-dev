@@ -1,4 +1,4 @@
-/* bender-tags: editor,unit */
+/* bender-tags: editor */
 /* bender-ckeditor-plugins: wysiwygarea, htmlwriter */
 bender.test( {
 	'test extra line break': function() {
@@ -37,6 +37,29 @@ bender.test( {
 
 				// Trigger getData a second time to reveal bug.
 				assert.areSame( afterFormat, bot.getData( false, false ) );
+			} );
+		} );
+	},
+
+	// (#965)
+	'test config.forceSimpleAmpersand works in HTML element attributes': function() {
+		var data = '<p><a href="http://www.blah.com?foo=1&bar=2">Test link</a></p>';
+
+		bender.editorBot.create( {
+			name: 'forceSimpleAmpersand',
+			formattedOutput: true,
+			config: {
+				extraAllowedContent: 'a[href]',
+				forceSimpleAmpersand: true
+			}
+		}, function( bot ) {
+			bot.editor.dataProcessor.writer.setRules( 'p', {
+				indent: false,
+				breakAfterClose: false
+			} );
+
+			bot.setData( data, function() {
+				assert.areSame( data, bot.getData( false, false ) );
 			} );
 		} );
 	}

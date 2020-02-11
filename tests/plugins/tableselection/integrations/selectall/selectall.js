@@ -6,13 +6,24 @@
 ( function() {
 	'use strict';
 
+	// Remove `widgetselection` plugin due to upstream widget issue (#1277).
 	bender.editors = {
-		classic: {},
+		classic: {
+			config: {
+				removePlugins: 'widgetselection,widget,uploadimage,uploadwidget'
+			}
+		},
 		divarea: {
-			extraPlugins: 'divarea'
+			config: {
+				extraPlugins: 'divarea',
+				removePlugins: 'widgetselection,widget,uploadimage,uploadwidget'
+			}
 		},
 		inline: {
-			creator: 'inline'
+			creator: 'inline',
+			config: {
+				removePlugins: 'widgetselection,widget,uploadimage,uploadwidget'
+			}
 		}
 	};
 
@@ -24,6 +35,9 @@
 	var getRangesForCells = tableSelectionHelpers.getRangesForCells,
 		table = CKEDITOR.document.findOne( '#table table' ),
 		tests = {
+			setUp: function() {
+				bender.tools.ignoreUnsupportedEnvironment( 'tableselection' );
+			},
 			'test selectAll command after table selection (paragraph + table)': function( editor, bot ) {
 				var editable = editor.editable(),
 					ranges;
@@ -132,9 +146,7 @@
 			// }
 		};
 
-	tests = bender.tools.createTestsForEditors( CKEDITOR.tools.objectKeys( bender.editors ), tests );
-
-	tableSelectionHelpers.ignoreUnsupportedEnvironment( tests );
+	tests = bender.tools.createTestsForEditors( CKEDITOR.tools.object.keys( bender.editors ), tests );
 
 	bender.test( tests );
 } )();
