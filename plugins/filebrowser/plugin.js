@@ -421,7 +421,7 @@
 	}
 
 	function setUrl( fileUrl, data ) {
-		setUrlExternal(fileUrl, data, )
+		setUrlExternal(fileUrl, data, this._.filebrowserSe)
 	}
 
 	function setUrlExternal( fileUrl, data, filebrowserSe ) {
