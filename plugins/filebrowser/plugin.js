@@ -171,18 +171,28 @@
 
 		editor._.filebrowserSe = this;
 
-		var width = editor.config[ 'filebrowser' + ucFirst( dialog.getName() ) + 'WindowWidth' ] || editor.config.filebrowserWindowWidth || '80%';
-		var height = editor.config[ 'filebrowser' + ucFirst( dialog.getName() ) + 'WindowHeight' ] || editor.config.filebrowserWindowHeight || '70%';
-
 		var params = this.filebrowser.params || {};
 		params.CKEditor = editor.name;
 		params.CKEditorFuncNum = editor._.filebrowserFn;
 		if ( !params.langCode )
 			params.langCode = editor.langCode;
 
-		var url = addQueryString( this.filebrowser.url, params );
-		// TODO: V4: Remove backward compatibility (#8163).
-		editor.popup( url, width, height, editor.config.filebrowserWindowFeatures || editor.config.fileBrowserWindowFeatures, editor.config.filebrowserWindowName );
+		if (isFunction(this.filebrowser.url)) {
+			this.filebrowser.url(params, (fileUrl, data) => {
+				setUrlExternal(fileUrl, data, editor._.filebrowserSe)
+			})
+		} else {
+			var width = editor.config[ 'filebrowser' + ucFirst( dialog.getName() ) + 'WindowWidth' ] || editor.config.filebrowserWindowWidth || '80%';
+			var height = editor.config[ 'filebrowser' + ucFirst( dialog.getName() ) + 'WindowHeight' ] || editor.config.filebrowserWindowHeight || '70%';
+
+			var url = addQueryString( this.filebrowser.url, params );
+			// TODO: V4: Remove backward compatibility (https://dev.ckeditor.com/ticket/8163).
+			editor.popup( url, width, height, editor.config.filebrowserWindowFeatures || editor.config.fileBrowserWindowFeatures, editor.config.filebrowserWindowName );
+		}
+	}
+
+	function isFunction(functionToCheck) {
+		return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
 	}
 
 	// Appends token preventing CSRF attacks to the form of provided file input.
@@ -411,17 +421,21 @@
 	}
 
 	function setUrl( fileUrl, data ) {
-		var dialog = this._.filebrowserSe.getDialog(),
-			targetInput = this._.filebrowserSe[ 'for' ],
-			onSelect = this._.filebrowserSe.filebrowser.onSelect;
+		setUrlExternal(fileUrl, data, this._.filebrowserSe)
+	}
+
+	function setUrlExternal( fileUrl, data, filebrowserSe ) {
+		var dialog = filebrowserSe.getDialog(),
+			targetInput = filebrowserSe[ 'for' ],
+			onSelect = filebrowserSe.filebrowser.onSelect;
 
 		if ( targetInput )
 			dialog.getContentElement( targetInput[ 0 ], targetInput[ 1 ] ).reset();
 
-		if ( typeof data == 'function' && data.call( this._.filebrowserSe ) === false )
+		if ( typeof data == 'function' && data.call( filebrowserSe ) === false )
 			return;
 
-		if ( onSelect && onSelect.call( this._.filebrowserSe, fileUrl, data ) === false )
+		if ( onSelect && onSelect.call( filebrowserSe, fileUrl, data ) === false )
 			return;
 
 		// The "data" argument may be used to pass the error message to the editor.
@@ -429,7 +443,7 @@
 			alert( data ); // jshint ignore:line
 
 		if ( fileUrl )
-			updateTargetElement( fileUrl, this._.filebrowserSe );
+			updateTargetElement( fileUrl, filebrowserSe );
 	}
 
 	CKEDITOR.plugins.add( 'filebrowser', {
