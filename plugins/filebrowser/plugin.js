@@ -178,7 +178,7 @@
 			params.langCode = editor.langCode;
 
 		if (isFunction(this.filebrowser.url)) {
-			this.filebrowser.url(params, function (fileUrl, data) {
+			this.filebrowser.url(dialog, params, function (fileUrl, data) {
 				setUrlExternal(fileUrl, data, editor._.filebrowserSe)
 			})
 		} else {
