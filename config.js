@@ -6,6 +6,8 @@
 CKEDITOR.editorConfig = function( config ) {
 	// %REMOVE_START%
 	config.plugins =
+		'a11ychecker,' +
+		'balloonpanel,' +
 		'about,' +
 		'a11yhelp,' +
 		'basicstyles,' +

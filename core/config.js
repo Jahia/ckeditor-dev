@@ -455,7 +455,7 @@ CKEDITOR.config = {
 		'/',
 		['Macros','Styles','Format','Font','FontSize'],
 		['TextColor','BGColor'],
-		['Maximize', 'ShowBlocks','-','About']
+		['Maximize', 'ShowBlocks','-','About','A11ychecker']
 	],
 	toolbar_Basic: [
 		['Source','-','NewPage','Preview','Print','-','Templates'],
