@@ -7,6 +7,7 @@ CKEDITOR.editorConfig = function( config ) {
 	// %REMOVE_START%
 	config.plugins =
 		'about,' +
+		'autogrow,' +
 		'a11yhelp,' +
 		'basicstyles,' +
 		'bidi,' +
