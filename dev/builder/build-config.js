@@ -37,6 +37,7 @@ var CKBUILDER_CONFIG = {
 	plugins: {
 		a11yhelp: 1,
 		about: 1,
+		autogrow: 1,
 		acheck: 1,
 		basicstyles: 1,
 		bidi: 1,

@@ -458,6 +458,9 @@ CKEDITOR.config = {
 	filebrowserWindowFeatures: 'location=no,menubar=no,toolbar=no,dependent=yes,minimizable=no,modal=yes,alwaysRaised=yes,resizable=yes,scrollbars=yes',
 	filebrowserWindowName: 'JahiaFileBrowser',
 	image_previewText: '',
+	autoGrow_minHeight: 200,
+	autoGrow_maxHeight: 600,
+	autoGrow_bottomSpace: 50,
 	toolbar: 'Full',
 	toolbar_Full: [
 		['Source','-','NewPage','Preview','Print','-','Templates'],
