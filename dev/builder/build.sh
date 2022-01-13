@@ -62,14 +62,40 @@ cd ../..
 echo ""
 echo "Starting CKBuilder..."
 
-JAVA_ARGS=${ARGS// -t / } # Remove -t from arrgs
+jdk_version=$( echo `java -version 2>&1 | grep 'version' 2>&1 | awk -F\" '{ split($2,a,"."); print a[1]}'` | bc -l);
+regex='^[0-9]+$';
+# Builder is crashing when JDK version is newer than 15.
+if ! [[ $jdk_version =~ $regex ]] || [ $jdk_version -gt 15 ]; then
+	echo "${MSG_INCORRECT_JDK_VERSION}";
+	echo "${UNDERLINE}${YELLOW}Actual version of JDK: ${jdk_version}${RESET_STYLE}";
+fi
 
-java -jar ckbuilder/$CKBUILDER_VERSION/ckbuilder.jar --build ../../ release --version="4.4.4-jahia2" --overwrite $JAVA_ARGS
+JAVA_ARGS=${ARGS// -t / } # Remove -t from args.
+VERSION=$(grep '"version":' ./../../package.json | sed $'s/[\t\",: ]//g; s/version//g' | tr -d '[[:space:]]')
+REVISION=$(git rev-parse --verify --short HEAD)
 
-# Copy and build tests
+# If the current revision is not tagged with any CKE version, it means it's a "dirty" build. We
+# mark such builds with a " DEV" suffix. true is needed because of "set -e".
+TAG=$(git tag --points-at HEAD) || true
+
+# This fancy construction check str length of $TAG variable.
+if [ ${#TAG} -le 0 ];
+then
+	VERSION="$VERSION DEV"
+fi
+
+{
+	java -jar ckbuilder/$CKBUILDER_VERSION/ckbuilder.jar --build ../../ release $JAVA_ARGS --version="$VERSION" --revision="$REVISION" --overwrite
+} || {
+	if ! [[ $jdk_version =~ $regex ]] || [ $jdk_version -gt 15 ]; then
+		echo "\n${RED}The build has been stopped. Please verify the eventual error messages above.${RESET_STYLE}"
+	fi
+}
+
+# Copy and build tests.
 if [[ "$ARGS" == *\ \-t\ * ]]; then
 	echo ""
-	echo "Coping tests..."
+	echo "Copying tests..."
 
 	cp -r ../../tests release/ckeditor/tests
 	cp -r ../../package.json release/ckeditor/package.json
