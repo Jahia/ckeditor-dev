@@ -179,8 +179,8 @@
 
 		if (isFunction(this.filebrowser.url)) {
 			this.filebrowser.url(params, function (fileUrl, data) {
-				setUrlExternal(fileUrl, data, editor._.filebrowserSe)
-			})
+				setUrlExternal(fileUrl, data, editor._.filebrowserSe);
+			});
 		} else {
 			var width = editor.config[ 'filebrowser' + ucFirst( dialog.getName() ) + 'WindowWidth' ] || editor.config.filebrowserWindowWidth || '80%';
 			var height = editor.config[ 'filebrowser' + ucFirst( dialog.getName() ) + 'WindowHeight' ] || editor.config.filebrowserWindowHeight || '70%';
@@ -421,7 +421,7 @@
 	}
 
 	function setUrl( fileUrl, data ) {
-		setUrlExternal(fileUrl, data, this._.filebrowserSe)
+		setUrlExternal(fileUrl, data, this._.filebrowserSe);
 	}
 
 	function setUrlExternal( fileUrl, data, filebrowserSe ) {
