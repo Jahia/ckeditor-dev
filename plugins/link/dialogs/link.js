@@ -634,7 +634,7 @@
 					setup: function() {
 						if ( !this.getDialog().getContentElement( 'info', 'linkType' ) ) {
 							this.getElement().hide();
-					}
+					}}
 				},
                 {
                     type : 'hbox',

@@ -282,7 +282,7 @@
 
 			// If there is no other customConfig in the chain, fire the
 			// "configLoaded" event.
-			if ( !editor.config.customConfig || editor.config.customConfig == null || editor.config.customConfig.length == 0 || CKEDITOR.getUrl( editor.config.customConfig ) == customConfig || !loadConfig( editor ) )
+			if ( !editor.config.customConfig || editor.config.customConfig == null || editor.config.customConfig.length == 0 || CKEDITOR.getUrl( editor.config.customConfig ) == customConfig || !loadConfig( editor ) ) {
 				editor.fireOnce( 'customConfigLoaded' );
 			}
 
