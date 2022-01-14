@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
 */
 CKEDITOR.plugins.setLang( 'clipboard', 'pt-br', {
@@ -10,5 +10,6 @@ CKEDITOR.plugins.setLang( 'clipboard', 'pt-br', {
 	paste: 'Colar',
 	pasteNotification: 'Pressione %1 para colar. Seu navegador não permite colar pelos botões da barra de tarefas ou pelo menu de contexto.',
 	pasteArea: 'Área para Colar',
-	pasteMsg: 'Cole o conteúdo na área abaixo e pressione OK.'
+	pasteMsg: 'Cole o conteúdo na área abaixo e pressione OK.',
+	fileFormatNotSupportedNotification: 'This file format is not supported. You can try with one of the supported formats: ${formats}.' // MISSING
 } );

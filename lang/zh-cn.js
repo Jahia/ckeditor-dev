@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -34,7 +34,6 @@ CKEDITOR.lang[ 'zh-cn' ] = {
 		upload: '上传',
 		uploadSubmit: '上传到服务器',
 		image: '图像',
-		flash: 'Flash',
 		form: '表单',
 		checkbox: '复选框',
 		radio: '单选按钮',

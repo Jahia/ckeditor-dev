@@ -1,5 +1,5 @@
 ﻿/**
- * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -25,7 +25,8 @@
 				configInlineImages = editor.config.pasteFromWord_inlineImages === undefined ? true : editor.config.pasteFromWord_inlineImages,
 				defaultFilters = [
 					CKEDITOR.getUrl( pastetoolsPath + 'filter/common.js' ),
-					CKEDITOR.getUrl(  path + 'filter/default.js' )
+					CKEDITOR.getUrl( pastetoolsPath + 'filter/image.js' ),
+					CKEDITOR.getUrl( path + 'filter/default.js' )
 				];
 
 			editor.addCommand( 'pastefromword', {
@@ -76,9 +77,10 @@
 					var data = evt.data,
 						// Always get raw clipboard data (#3586).
 						mswordHtml = CKEDITOR.plugins.pastetools.getClipboardData( data, 'text/html' ),
-						officeMetaRegexp = /<meta\s*name=(?:\"|\')?generator(?:\"|\')?\s*content=(?:\"|\')?microsoft/gi,
-						wordRegexp = /(class=\"?Mso|style=(?:\"|\')[^\"]*?\bmso\-|w:WordDocument|<o:\w+>|<\/font>)/,
-						isOfficeContent = officeMetaRegexp.test( mswordHtml ) || wordRegexp.test( mswordHtml );
+						generatorName = CKEDITOR.plugins.pastetools.getContentGeneratorName( mswordHtml ),
+						wordRegexp = /(class="?Mso|style=["'][^"]*?\bmso\-|w:WordDocument|<o:\w+>|<\/font>)/,
+						// Use wordRegexp only when there is no meta generator tag in the content
+						isOfficeContent = generatorName ? generatorName === 'microsoft' : wordRegexp.test( mswordHtml );
 
 					return mswordHtml && ( forceFromWord || isOfficeContent );
 				},
@@ -98,8 +100,17 @@
 					// Do not apply paste filter to data filtered by the Word filter (https://dev.ckeditor.com/ticket/13093).
 					data.dontFilter = true;
 
-					if (  forceFromWord || confirmCleanUp() ) {
+					if ( forceFromWord || confirmCleanUp() ) {
 						pfwEvtData.dataValue = CKEDITOR.cleanWord( pfwEvtData.dataValue, editor );
+
+						// Paste From Word Image:
+						// RTF clipboard is required for embedding images.
+						// If img tags are not allowed there is no point to process images.
+						// Also skip embedding images if image filter is not loaded.
+						if ( CKEDITOR.plugins.clipboard.isCustomDataTypesSupported && configInlineImages &&
+							CKEDITOR.pasteFilters.image ) {
+							pfwEvtData.dataValue = CKEDITOR.pasteFilters.image( pfwEvtData.dataValue, editor, dataTransferRtf );
+						}
 
 						editor.fire( 'afterPasteFromWord', pfwEvtData );
 
@@ -126,56 +137,7 @@
 					}
 				}
 			} );
-
-			// Paste From Word Image:
-			// RTF clipboard is required for embedding images.
-			// If img tags are not allowed there is no point to process images.
-			if ( CKEDITOR.plugins.clipboard.isCustomDataTypesSupported && configInlineImages ) {
-				editor.on( 'afterPasteFromWord', imagePastingListener );
-			}
-
-			function imagePastingListener( evt ) {
-				var pfw = CKEDITOR.plugins.pastefromword && CKEDITOR.plugins.pastefromword.images,
-					imgTags,
-					hexImages,
-					newSrcValues = [],
-					i;
-
-				// If pfw images namespace is unavailable or img tags are not allowed we simply skip adding images.
-				if ( !pfw || !evt.editor.filter.check( 'img[src]' ) ) {
-					return;
-				}
-
-				function createSrcWithBase64( img ) {
-					return img.type ? 'data:' + img.type + ';base64,' + CKEDITOR.tools.convertBytesToBase64( CKEDITOR.tools.convertHexStringToBytes( img.hex ) ) : null;
-				}
-
-				imgTags = pfw.extractTagsFromHtml( evt.data.dataValue );
-				if ( imgTags.length === 0 ) {
-					return;
-				}
-
-				hexImages = pfw.extractFromRtf( evt.data.dataTransfer[ 'text/rtf' ] );
-				if ( hexImages.length === 0 ) {
-					return;
-				}
-
-				CKEDITOR.tools.array.forEach( hexImages, function( img ) {
-					newSrcValues.push( createSrcWithBase64( img ) );
-				}, this );
-
-				// Assuming there is equal amount of Images in RTF and HTML source, so we can match them accordingly to the existing order.
-				if ( imgTags.length === newSrcValues.length ) {
-					for ( i = 0; i < imgTags.length; i++ ) {
-						// Replace only `file` urls of images ( shapes get newSrcValue with null ).
-						if ( ( imgTags[ i ].indexOf( 'file://' ) === 0 ) && newSrcValues[ i ] ) {
-							evt.data.dataValue = evt.data.dataValue.replace( imgTags[ i ], newSrcValues[ i ] );
-						}
-					}
-				}
-			}
 		}
-
 	} );
 } )();
 

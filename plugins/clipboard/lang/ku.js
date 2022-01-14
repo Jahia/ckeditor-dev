@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
 */
 CKEDITOR.plugins.setLang( 'clipboard', 'ku', {
@@ -10,5 +10,6 @@ CKEDITOR.plugins.setLang( 'clipboard', 'ku', {
 	paste: 'لکاندن',
 	pasteNotification: 'کلیک بکە لەسەر %1 بۆ لکاندنی. وێبگەڕەکەت پشتیوانی لکاندن ناکات بە دوگمەی تولامراز یان ئامرازی ناوەڕۆکی لیستە -  کلیکی دەستی ڕاست. ',
 	pasteArea: 'ناوچەی لکاندن',
-	pasteMsg: 'ناوەڕۆکەکەت لەم پانتایی خوارەوە بلکێنە'
+	pasteMsg: 'ناوەڕۆکەکەت لەم پانتایی خوارەوە بلکێنە',
+	fileFormatNotSupportedNotification: 'This file format is not supported. You can try with one of the supported formats: ${formats}.' // MISSING
 } );

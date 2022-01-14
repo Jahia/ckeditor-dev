@@ -1,9 +1,9 @@
 {
 	"name": "ckeditor4-dev",
-	"version": "4.13.1",
+	"version": "4.17.1",
 	"description": "The development version of CKEditor - JavaScript WYSIWYG web text editor.",
 	"devDependencies": {
-		"benderjs": "0.4.3",
+		"benderjs": "^0.4.6",
 		"benderjs-coverage": "^0.2.2",
 		"benderjs-jquery": "^0.3.0",
 		"benderjs-sinon": "^0.3.1",
@@ -21,7 +21,9 @@
 		"grunt-jsduck": "^1.0.1",
 		"less": "^3.8.0",
 		"lesshat": "^4.1.0",
-		"shelljs": "^0.8.2"
+		"replace-in-file": "^6.1.0",
+		"shelljs": "^0.8.2",
+		"uglify-js": "^3.12.0"
 	},
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
@@ -38,7 +40,7 @@
 		"javascript"
 	],
 	"author": "CKSource (https://cksource.com/)",
-	"license": "(GPL-2.0-or-later OR LGPL-2.1 OR MPL-1.1)",
+	"license": "(GPL-2.0-or-later OR LGPL-2.1-or-later OR MPL-1.1-or-later)",
 	"bugs": "https://github.com/ckeditor/ckeditor4/issues",
 	"homepage": "https://ckeditor.com",
 	"repository": {

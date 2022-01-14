@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -34,7 +34,6 @@ CKEDITOR.lang[ 'mn' ] = {
 		upload: 'Илгээж ачаалах',
 		uploadSubmit: 'Үүнийг үйлчлэгч тооцоолуур (сервер) лүү илгээх',
 		image: 'Зураг',
-		flash: 'Флаш хөдөлгөөнтэй зураг',
 		form: 'Маягт',
 		checkbox: 'Тэмдэглээний нүд',
 		radio: 'Радио товчлуур',

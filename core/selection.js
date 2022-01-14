@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -17,8 +17,8 @@
 
 	// #### table selection : START
 	// @param {CKEDITOR.dom.range[]} ranges
-	// @param {Boolean} allowPartially Whether a collapsed selection within table is recognized to be a valid selection.
-	// This happens for WebKits on MacOS, when you right click inside the table.
+	// @param {Boolean} allowPartially Whether a collapsed selection within a table is recognized to be a valid selection.
+	// This happens for WebKit browsers on MacOS when you right-click inside the table.
 	function isTableSelection( ranges, allowPartially ) {
 		if ( ranges.length === 0 ) {
 			return false;
@@ -68,6 +68,10 @@
 		}
 
 		return true;
+	}
+
+	function isSupportingTableSelectionPlugin( editor ) {
+		return editor && editor.plugins.tableselection && editor.plugins.tableselection.isSupportedEnvironment( editor );
 	}
 
 	// After performing fake table selection, the real selection is limited
@@ -574,8 +578,8 @@
 		};
 	} )();
 
-	// Handle left, right, delete and backspace keystrokes next to non-editable elements
-	// by faking selection on them.
+	// Handle left and right keystrokes next to non-editable elements by faking selection on them.
+	// Delete and backspace keystrokes can delete empty paragraphs between the widgets (#1572).
 	function getOnKeyDownListener( editor ) {
 		var keystrokes = { 37: 1, 39: 1, 8: 1, 46: 1 };
 
@@ -583,25 +587,53 @@
 			var keystroke = evt.data.getKeystroke();
 
 			// Handle only left/right/del/bspace keys.
-			if ( !keystrokes[ keystroke ] )
+			if ( !keystrokes[ keystroke ] ) {
 				return;
+			}
 
 			var sel = editor.getSelection(),
 				ranges = sel.getRanges(),
-				range = ranges[ 0 ];
+				range = ranges[ 0 ],
+				startElement;
 
 			// Handle only single range and it has to be collapsed.
-			if ( ranges.length != 1 || !range.collapsed )
+			if ( !sel.isCollapsed() ) {
 				return;
+			}
 
 			var next = range[ keystroke < 38 ? 'getPreviousEditableNode' : 'getNextEditableNode' ]();
 
 			if ( next && next.type == CKEDITOR.NODE_ELEMENT && next.getAttribute( 'contenteditable' ) == 'false' ) {
+
+				// Allow removal of empty paragraphs (#1572).
+				startElement = sel.getStartElement();
+
+				if ( isEmptyBlock( startElement ) && isDeleteAction( keystroke ) ) {
+					startElement.remove();
+
+					// Save an undo restore point.
+					editor.fire( 'saveSnapshot' );
+				}
+
 				editor.getSelection().fake( next );
 				evt.data.preventDefault();
 				evt.cancel();
 			}
 		};
+
+		function isDeleteAction( keystroke ) {
+			return ( keystroke === 8 || keystroke === 46 );
+		}
+
+		function isEmptyElement( element ) {
+			var text = element.$.textContent === undefined ? element.$.innerText : element.$.textContent;
+
+			return text === '';
+		}
+
+		function isEmptyBlock( block ) {
+			return block.isBlockBoundary() && isEmptyElement( block );
+		}
 	}
 
 	// If fake selection should be applied this function will return instance of
@@ -941,16 +973,7 @@
 
 			if ( CKEDITOR.env.ie ) {
 				// https://dev.ckeditor.com/ticket/14407 - Don't even let anything happen if the selection is in a non-editable element.
-				editable.attachListener( editable, 'keydown', function( evt ) {
-					var sel = this.getSelection( 1 ),
-						ascendant = getNonEditableAscendant( sel );
-
-					// Prevent changing selection when an ascendant is an entire editable (#1632).
-					if ( ascendant && !ascendant.equals( editable ) ) {
-						sel.selectElement( ascendant );
-						evt.data.preventDefault();
-					}
-				}, editor );
+				editable.attachListener( editable, 'keydown', disableSelectionChangeForNonEditables, editor );
 			}
 
 			// Always fire the selection change on focus gain.
@@ -1037,6 +1060,34 @@
 				// The parentElement may be null for read only mode in IE10 and below (https://dev.ckeditor.com/ticket/9780).
 				if ( sel.type != 'None' && range.parentElement() && range.parentElement().ownerDocument == doc.$ )
 					range.select();
+			}
+
+			function disableSelectionChangeForNonEditables( evt ) {
+				var sel,
+					ascendant;
+
+				// Allow on typing inside editable elements of widgets if those are currently focused (#3587)
+				if ( isTypingElement( this.document.getActive() ) ) {
+					return;
+				}
+
+				sel = this.getSelection( 1 );
+				ascendant = getNonEditableAscendant( sel );
+
+				// Prevent changing selection when an ascendant is an entire editable (#1632).
+				if ( ascendant && !ascendant.equals( editable ) ) {
+					sel.selectElement( ascendant );
+					evt.data.preventDefault();
+				}
+			}
+
+			function isTypingElement( activeElement ) {
+				if ( !activeElement ) {
+					return false;
+				}
+
+				return activeElement.getName() === 'input' ||
+					activeElement.getName() === 'textarea';
 			}
 
 			function getNonEditableAscendant( sel ) {
@@ -1199,7 +1250,7 @@
 	 * @method
 	 * @member CKEDITOR.editor
 	 * @param {Boolean} forceRealSelection Return real selection, instead of saved or fake one.
-	 * @returns {CKEDITOR.dom.selection} A selection object or null if not available for the moment.
+	 * @returns {CKEDITOR.dom.selection/null} A selection object or null if not available for the moment.
 	 */
 	CKEDITOR.editor.prototype.getSelection = function( forceRealSelection ) {
 
@@ -1209,7 +1260,26 @@
 
 		// Editable element might be absent or editor might not be in a wysiwyg mode.
 		var editable = this.editable();
-		return editable && this.mode == 'wysiwyg' ? new CKEDITOR.dom.selection( editable ) : null;
+
+		return editable && this.mode == 'wysiwyg' && this.status !== 'recreating' ? new CKEDITOR.dom.selection( editable ) : null;
+	};
+
+	/**
+	 * Retrieves the {@link CKEDITOR.dom.range} instances that represent the current selection.
+	 *
+	 * **Note:** This function is an alias for the {@link CKEDITOR.dom.selection#getRanges} method.
+	 *
+	 * @method
+	 * @since 4.14.0
+	 * @member CKEDITOR.editor
+	 * @param {Boolean} [onlyEditables] If set to `true`, this function retrieves editable ranges only.
+	 * @returns {Array} Range instances that represent the current selection.
+	 */
+	CKEDITOR.editor.prototype.getSelectedRanges = function( onlyEditables ) {
+		var selection = this.getSelection(),
+			ranges = selection && selection.getRanges( onlyEditables );
+
+		return ranges || [];
 	};
 
 	/**
@@ -1934,7 +2004,7 @@
 			var editor = this.root.editor;
 
 			// Use fake selection on tables only with tableselection plugin (#3136).
-			if ( editor.plugins.tableselection && isTableSelection( ranges ) ) {
+			if ( isSupportingTableSelectionPlugin( editor ) && isTableSelection( ranges ) ) {
 				// Tables have it's own selection method.
 				performFakeTableSelection.call( this, ranges );
 				return;
@@ -2045,8 +2115,7 @@
 			}
 
 			// Handle special case - fake selection of table cells.
-			if ( editor && editor.plugins.tableselection &&
-				editor.plugins.tableselection.isSupportedEnvironment() &&
+			if ( isSupportingTableSelectionPlugin( editor ) &&
 				isTableSelection( ranges ) && !isSelectingTable &&
 				!ranges[ 0 ]._getTableElement( { table: 1 } ).hasAttribute( 'data-cke-tableselection-ignored' )
 			) {
@@ -2455,8 +2524,9 @@
 		 */
 		scrollIntoView: function() {
 			// Scrolls the first range into view.
-			if ( this.type != CKEDITOR.SELECTION_NONE )
+			if ( this.getType() != CKEDITOR.SELECTION_NONE ) {
 				this.getRanges()[ 0 ].scrollIntoView();
+			}
 		},
 
 		/**

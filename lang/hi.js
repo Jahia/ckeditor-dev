@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -34,7 +34,6 @@ CKEDITOR.lang[ 'hi' ] = {
 		upload: 'अपलोड',
 		uploadSubmit: 'इसे सर्वर को भेजें',
 		image: 'तस्वीर',
-		flash: 'फ़्लैश',
 		form: 'फ़ॉर्म',
 		checkbox: 'चॅक बॉक्स',
 		radio: 'रेडिओ बटन',

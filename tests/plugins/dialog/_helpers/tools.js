@@ -337,6 +337,21 @@
 			};
 		},
 
+		// Asserts there is just one aria-selected tab and that it's the one with 'cke_dialog_tab_selected' class.
+		//
+		// @param {String} tab The tab ID.
+		assertTabsAriaAttribute: function() {
+			return function( dialog ) {
+				var selectedTab = dialog.getElement().findOne( '.cke_dialog_tab_selected' ),
+					ariaSelectedTabsCount = dialog.getElement().find( '[aria-selected]' ).count();
+
+				assert.areEqual( 1, ariaSelectedTabsCount );
+				assert.isTrue( !!selectedTab.getAttribute( 'aria-selected' ) );
+
+				return dialog;
+			};
+		},
+
 		// Provides a thenable/chainable function which returns "dialog changing focus" promise when called.
 		//
 		// The idea is to wrap a function which changes focus into a promise. The promise resolves when dialog generates
@@ -386,8 +401,18 @@
 			editor.addCommand( 'singlePageDialog', new CKEDITOR.dialogCommand( 'singlePageDialog' ) );
 			editor.addCommand( 'multiPageDialog', new CKEDITOR.dialogCommand( 'multiPageDialog' ) );
 			editor.addCommand( 'hiddenPageDialog', new CKEDITOR.dialogCommand( 'hiddenPageDialog' ) );
-		}
+		},
 
+		// Closes all opened dialogs.
+		closeAllDialogs: function() {
+			var dialog = CKEDITOR.dialog.getCurrent();
+
+			while ( dialog ) {
+				dialog.hide();
+
+				dialog = CKEDITOR.dialog.getCurrent();
+			}
+		}
 	};
 
 	window.dialogTools = dialogTools;

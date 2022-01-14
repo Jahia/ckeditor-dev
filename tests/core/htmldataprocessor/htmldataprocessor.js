@@ -110,6 +110,7 @@
 			name: 'test_editor3',
 			config: {
 				protectedSource: [ /\[\[[^\]]*?\]\]/g ],
+				removePlugins: 'iframe', // Iframe plugin does not allow any content inside (#4822).
 				fullPage: true,
 				allowedContent: true
 			}
@@ -371,8 +372,6 @@
 			assert.areSame( getTextAreaValue( '_TEXTAREA_3591_protected' ), protectedHtml );
 			assert.areSame( getTextAreaValue( '_TEXTAREA_3591' ), dataProcessor.toDataFormat( protectedHtml ) );
 		}, */
-
-		test_ticket_3591_2: testProcessedHtmlUnchanged( '_TEXTAREA_3591_2', true ),
 
 		test_ticket_3869_1: testProcessedHtmlUnchanged( '_TEXTAREA_3869_1' ),
 
@@ -1317,8 +1316,9 @@
 
 	addXssTC( tcs, 'iframe with src=javascript 3',
 		'<p><iframe src="   jAvAsCrIpT:window.parent.%xss%;"></iframe></p>',
-		// Only Safari and Opera removes preceding spaces in the attribute (#1070).
-		'<p><iframe src="' + ( CKEDITOR.env.safari ? '' : '   ' ) + 'javascript:window.parent.%xss%;"></iframe></p>' ); // jshint ignore:line
+		// No browser removes preciding spaces from attribute value anymore. (#3483).
+		// However, I'm leaving this test as is (not removing spaces) as it's kind of pseudo-feature-docs.
+		'<p><iframe src="   javascript:window.parent.%xss%;"></iframe></p>' ); // jshint ignore:line
 
 	if ( !isBrowserDisplayingAlert() ) {
 		addXssTC( tcs, 'iframe with src=javascript 4',

@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -34,7 +34,6 @@ CKEDITOR.lang[ 'fi' ] = {
 		upload: 'Lisää tiedosto',
 		uploadSubmit: 'Lähetä palvelimelle',
 		image: 'Kuva',
-		flash: 'Flash-animaatio',
 		form: 'Lomake',
 		checkbox: 'Valintaruutu',
 		radio: 'Radiopainike',

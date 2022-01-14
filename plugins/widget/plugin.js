@@ -1,5 +1,5 @@
 ﻿/**
- * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -288,6 +288,10 @@
 		 * This method is triggered by the {@link #event-checkSelection} event.
 		 */
 		checkSelection: function() {
+			if ( !this.editor.getSelection() ) {
+				return;
+			}
+
 			var sel = this.editor.getSelection(),
 				selectedElement = sel.getSelectedElement(),
 				updater = stateUpdater( this ),
@@ -986,9 +990,21 @@
 		 *
 		 * For every `partName => selector` pair in {@link CKEDITOR.plugins.widget.definition#parts},
 		 * one `partName => element` pair is added to this object during the widget initialization.
+		 * Parts can be reinitialized with the {@link #refreshParts} method.
 		 *
 		 * @readonly
 		 * @property {Object} parts
+		 */
+
+		/**
+		 * An object containing definitions of widget parts (`part name => CSS selector`).
+		 *
+		 * Unlike the {@link #parts} object, it stays unchanged throughout the widget lifecycle
+		 * and is used in the {@link #refreshParts} method.
+		 *
+		 * @readonly
+		 * @property {Object} partSelectors
+		 * @since 4.14.0
 		 */
 
 		/**
@@ -1418,6 +1434,31 @@
 
 			// Always focus editor (not only when focusManger.hasFocus is false) (because of https://dev.ckeditor.com/ticket/10483).
 			this.editor.focus();
+		},
+
+		/**
+		 * Refreshes the widget's mask. It can be used together with the {@link #refreshParts} method to reinitialize the mask
+		 * for dynamically created widgets.
+		 *
+		 * @since 4.14.0
+		 */
+		refreshMask: function() {
+			setupMask( this );
+		},
+
+		/**
+		 * Reinitializes the widget's {@link #parts}.
+		 *
+		 * This method can be used to link new DOM elements to widget parts, for example in case when the widget's HTML is created
+		 * asynchronously or modified during the widget lifecycle. Note that it uses the {@link #partSelectors} object, so it does not
+		 * refresh parts that were created manually.
+		 *
+		 * @since 4.14.0
+		 * @param {Boolean} [refreshInitialized=true] Whether the parts that are already initialized should be reinitialized.
+		 */
+		refreshParts: function( refreshInitialized ) {
+			refreshInitialized = typeof refreshInitialized !== 'undefined' ? refreshInitialized : true;
+			setupParts( this, refreshInitialized );
 		},
 
 		/**
@@ -1887,11 +1928,17 @@
 			}
 			this._.initialSetData = false;
 
+			// Unprotect comments, to get rid of additional characters (#4777).
+			data = this.editor.dataProcessor.unprotectRealComments( data );
+
+			// Unescape protected content to prevent double escaping and corruption of content (#4060, #4509).
+			data = this.editor.dataProcessor.unprotectSource( data );
 			data = this.editor.dataProcessor.toHtml( data, {
 				context: this.getName(),
 				filter: this.filter,
 				enterMode: this.enterMode
 			} );
+
 			this.setHtml( data );
 
 			this.editor.widgets.initOnAll( this );
@@ -2582,6 +2629,8 @@
 				id = dataTransfer.getData( 'cke/widget-id' ),
 				transferType = dataTransfer.getTransferType( editor ),
 				dragRange = editor.createRange(),
+				dropRange = evt.data.dropRange,
+				dropWidget = getWidgetFromRange( dropRange ),
 				sourceWidget;
 
 			// Disable cross-editor drag & drop for widgets - https://dev.ckeditor.com/ticket/13599.
@@ -2590,12 +2639,26 @@
 				return;
 			}
 
-			if ( id === '' || transferType != CKEDITOR.DATA_TRANSFER_INTERNAL ) {
+			if ( transferType != CKEDITOR.DATA_TRANSFER_INTERNAL ) {
+				return;
+			}
+
+			// Add support for dropping selection containing more than widget itself
+			// or more than one widget (#3441).
+			if ( id === '' && editor.widgets.selected.length > 0 ) {
+				evt.data.dataTransfer.setData( 'text/html', getClipboardHtml( editor ) );
 				return;
 			}
 
 			sourceWidget = widgetsRepo.instances[ id ];
 			if ( !sourceWidget ) {
+				return;
+			}
+
+			// Disable dropping into itself or nested widgets (#4509).
+			if ( isTheSameWidget( sourceWidget, dropWidget ) ) {
+				evt.cancel();
+
 				return;
 			}
 
@@ -2611,6 +2674,26 @@
 
 			evt.data.dataTransfer.setData( 'text/html', sourceWidget.getClipboardHtml() );
 			editor.widgets.destroy( sourceWidget, true );
+
+			// In case of dropping widget, the fake selection should be on the widget itself.
+			// Thanks to that we should always get widget from range's boundary nodes.
+			function getWidgetFromRange( range ) {
+				var startElement = range.getBoundaryNodes().startNode;
+
+				if ( startElement.type !== CKEDITOR.NODE_ELEMENT ) {
+					startElement = startElement.getParent();
+				}
+
+				return editor.widgets.getByElement( startElement );
+			}
+
+			function isTheSameWidget( widget1, widget2 ) {
+				if ( !widget1 || !widget2 ) {
+					return false;
+				}
+
+				return widget1.wrapper.equals( widget2.wrapper ) || widget1.wrapper.contains( widget2.wrapper );
+			}
 		} );
 
 		editor.on( 'contentDom', function() {
@@ -2825,6 +2908,11 @@
 			} );
 		} );
 
+		// (#3498)
+		if ( !CKEDITOR.env.ie ) {
+			widgetsRepo.on( 'checkSelection', fixCrossContentSelection );
+		}
+
 		widgetsRepo.on( 'checkSelection', widgetsRepo.checkSelection, widgetsRepo );
 
 		editor.on( 'selectionChange', function( evt ) {
@@ -2862,6 +2950,44 @@
 			if ( ( widget = widgetsRepo.widgetHoldingFocusedEditable ) )
 				setFocusedEditable( widgetsRepo, widget, null );
 		} );
+
+		// Selection is fixed only when it starts in content and ends in a widget (and vice versa).
+		// It's not possible to manually create selection which starts inside one widget and ends in another,
+		// so we are skipping this case to simplify implementation (#3498).
+		function fixCrossContentSelection() {
+			var selection = editor.getSelection();
+			if ( !selection ) {
+				return;
+			}
+
+			var range = selection.getRanges()[ 0 ];
+			if ( !range || range.collapsed ) {
+				return;
+			}
+
+			var startWidget = findWidget( range.startContainer ),
+				endWidget = findWidget( range.endContainer );
+
+			if ( !startWidget && endWidget ) {
+				range.setEndBefore( endWidget.wrapper );
+				range.select();
+			} else if ( startWidget && !endWidget ) {
+				range.setStartAfter( startWidget.wrapper );
+				range.select();
+			}
+		}
+
+		function findWidget( node ) {
+			if ( !node ) {
+				return null;
+			}
+
+			if ( node.type == CKEDITOR.NODE_TEXT ) {
+				return findWidget( node.getParent() );
+			}
+
+			return editor.widgets.getByElement( node );
+		}
 
 		function fireCheckSelection() {
 			widgetsRepo.fire( 'checkSelection' );
@@ -3174,8 +3300,7 @@
 
 		undoManager.addFilterRule( function( data ) {
 			return data.replace( /\s*cke_widget_selected/g, '' )
-				.replace( /\s*cke_widget_focused/g, '' )
-				.replace( /<span[^>]*cke_widget_drag_handler_container[^>]*.*?<\/span>/gmi, '' );
+				.replace( /\s*cke_widget_focused/g, '' );
 		} );
 	}
 
@@ -3362,6 +3487,42 @@
 		}
 	} );
 
+	function insertLine( widget, position ) {
+		var elementTag = decodeEnterMode( widget.editor.config.enterMode ),
+			newElement = new CKEDITOR.dom.element( elementTag );
+
+		// Avoid nesting <br> inside <br>.
+		if ( elementTag !== 'br' ) {
+			newElement.appendBogus();
+		}
+
+		if ( position === 'after' ) {
+			newElement.insertAfter( widget.wrapper );
+		} else {
+			newElement.insertBefore( widget.wrapper );
+		}
+
+		select( newElement );
+
+		function decodeEnterMode( option ) {
+			if ( option == CKEDITOR.ENTER_BR ) {
+				return 'br';
+			} else if ( option == CKEDITOR.ENTER_DIV ) {
+				return 'div';
+			}
+
+			// Default option - CKEDITOR.ENTER_P.
+			return 'p';
+		}
+
+		function select( element ) {
+			var newRange = widget.editor.createRange();
+
+			newRange.setStart( element, 0 );
+			widget.editor.getSelection().selectRanges( [ newRange ] );
+		}
+	}
+
 	function copyWidgets( editor, isCut ) {
 		var focused = editor.widgets.focused,
 			isWholeSelection,
@@ -3406,21 +3567,7 @@
 			bookmarks = editor.getSelection().createBookmarks( true );
 		}
 
-		copyBin.handle( getClipboardHtml() );
-
-		function getClipboardHtml() {
-			var selectedHtml = editor.getSelectedHtml( true );
-
-			if ( editor.widgets.focused ) {
-				return editor.widgets.focused.getClipboardHtml();
-			}
-
-			editor.once( 'toDataFormat', function( evt ) {
-				evt.data.widgetsCopy = true;
-			}, null, null, -1 );
-
-			return editor.dataProcessor.toDataFormat( selectedHtml );
-		}
+		copyBin.handle( getClipboardHtml( editor ) );
 
 		function handleCut() {
 			if ( focused ) {
@@ -3474,7 +3621,24 @@
 		}
 	}
 
+	function getClipboardHtml( editor ) {
+		var selectedHtml = editor.getSelectedHtml( true );
+
+		if ( editor.widgets.focused ) {
+			return editor.widgets.focused.getClipboardHtml();
+		}
+
+		editor.once( 'toDataFormat', function( evt ) {
+			evt.data.widgetsCopy = true;
+		}, null, null, -1 );
+
+		return editor.dataProcessor.toDataFormat( selectedHtml );
+	}
+
 	function setupWidget( widget, widgetDef ) {
+		var keystrokeInsertLineBefore = widget.editor.config.widget_keystrokeInsertLineBefore,
+			keystrokeInsertLineAfter = widget.editor.config.widget_keystrokeInsertLineAfter;
+
 		setupWrapper( widget );
 		setupParts( widget );
 		setupEditables( widget );
@@ -3503,16 +3667,28 @@
 		widget.on( 'key', function( evt ) {
 			var keyCode = evt.data.keyCode;
 
+			// Insert a new paragraph before the widget (#4467).
+			if ( keyCode == keystrokeInsertLineBefore ) {
+				insertLine( widget, 'before' );
+				widget.editor.fire( 'saveSnapshot' );
+			}
+			// Insert a new paragraph after the widget (#4467).
+			else if ( keyCode == keystrokeInsertLineAfter ) {
+				insertLine( widget, 'after' );
+				widget.editor.fire( 'saveSnapshot' );
+			}
 			// ENTER.
-			if ( keyCode == 13 ) {
+			else if ( keyCode == 13 ) {
 				widget.edit();
-				// CTRL+C or CTRL+X.
-			} else if ( keyCode == CKEDITOR.CTRL + 67 || keyCode == CKEDITOR.CTRL + 88 ) {
+			}
+			// CTRL+C or CTRL+X.
+			else if ( keyCode == CKEDITOR.CTRL + 67 || keyCode == CKEDITOR.CTRL + 88 ) {
 				copyWidgets( widget.editor, keyCode == CKEDITOR.CTRL + 88 );
 				return; // Do not preventDefault.
-				// Pass chosen keystrokes to other plugins or default fake sel handlers.
-				// Pass all CTRL/ALT keystrokes.
-			} else if ( keyCode in keystrokesNotBlockedByWidget ||
+			}
+			// Pass all CTRL/ALT keystrokes.
+			// Pass chosen keystrokes to other plugins or default fake sel handlers.
+			else if ( keyCode in keystrokesNotBlockedByWidget ||
 				( CKEDITOR.CTRL & keyCode ) ||
 				( CKEDITOR.ALT & keyCode ) ) {
 				return;
@@ -3550,15 +3726,23 @@
 	// partName => selector pairs
 	// with:
 	// partName => element pairs
-	function setupParts( widget ) {
+	function setupParts( widget, refreshInitialized ) {
+		if ( !widget.partSelectors ) {
+			widget.partSelectors = widget.parts;
+		}
+
 		if ( widget.parts ) {
 			var parts = {},
 				el,
 				partName;
 
-			for ( partName in widget.parts ) {
-				el = widget.wrapper.findOne( widget.parts[ partName ] );
-				parts[ partName ] = el;
+			for ( partName in widget.partSelectors ) {
+				if ( refreshInitialized || !widget.parts[ partName ] || typeof widget.parts[ partName ] == 'string' ) {
+					el = widget.wrapper.findOne( widget.partSelectors[ partName ] );
+					parts[ partName ] = el;
+				} else {
+					parts[ partName ] = widget.parts[ partName ];
+				}
 			}
 			widget.parts = parts;
 		}
@@ -3679,8 +3863,8 @@
 		var part = this.parts[ this.maskPart ],
 			mask;
 
-		// If requested part is invalid, don't create mask.
-		if ( !part ) {
+		// If requested part is invalid or wasn't fetched yet (#3775), don't create mask.
+		if ( !part || typeof part == 'string' ) {
 			return;
 		}
 
@@ -4561,7 +4745,7 @@
 /**
  * If set to `true`, the widget's element will be covered with a transparent mask.
  * This will prevent its content from being clickable, which matters in case
- * of special elements like embedded Flash or iframes that generate a separate "context".
+ * of special elements like embedded iframes that generate a separate "context".
  *
  * If the value is a `string` type, then the partial mask covering only the given widget part
  * is created instead. The `string` mask should point to the name of one of the widget {@link CKEDITOR.plugins.widget#parts parts}.
@@ -4743,3 +4927,27 @@
  *
  * @property {String} pathName
  */
+
+/**
+ * Defines the keyboard shortcut for inserting a line before selected widget. Default combination
+ * is `Shift+Alt+Enter`. New element tag is based on {@link CKEDITOR.config#enterMode} option.
+ *
+ *		config.widget_keystrokeInsertLineBefore = 'CKEDITOR.SHIFT + 38'; // Shift + Arrow Up
+ *
+ * @since 4.17.0
+ * @cfg {Number} [widget_keystrokeInsertLineBefore=CKEDITOR.SHIFT+CKEDITOR.ALT+13]
+ * @member CKEDITOR.config
+ */
+CKEDITOR.config.widget_keystrokeInsertLineBefore = CKEDITOR.SHIFT + CKEDITOR.ALT + 13;
+
+/**
+ * Defines the keyboard shortcut for inserting a line after selected widget. Default combination
+ * is `Shift+Enter`. New element tag is based on {@link CKEDITOR.config#enterMode} option.
+ *
+ *		config.widget_keystrokeInsertLineAfter = 'CKEDITOR.SHIFT + 40'; // Shift + Arrow Down
+ *
+ * @since 4.17.0
+ * @cfg {Number} [widget_keystrokeInsertLineAfter=CKEDITOR.SHIFT+13]
+ * @member CKEDITOR.config
+ */
+CKEDITOR.config.widget_keystrokeInsertLineAfter = CKEDITOR.SHIFT + 13;
