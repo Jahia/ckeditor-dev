@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -34,7 +34,6 @@ CKEDITOR.lang[ 'km' ] = {
 		upload: 'ផ្ទុក​ឡើង',
 		uploadSubmit: 'បញ្ជូនទៅកាន់ម៉ាស៊ីន​បម្រើ',
 		image: 'រូបភាព',
-		flash: 'Flash',
 		form: 'បែបបទ',
 		checkbox: 'ប្រអប់​ធីក',
 		radio: 'ប៊ូតុង​មូល',

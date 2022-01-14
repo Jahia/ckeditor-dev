@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -1218,11 +1218,14 @@
 							startPath = range.startPath();
 
 						if ( range.collapsed ) {
-							if ( !mergeBlocksCollapsedSelection( editor, range, backspace, startPath ) )
+							// Skip inner range trimming (#3819).
+							if ( !mergeBlocksCollapsedSelection( editor, range, backspace, startPath, true ) ) {
 								return;
+							}
 						} else {
-							if ( !mergeBlocksNonCollapsedSelection( editor, range, startPath ) )
+							if ( !mergeBlocksNonCollapsedSelection( editor, range, startPath ) ) {
 								return;
+							}
 						}
 
 						// Scroll to the new position of the caret (https://dev.ckeditor.com/ticket/11960).
@@ -1645,7 +1648,9 @@
 		// guarantee it's result to be a valid DOM tree.
 		function insert( editable, type, data, range ) {
 			var editor = editable.editor,
-				dontFilter = false;
+				dontFilter = false,
+				html,
+				isEmptyEditable;
 
 			if ( type == 'unfiltered_html' ) {
 				type = 'html';
@@ -1683,9 +1688,17 @@
 
 			prepareRangeToDataInsertion( that );
 
+			html = editable.getHtml(),
+			// Instead of getData method, we directly check the HTML
+			// due to the fact that internal getData operates on latest snapshot,
+			// not the current content.
+			// Checking it after clearing the range's content will give the
+			// most correct results (#4301).
+			isEmptyEditable = html === '' || html.match( emptyParagraphRegexp );
+
 			// When enter mode is set to div and content wrapped with div is pasted,
-			// we must ensure that no additional divs are created (#2751, #3379).
-			if ( editor.enterMode === CKEDITOR.ENTER_DIV && editor.getData( true ) === '' ) {
+			// we must ensure that no additional divs are created (#2751).
+			if ( editor.enterMode === CKEDITOR.ENTER_DIV && isEmptyEditable ) {
 				clearEditable( editable, range );
 			}
 
@@ -1884,7 +1897,10 @@
 
 			nodesData = extractNodesData( that.dataWrapper, that );
 
-			removeBrsAdjacentToPastedBlocks( nodesData, range );
+			// Keep br's when CKEDITOR.ENTER_BR is active for proper spacing. (#3858)
+			if ( that.editor.enterMode !== CKEDITOR.ENTER_BR ) {
+				removeBrsAdjacentToPastedBlocks( nodesData, range );
+			}
 
 			for ( ; nodeIndex < nodesData.length; nodeIndex++ ) {
 				nodeData = nodesData[ nodeIndex ];
@@ -2026,8 +2042,23 @@
 			}
 
 			// Eventually merge identical inline elements.
-			while ( ( node = that.mergeCandidates.pop() ) )
+			while ( ( node = that.mergeCandidates.pop() ) ) {
 				node.mergeSiblings();
+			}
+
+			// Normalize text nodes (#848).
+			if ( CKEDITOR.env.webkit && range.startPath() ) {
+				var path = range.startPath();
+
+				if ( path.block ) {
+					path.block.$.normalize();
+				} else if ( path.blockLimit ) {
+					// Handle ENTER_BR mode when the text is a direct root/body child.
+					// This will call native `normalize` on the entire editor content in this case
+					// normalizing text nodes in the entire editor content.
+					path.blockLimit.$.normalize();
+				}
+			}
 
 			range.moveToBookmark( bm );
 
@@ -2529,7 +2560,7 @@
 		};
 	} )();
 
-	function mergeBlocksCollapsedSelection( editor, range, backspace, startPath ) {
+	function mergeBlocksCollapsedSelection( editor, range, backspace, startPath, skipRangeTrimming ) {
 		var startBlock = startPath.block;
 
 		// Selection must be collapsed and to be anchored in a block.
@@ -2538,7 +2569,7 @@
 
 		// Exclude cases where, i.e. if pressed arrow key, selection
 		// would move within the same block (merge inside a block).
-		if ( !range[ backspace ? 'checkStartOfBlock' : 'checkEndOfBlock' ]() )
+		if ( !range[ backspace ? 'checkStartOfBlock' : 'checkEndOfBlock' ]( skipRangeTrimming ) )
 			return false;
 
 		// Make sure, there's an editable position to put selection,

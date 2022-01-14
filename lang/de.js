@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -36,7 +36,6 @@ CKEDITOR.lang[ 'de' ] = {
 		upload: 'Hochladen',
 		uploadSubmit: 'Zum Server senden',
 		image: 'Bild',
-		flash: 'Flash',
 		form: 'Formular',
 		checkbox: 'Kontrollbox',
 		radio: 'Optionsfeld',
@@ -65,7 +64,7 @@ CKEDITOR.lang[ 'de' ] = {
 		generalTab: 'Allgemein',
 		advancedTab: 'Erweitert',
 		validateNumberFailed: 'Dieser Wert ist keine Nummer.',
-		confirmNewPage: 'Alle nicht gespeicherten Änderungen gehen verloren. Sind Sie sicher die neue Seite zu laden?',
+		confirmNewPage: 'Alle nicht gespeicherten Änderungen gehen verloren. Sind Sie sicher, die neue Seite zu laden?',
 		confirmCancel: 'Einige Optionen wurden geändert. Wollen Sie den Dialog dennoch schließen?',
 		options: 'Optionen',
 		target: 'Zielseite',

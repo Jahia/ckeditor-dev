@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -36,7 +36,6 @@ CKEDITOR.lang[ 'fr' ] = {
 		upload: 'Télécharger',
 		uploadSubmit: 'Envoyer sur le serveur',
 		image: 'Image',
-		flash: 'Flash',
 		form: 'Formulaire',
 		checkbox: 'Case à cocher',
 		radio: 'Bouton radio',
