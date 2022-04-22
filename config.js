@@ -22,6 +22,7 @@ CKEDITOR.editorConfig = function( config ) {
 		'elementspath,' +
 		'enterkey,' +
 		'entities,' +
+		'escape,' +
 		'filebrowser,' +
 		'find,' +
 		'floatingspace,' +

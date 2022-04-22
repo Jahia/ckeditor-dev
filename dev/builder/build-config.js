@@ -52,6 +52,7 @@ var CKBUILDER_CONFIG = {
 		elementspath: 1,
 		enterkey: 1,
 		entities: 1,
+		escape: 1,
 		filebrowser: 1,
 		find: 1,
 		floatingspace: 1,
