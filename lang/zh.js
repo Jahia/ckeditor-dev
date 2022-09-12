@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2022, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -19,7 +19,8 @@
  */
 CKEDITOR.lang[ 'zh' ] = {
 	// ARIA description.
-	editor: 'RTF 編輯器',
+	application: '格式化文字編輯器',
+	editor: '編輯器',
 	editorPanel: 'RTF 編輯器面板',
 
 	// Common messages and labels.

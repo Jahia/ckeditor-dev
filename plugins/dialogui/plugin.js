@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2022, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -1201,6 +1201,7 @@ CKEDITOR.plugins.add( 'dialogui', {
 			setValue: function( checked, noChangeEvent ) {
 				this.getInputElement().$.checked = checked;
 				!noChangeEvent && this.fire( 'change', { value: checked } );
+				return this;
 			},
 
 			/**
@@ -1261,6 +1262,7 @@ CKEDITOR.plugins.add( 'dialogui', {
 				( i < children.length ) && ( item = children[ i ] ); i++ )
 					item.getElement().$.checked = ( item.getValue() == value );
 				!noChangeEvent && this.fire( 'change', { value: value } );
+				return this;
 			},
 
 			/**
