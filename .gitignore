@@ -32,3 +32,5 @@ bender-*.log
 .DS_Store
 
 *.iml
+dev/iconmaker/node_modules
+/.project

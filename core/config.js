@@ -85,7 +85,7 @@ CKEDITOR.config = {
 	 * @cfg {String} [="<CKEditor folder>/config.js"]
 	 */
 	customConfig: '',
-	
+
 	dynamicConfig: function( cfg ) {
 		var p = (typeof contextJsParameters != 'undefined') ? contextJsParameters : {};
 		cfg.contextPath = p.contextPath || '';
@@ -284,7 +284,7 @@ CKEDITOR.config = {
 	/**
 	 * The height of the editing area that includes the editor content. This configuration
 	 * option accepts an integer (to denote a value in pixels) or any CSS-defined length unit
-	 * except percent (`%`) values  which are not supported.
+	 * except percent (`%`) values which are not supported.
 	 *
 	 * **Note:** This configuration option is ignored by {@glink guide/dev_inline inline editor}.
 	 *
@@ -443,9 +443,9 @@ CKEDITOR.config = {
 	 * @cfg {Array} [blockedKeystrokes=see example]
 	 */
 	blockedKeystrokes: [
-		CKEDITOR.CTRL + 66, // Ctrl+B
-		CKEDITOR.CTRL + 73, // Ctrl+I
-		CKEDITOR.CTRL + 85 // Ctrl+U
+		CKEDITOR.CTRL + 66, // CTRL+B
+		CKEDITOR.CTRL + 73, // CTRL+I
+		CKEDITOR.CTRL + 85 // CTRL+U
 	],
 
 	/**

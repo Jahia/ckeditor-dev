@@ -46,6 +46,7 @@ var CKBUILDER_CONFIG = {
 		colorbutton: 1,
 		colordialog: 1,
 		copyformatting: 1,
+		contenteditor: 1,
 		contextmenu: 1,
 		dialogadvtab: 1,
 		div: 1,
@@ -98,7 +99,7 @@ var CKBUILDER_CONFIG = {
 		templates: 1,
 		toolbar: 1,
 		undo: 1,
-		wsc : 1,
+		wsc:1,
 		uploadimage: 1,
 		wysiwygarea: 1
 	}

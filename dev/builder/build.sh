@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 # Copyright (c) 2003-2022, CKSource Holding sp. z o.o. All rights reserved.
 # For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
 
@@ -66,8 +66,8 @@ jdk_version=$( echo `java -version 2>&1 | grep 'version' 2>&1 | awk -F\" '{ spli
 regex='^[0-9]+$';
 # Builder is crashing when JDK version is newer than 15.
 if ! [[ $jdk_version =~ $regex ]] || [ $jdk_version -gt 15 ]; then
-	printf "${MSG_INCORRECT_JDK_VERSION}\n";
-	printf "${UNDERLINE}${YELLOW}Actual version of JDK: ${jdk_version}${RESET_STYLE}\n";
+	echo "${MSG_INCORRECT_JDK_VERSION}";
+	echo "${UNDERLINE}${YELLOW}Actual version of JDK: ${jdk_version}${RESET_STYLE}";
 fi
 
 JAVA_ARGS=${ARGS// -t / } # Remove -t from args.
@@ -88,25 +88,24 @@ fi
 	java -jar ckbuilder/$CKBUILDER_VERSION/ckbuilder.jar --build ../../ release $JAVA_ARGS --version="$VERSION" --revision="$REVISION" --overwrite
 } || {
 	if ! [[ $jdk_version =~ $regex ]] || [ $jdk_version -gt 15 ]; then
-		printf "\n${RED}The build has been stopped. Please verify the eventual error messages above.${RESET_STYLE}\n"
-		exit 1
+		echo "\n${RED}The build has been stopped. Please verify the eventual error messages above.${RESET_STYLE}"
 	fi
 }
 
 # Copy and build tests.
 if [[ "$ARGS" == *\ \-t\ * ]]; then
-	printf "\n"
-	printf "Copying tests...\n"
+	echo ""
+	echo "Copying tests..."
 
 	cp -r ../../tests release/ckeditor/tests
 	cp -r ../../package.json release/ckeditor/package.json
 	cp -r ../../bender.js release/ckeditor/bender.js
 
-	printf "\n"
-	printf "Installing tests...\n"
+	echo ""
+	echo "Installing tests..."
 
 	(cd release/ckeditor &&	npm install && bender init)
 fi
 
-printf "\n"
-printf "Release created in the \"release\" directory.\n"
+echo ""
+echo "Release created in the \"release\" directory."

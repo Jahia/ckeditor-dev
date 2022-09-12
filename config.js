@@ -16,6 +16,7 @@ CKEDITOR.editorConfig = function( config ) {
 		'colorbutton,' +
 		'colordialog,' +
 		'copyformatting,' +
+		'contenteditor,' +
 		'contextmenu,' +
 		'dialogadvtab,' +
 		'div,' +
