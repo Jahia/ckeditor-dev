@@ -85,7 +85,7 @@ var CKBUILDER_CONFIG = {
 		resize: 1,
 		save: 0,
 		selectall: 1,
-		scayt : 1,
+		scayt : 0,
 		showblocks: 1,
 		showborders: 1,
 		smiley: 1,
@@ -99,7 +99,7 @@ var CKBUILDER_CONFIG = {
 		templates: 1,
 		toolbar: 1,
 		undo: 1,
-		wsc:1,
+		wsc:0,
 		uploadimage: 1,
 		wysiwygarea: 1
 	}
