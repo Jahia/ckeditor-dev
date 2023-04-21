@@ -6,14 +6,14 @@
 CKEDITOR.plugins.add('macrosdropdown', {
             requires: ['richcombo'], //, 'styles' ],
             init: function (editor) {
-                editor.ui.addRichCombo('Macros', {
+				editor.ui.addRichCombo('Macros', {
                             label: 'Macros',
                             title: 'Insert macros',
                             voiceLabel: 'Insert macros',
                             className: 'cke_format',
                             multiSelect: false,
                             panel: {
-                                css: [ editor.config.contentsCss, CKEDITOR.skin.getPath('editor') ],
+                                css: [ CKEDITOR.skin.getPath( 'editor' ) ].concat( editor.config.contentsCss ),
                                 voiceLabel: editor.lang.panelVoiceLabel
                             },
 
