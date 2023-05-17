@@ -4,7 +4,6 @@
  */
 
 CKEDITOR.editorConfig = function( config ) {
-	config.config.disableNativeSpellChecker = false;
 	// %REMOVE_START%
 	config.plugins =
 		'about,' +
