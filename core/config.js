@@ -86,7 +86,7 @@ CKEDITOR.config = {
 	 */
 	customConfig: '',
 
-	dynamicConfig: function( cfg ) {
+	dynamicConfig: function (cfg) {
 		var p = (typeof contextJsParameters != 'undefined') ? contextJsParameters : {};
 		cfg.contextPath = p.contextPath || '';
 		cfg.language = p.uilang || 'en';
@@ -94,7 +94,7 @@ CKEDITOR.config = {
 		cfg.siteUuid = p.siteUuid || '';
 		cfg.customConfig = cfg.customConfig || (p.ckeCfg || '');
 		up = cfg.contextPath + '/engines/contentpicker.jsp?';
-		us = 'site=' + cfg.siteUuid + '&lang='+ cfg.contentlanguage + '&uilang='+ cfg.language;
+		us = 'site=' + cfg.siteUuid + '&lang=' + cfg.contentlanguage + '&uilang=' + cfg.language;
 		cfg.filebrowserBrowseUrl = up + us;
 		cfg.filebrowserImageBrowseUrl = up + 'type=imagepicker&' + us;
 		cfg.filebrowserFlashBrowseUrl = up + '?mime=application%2Fx-shockwave-flash%2Cvideo%2Fx-flv&' + us;
@@ -318,7 +318,7 @@ CKEDITOR.config = {
 	 *
 	 * @cfg {String/Array} [contentsCss=CKEDITOR.getUrl( 'contents.css' )]
 	 */
-	contentsCss: CKEDITOR.getUrl( 'contents.css' ),
+	contentsCss: CKEDITOR.getUrl('contents.css'),
 
 	/**
 	 * Comma-separated list of plugins to be used in an editor instance. Note that
@@ -463,56 +463,43 @@ CKEDITOR.config = {
 	autoGrow_bottomSpace: 50,
 	toolbar: 'Full',
 	toolbar_Full: [
-		['Source','-','NewPage','Preview','Print','-','Templates'],
-		['Cut','Copy','Paste','PasteText','PasteFromWord','-', 'Undo','Redo'],
-		['Find','Replace','-','SelectAll','-','wsc', 'Scayt', 'ACheck'],
+		['Source', '-', 'Templates'],
+		['Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo'],
+		['Find', 'Replace', '-', 'SelectAll'],
 		'/',
-		['Bold','Italic','Underline','Strike','Subscript','Superscript','RemoveFormat'],
-		['NumberedList','BulletedList','-','Outdent','Indent','Blockquote','CreateDiv'],
-		['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock'],
-		['Link','Unlink','Anchor'],
-		['Image','Flash','Table','HorizontalRule','Smiley','SpecialChar','PageBreak'],
+		['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', 'RemoveFormat'],
+		['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', 'Blockquote', 'CreateDiv'],
+		['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+		['Link', 'Unlink', 'Anchor'],
 		'/',
-		['Macros','Styles','Format','Font','FontSize'],
-		['TextColor','BGColor'],
-		['Maximize', 'ShowBlocks','-','About']
+		['Image', 'Table', 'HorizontalRule', 'Smiley', 'SpecialChar'],
+		'/',
+		['Macros', 'Styles', 'Format', 'Font', 'FontSize'],
+		['TextColor', 'BGColor'],
+		['Maximize', 'ShowBlocks']
 	],
 	toolbar_Basic: [
-		['Source','-','NewPage','Preview','Print','-','Templates'],
-		['Cut','Copy','Paste','PasteText','PasteFromWord','-', 'Undo','Redo'],
-		['Find','Replace','-','SelectAll','-','wsc', 'Scayt', 'ACheck'],
+		['Templates'],
+		['Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo'],
+		['Find', 'Replace', '-', 'SelectAll'],
 		'/',
-		['Bold','Italic','Underline','Strike','Subscript','Superscript','RemoveFormat'],
-		['NumberedList','BulletedList'],
-		['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock'],
-		['Link','Unlink','Anchor'],
-		['Image','Flash','Table','HorizontalRule','Smiley','SpecialChar'],
+		['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', 'RemoveFormat'],
+		['NumberedList', 'BulletedList'],
+		['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+		['Link', 'Unlink', 'Anchor'],
+		['Image', 'Table', 'HorizontalRule', 'Smiley', 'SpecialChar'],
 		'/',
-		['Maximize', 'ShowBlocks','-','About']
+		['Maximize', 'ShowBlocks']
 	],
 	toolbar_Mini: [
-		['Bold','Italic','Underline','Strike','RemoveFormat'],
-		['NumberedList','BulletedList','-','Blockquote'],
-		['Link','Unlink'],
-		['Image','Smiley'],
-		['TextColor','BGColor']
+		['Bold', 'Italic', 'Underline', 'Strike', 'RemoveFormat'],
+		['NumberedList', 'BulletedList', '-', 'Blockquote'],
+		['Link', 'Unlink'],
+		['Image', 'Smiley'],
+		['TextColor', 'BGColor']
 	],
 	toolbar_Light: [
-		['Bold','Italic','Underline','Strike','RemoveFormat','-','NumberedList','BulletedList']
-	],
-	toolbar_User: [
-		['Cut','Copy','Paste','PasteText','PasteFromWord','-', 'Undo','Redo'],
-		['Find','Replace','-','SelectAll','-','wsc', 'Scayt', 'ACheck'],
-		['Link','Unlink','Anchor', 'Image','LinkFile'],
-		['HorizontalRule','Smiley','SpecialChar','PageBreak'],
-		'/',
-		['Bold','Italic','Underline','Strike','-','Subscript','Superscript'],
-		['NumberedList','BulletedList','-','Outdent','Indent','Blockquote'],
-		['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock'],
-		'/',
-		['Styles','Format','Font','FontSize'],
-		['TextColor','BGColor'],
-		['Maximize', 'ShowBlocks']
+		['Bold', 'Italic', 'Underline', 'Strike', 'RemoveFormat', '-', 'NumberedList', 'BulletedList']
 	]
 };
 
