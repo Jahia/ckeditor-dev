@@ -29,7 +29,6 @@ CKEDITOR.plugins.add('macrosdropdown', {
 						for (var i in data) {
 							that.add(data[i].value[0],data[i].value[0],data[i].value[0]);
 						}
-						that.render(editor, '');
 					}
 				};
 				xmlhttp.open("POST", initializerURL, false);
