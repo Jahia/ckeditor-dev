@@ -4,46 +4,45 @@
  * Copyright (C) 2002-2014 Jahia Solutions Group SA. All rights reserved.
  */
 CKEDITOR.plugins.add('macrosdropdown', {
-            requires: ['richcombo'], //, 'styles' ],
-            init: function (editor) {
-				editor.ui.addRichCombo('Macros', {
-                            label: 'Macros',
-                            title: 'Insert macros',
-                            voiceLabel: 'Insert macros',
-                            className: 'cke_format',
-                            multiSelect: false,
-                            panel: {
-                                css: [ CKEDITOR.skin.getPath( 'editor' ) ].concat( editor.config.contentsCss ),
-                                voiceLabel: editor.lang.panelVoiceLabel
-                            },
+	requires: ['richcombo'], //, 'styles' ],
+	init: function (editor) {
+		editor.ui.addRichCombo('Macros', {
+			label: 'Macros',
+			title: 'Insert macros',
+			voiceLabel: 'Insert macros',
+			className: 'cke_format',
+			multiSelect: false,
+			panel: {
+				css: [CKEDITOR.skin.getPath('editor')].concat(editor.config.contentsCss),
+				voiceLabel: editor.lang.panelVoiceLabel
+			},
 
-                            init: function () {
-                                this.startGroup("Insert Macros");
-                                var tags = [];
-                                var initializerURL = window.location.protocol + "//" + window.location.host +
-                                (jahiaGWTParameters != undefined ? jahiaGWTParameters.contextPath : "") + '/cms/initializers';
-                                $.ajax({
-                                    url: initializerURL,
-                                    data: {name: 'macros', nodeuuid: contextJsParameters.siteUuid, initializers: 'choicelistmacros'},
-                                    success: function (result) {
-                                            $.each(result, function (key, value) {
-                                                tags.push([value['name'][0], value['name'][0], value['name'][0]]);
-                                            });
-                                        },
-                                    dataType: 'json',
-                                    async: false
-                                });
-                                for (var this_tag in tags) {
-                                    this.add(tags[this_tag][0], tags[this_tag][1], tags[this_tag][2]);
-                                }
-                            },
+			init: function () {
+				this.startGroup("Insert Macros");
+				var initializerURL = window.location.protocol + "//" + window.location.host +
+					(jahiaGWTParameters != undefined ? jahiaGWTParameters.contextPath : "") + '/cms/initializers';
+				var xmlhttp = new XMLHttpRequest();
+				var that = this;
+				xmlhttp.onreadystatechange = function () {
+					if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+						var data = JSON.parse(xmlhttp.responseText);
+						for (var i in data) {
+							that.add(data[i].value[0],data[i].value[0],data[i].value[0]);
+						}
+					}
+				};
+				xmlhttp.open("POST", initializerURL, false);
+				xmlhttp.setRequestHeader("Accept", "application/json");
+				xmlhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+				xmlhttp.send('initializers=choicelistmacros&name=macros&nodeuuid=' + contextJsParameters.siteUuid);
+			},
 
-                            onClick: function (value) {
-                                editor.focus();
-                                editor.fire('saveSnapshot');
-                                editor.insertHtml(value);
-                                editor.fire('saveSnapshot');
-                            }
-                        });
-            }
-        });
+			onClick: function (value) {
+				editor.focus();
+				editor.fire('saveSnapshot');
+				editor.insertHtml(value);
+				editor.fire('saveSnapshot');
+			}
+		});
+	}
+});
